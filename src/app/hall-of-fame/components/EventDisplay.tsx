@@ -20,10 +20,6 @@ export default function EventDisplay({ events }: EventDisplayProps) {
   const [showSelector, setShowSelector] = useState(false);
   const config = eventConfigSchema.parse(selectedEvent.config);
 
-  const copyEmailToClipboard = (email: string) => {
-    navigator.clipboard.writeText(email);
-    toast.success("Email copied to clipboard!");
-  };
 
   return (
     <>

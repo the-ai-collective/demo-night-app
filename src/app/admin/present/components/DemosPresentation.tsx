@@ -43,18 +43,26 @@ export default function DemosPresentation() {
   return (
     <div className="flex size-full min-h-[calc(100vh-80px)] flex-col gap-2 pt-20">
       <div className="-mb-3 flex flex-col items-center">
-        <Link
-          href={demo.url}
-          target="_blank"
-          className="group flex items-center gap-3 transition-all"
-        >
-          <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight group-hover:underline">
+        {demo.url ? (
+          <Link
+            href={demo.url}
+            target="_blank"
+            className="group flex items-center gap-3 transition-all"
+          >
+            <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight group-hover:underline">
+              {demo.name}
+            </h1>
+          </Link>
+        ) : (
+          <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight">
             {demo.name}
           </h1>
-        </Link>
-        <p className="min-h-[40px] px-2 text-center text-lg font-semibold italic leading-6 text-gray-500">
-          {demo.description}
-        </p>
+        )}
+        {demo.description && (
+          <p className="min-h-[40px] px-2 text-center text-lg font-semibold italic leading-6 text-gray-500">
+            {demo.description}
+          </p>
+        )}
       </div>
       <ul className="z-10 flex max-h-screen flex-col gap-4 overflow-auto p-8">
         <AnimatePresence>

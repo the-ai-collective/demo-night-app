@@ -70,7 +70,14 @@ export default function DemoSheet({
   const upsertMutation = api.demo.upsert.useMutation();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: demo ?? {
+    defaultValues: demo ? {
+      id: demo.id,
+      name: demo.name,
+      description: demo.description ?? "",
+      email: demo.email ?? "",
+      url: demo.url ?? "",
+      votable: demo.votable,
+    } : {
       name: "",
       description: "",
       email: "",
