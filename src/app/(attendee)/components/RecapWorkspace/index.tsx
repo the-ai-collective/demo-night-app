@@ -217,34 +217,49 @@ function PartnerItem({
 
 function DemoItem({ demo }: { demo: PublicDemo }) {
   const copyEmailToClipboard = () => {
+    if (!demo.email) return;
     navigator.clipboard.writeText(demo.email);
     toast.success("Email copied to clipboard!");
   };
+  
+  const hasEmail = Boolean(demo.email);
+  const hasUrl = Boolean(demo.url);
+  
   return (
     <div
-      className="group z-10 flex w-full cursor-pointer flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
-      onClick={copyEmailToClipboard}
+      className={`group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur ${hasEmail ? 'cursor-pointer' : ''}`}
+      onClick={hasEmail ? copyEmailToClipboard : undefined}
     >
       <div className="flex w-full items-center justify-between gap-2">
-        <Link
-          href={demo.url ?? "/"}
-          target="_blank"
-          className="group/inner flex items-center gap-2"
-        >
-          <h3 className="line-clamp-1 text-xl font-bold group-hover/inner:underline">
+        {hasUrl ? (
+          <Link
+            href={demo.url!}
+            target="_blank"
+            className="group/inner flex items-center gap-2"
+          >
+            <h3 className="line-clamp-1 text-xl font-bold group-hover/inner:underline">
+              {demo.name}
+            </h3>
+            <ArrowUpRight
+              size={24}
+              strokeWidth={3}
+              className="h-5 w-5 flex-none rounded-md bg-gray-300/50 p-[2px] text-gray-500 group-hover/inner:bg-gray-400/50 group-hover/inner:text-gray-700"
+            />
+          </Link>
+        ) : (
+          <h3 className="line-clamp-1 text-xl font-bold">
             {demo.name}
           </h3>
-          <ArrowUpRight
-            size={24}
-            strokeWidth={3}
-            className="h-5 w-5 flex-none rounded-md bg-gray-300/50 p-[2px] text-gray-500 group-hover/inner:bg-gray-400/50 group-hover/inner:text-gray-700"
-          />
-        </Link>
-        <p className="flex-shrink-0 truncate text-gray-500">
-          📬 <span className="group-hover:underline">{demo.email}</span>
-        </p>
+        )}
+        {hasEmail && (
+          <p className="flex-shrink-0 truncate text-gray-500">
+            📬 <span className="group-hover:underline">{demo.email}</span>
+          </p>
+        )}
       </div>
-      <p className="italic leading-5 text-gray-700">{demo.description}</p>
+      {demo.description && (
+        <p className="italic leading-5 text-gray-700">{demo.description}</p>
+      )}
     </div>
   );
 }

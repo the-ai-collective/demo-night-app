@@ -61,7 +61,7 @@ export default function AwardVoteSelect({
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="flex flex-row gap-2"
         >
-          <p>{selectedDemo?.name ?? "Select a demo..."}</p>
+          <p>{selectedDemo?.name ?? "Pick your winner..."}</p>
         </motion.div>
         <Expand size={22} strokeWidth={2.25} color={"black"} />
       </div>
@@ -117,9 +117,11 @@ export default function AwardVoteSelect({
                   >
                     <div className="flex w-full flex-col leading-6">
                       <p>{demo.name}</p>
-                      <p className="text-sm font-medium italic leading-5 text-gray-700">
-                        {demo.description}
-                      </p>
+                      {demo.description && (
+                        <p className="text-sm font-medium italic leading-5 text-gray-700">
+                          {demo.description}
+                        </p>
+                      )}
                       {feedbackByDemoId[demo.id]?.rating && (
                         <div className="pointer-events-none h-11 w-full px-2 pt-1">
                           <RatingSlider feedback={feedbackByDemoId[demo.id]!} />

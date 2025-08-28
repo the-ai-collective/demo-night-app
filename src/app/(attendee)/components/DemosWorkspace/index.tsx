@@ -71,23 +71,31 @@ export default function DemosWorkspace() {
           className="flex h-full flex-col items-center justify-center gap-8 p-4 pb-[200px] pt-20"
         >
           <div className="-mb-3 flex flex-col items-center">
-            <Link
-              href={selectedDemo.url}
-              target="_blank"
-              className="group flex items-center gap-3 transition-all"
-            >
-              <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight group-hover:underline">
-                {selectedDemo.name}
-              </h1>
-              <ArrowUpRight
-                size={28}
-                strokeWidth={3}
+            {selectedDemo.url ? (
+              <Link
+                href={selectedDemo.url}
+                target="_blank"
+                className="group flex items-center gap-3 transition-all"
+              >
+                <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight group-hover:underline">
+                  {selectedDemo.name}
+                </h1>
+                <ArrowUpRight
+                  size={28}
+                  strokeWidth={3}
                 className="-mt-[5px] aspect-square w-7 flex-none rounded-lg bg-gray-200 p-[2px] text-gray-500 group-hover:bg-gray-300 group-hover:text-gray-700"
               />
             </Link>
-            <p className="min-h-[40px] px-2 text-center text-lg font-semibold italic leading-6 text-gray-500">
-              {selectedDemo.description}
-            </p>
+            ) : (
+              <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight">
+                {selectedDemo.name}
+              </h1>
+            )}
+            {selectedDemo.description && (
+              <p className="min-h-[40px] px-2 text-center text-lg font-semibold italic leading-6 text-gray-500">
+                {selectedDemo.description}
+              </p>
+            )}
           </div>
           <div className="w-full px-4 pt-4">
             <RatingSlider feedback={feedback} setFeedback={setFeedback} />

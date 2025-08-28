@@ -76,9 +76,9 @@ export function DemosTab() {
         id: demo.id,
         eventId: event.id,
         name: updates.name ?? demo.name,
-        description: updates.description ?? demo.description,
-        email: updates.email ?? demo.email,
-        url: updates.url ?? demo.url,
+        description: updates.description ?? demo.description ?? "",
+        email: updates.email ?? demo.email ?? "",
+        url: updates.url ?? demo.url ?? "",
         votable: updates.votable ?? demo.votable,
       });
       toast.success("Successfully updated demo!");

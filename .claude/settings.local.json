@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(open:*)",
+      "Bash(find:*)",
+      "Bash(npx:*)",
+      "Bash(yarn:*)",
+      "!Bash(yarn:db:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(yarn run:*)",
+      "Bash(sed:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(pkill:*)",
+      "Bash(rg:*)",
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["context7"]
+}

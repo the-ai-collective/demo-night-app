@@ -34,13 +34,21 @@ const formSchema = z.object({
   id: z.string().optional(),
   description: z
     .string()
-    .min(1, "Tagline is required")
     .max(
       TAGLINE_MAX_LENGTH,
       `Tagline must be less than ${TAGLINE_MAX_LENGTH} characters`,
-    ),
-  email: z.string().email("Invalid email address"),
-  url: z.string().url("Invalid URL"),
+    )
+    .optional(),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .optional()
+    .or(z.literal("")),
+  url: z
+    .string()
+    .url("Invalid URL")
+    .optional()
+    .or(z.literal("")),
   votable: z.boolean(),
 });
 
@@ -62,7 +70,14 @@ export default function DemoSheet({
   const upsertMutation = api.demo.upsert.useMutation();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: demo ?? {
+    defaultValues: demo ? {
+      id: demo.id,
+      name: demo.name,
+      description: demo.description ?? "",
+      email: demo.email ?? "",
+      url: demo.url ?? "",
+      votable: demo.votable,
+    } : {
       name: "",
       description: "",
       email: "",
@@ -149,11 +164,11 @@ export default function DemoSheet({
               render={({ field }) => (
                 <FormItem>
                   <div className="flex justify-between">
-                    <FormLabel>Tagline</FormLabel>
+                    <FormLabel>Tagline (Optional)</FormLabel>
                     <span
                       className={cn(
                         "text-xs font-medium",
-                        field.value?.length > TAGLINE_MAX_LENGTH
+                        (field.value?.length ?? 0) > TAGLINE_MAX_LENGTH
                           ? "text-destructive"
                           : "text-muted-foreground",
                       )}
@@ -167,6 +182,7 @@ export default function DemoSheet({
                       className="resize-none"
                       rows={2}
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -179,13 +195,14 @@ export default function DemoSheet({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
                       placeholder="tim@apple.com"
                       autoComplete="off"
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -198,13 +215,14 @@ export default function DemoSheet({
               name="url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL</FormLabel>
+                  <FormLabel>URL (Optional)</FormLabel>
                   <FormControl>
                     <Input
                       type="url"
                       placeholder="https://apple.com"
                       autoComplete="off"
                       {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <FormMessage />

@@ -92,7 +92,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${kallisto.variable} ${openSans.variable} font-sans`}
+      className={`${kallisto.variable} ${openSans.variable} ${marker.variable} font-sans`}
     >
       <body>
         <TRPCReactProvider>
@@ -160,4 +160,10 @@ const kallisto = localFont({
   ],
   display: "swap",
   variable: "--font-kallisto",
+});
+
+const marker = localFont({
+  src: "../../public/fonts/Kallisto/EdsMarketBoldSlant.otf",
+  display: "swap",
+  variable: "--font-marker",
 });

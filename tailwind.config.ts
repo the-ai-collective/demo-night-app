@@ -64,6 +64,12 @@ export default {
           "var(--font-open-sans)",
           ...fontFamily.sans,
         ],
+        marker: [
+          "var(--font-marker)",
+          "var(--font-kallisto)",
+          "var(--font-open-sans)",
+          ...fontFamily.sans,
+        ],
       },
       borderRadius: {
         lg: "var(--radius)",

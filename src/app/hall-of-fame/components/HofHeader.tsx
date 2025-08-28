@@ -7,10 +7,10 @@ export default function HofHeader() {
         <div className="flex w-full flex-1 flex-row items-center justify-between px-3">
           <Logos size={36} />
           <div className="flex flex-col items-center justify-center">
-            <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-kallisto text-xl font-bold leading-5 tracking-tight">
+            <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold leading-5 tracking-tight">
               Demo Night
             </h1>
-            <h2 className="line-clamp-1 text-ellipsis px-1 font-kallisto text-sm font-bold leading-5 tracking-tight">
+            <h2 className="line-clamp-1 text-ellipsis px-1 font-marker text-sm font-bold leading-5 tracking-tight">
               Hall of Fame 🏆
             </h2>
           </div>

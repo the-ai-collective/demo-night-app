@@ -12,7 +12,7 @@ export default function PresentationHeader() {
         <PhasePills currentPhase={currentEvent?.phase ?? EventPhase.Pre} />
         <div className="flex w-full flex-1 flex-row items-center justify-between px-3">
           <Logos size={36} />
-          <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-kallisto text-xl font-bold tracking-tight">
+          <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
             {currentEvent?.name ?? ""}
           </h1>
           <div className="flex aspect-square w-9 items-center justify-center" />

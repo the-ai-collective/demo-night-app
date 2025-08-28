@@ -87,15 +87,20 @@ export const demoRouter = createTRPCRouter({
         id: z.string(),
         secret: z.string(),
         name: z.string(),
-        description: z.string(),
-        email: z.string().email(),
-        url: z.string().url(),
+        description: z.string().optional(),
+        email: z.string().email().optional().or(z.literal("")),
+        url: z.string().url().optional().or(z.literal("")),
       }),
     )
     .mutation(async ({ input }) => {
       return db.demo.update({
         where: { id: input.id, secret: input.secret },
-        data: input,
+        data: {
+          ...input,
+          description: input.description ?? null,
+          email: input.email ?? null,
+          url: input.url ?? null,
+        },
       });
     }),
   getFeedback: protectedProcedure
@@ -118,23 +123,30 @@ export const demoRouter = createTRPCRouter({
         id: z.string().optional(),
         eventId: z.string(),
         name: z.string(),
-        description: z.string(),
-        email: z.string().email(),
-        url: z.string().url(),
+        description: z.string().optional(),
+        email: z.string().email().optional().or(z.literal("")),
+        url: z.string().url().optional().or(z.literal("")),
         votable: z.boolean(),
       }),
     )
     .mutation(async ({ input }) => {
+      const processedInput = {
+        ...input,
+        description: input.description ?? null,
+        email: input.email ?? null,
+        url: input.url ?? null,
+      };
+
       if (input.originalId) {
         return db.demo.update({
           where: { id: input.originalId },
           data: {
-            id: input.id,
-            name: input.name,
-            description: input.description,
-            email: input.email,
-            url: input.url,
-            votable: input.votable,
+            id: processedInput.id,
+            name: processedInput.name,
+            description: processedInput.description,
+            email: processedInput.email,
+            url: processedInput.url,
+            votable: processedInput.votable,
           },
         });
       } else {
@@ -143,7 +155,7 @@ export const demoRouter = createTRPCRouter({
         });
         return db.demo.create({
           data: {
-            ...input,
+            ...processedInput,
             index,
           },
         });
@@ -213,9 +225,9 @@ export const demoRouter = createTRPCRouter({
           z.object({
             id: z.string().optional(),
             name: z.string(),
-            description: z.string(),
-            email: z.string(),
-            url: z.string(),
+            description: z.string().optional(),
+            email: z.string().optional(),
+            url: z.string().optional(),
             votable: z.boolean(),
           }),
         ),
@@ -229,6 +241,9 @@ export const demoRouter = createTRPCRouter({
         await prisma.demo.createMany({
           data: input.demos.map((demo, index) => ({
             ...demo,
+            description: demo.description ?? null,
+            email: demo.email ?? null,
+            url: demo.url ?? null,
             eventId: input.eventId,
             index,
           })),
