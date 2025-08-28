@@ -78,25 +78,30 @@ export default function EventDisplay({ events }: EventDisplayProps) {
           {selectedEvent.demos.map((demo) => (
             <Link
               key={demo.id}
-              href={demo.url ?? "/"}
-              target="_blank"
-              className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
+              href={demo.url ?? "#"}
+              target={demo.url ? "_blank" : "_self"}
+              onClick={demo.url ? undefined : (e) => e.preventDefault()}
+              className={`group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur ${demo.url ? '' : 'cursor-default'}`}
             >
               <div className="flex w-full items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <h3 className="line-clamp-1 text-xl font-bold group-hover:underline">
+                  <h3 className={`line-clamp-1 text-xl font-bold ${demo.url ? 'group-hover:underline' : ''}`}>
                     {demo.name}
                   </h3>
-                  <ArrowUpRight
-                    size={24}
-                    strokeWidth={3}
-                    className="h-5 w-5 flex-none rounded-md bg-gray-300/50 p-[2px] text-gray-500 group-hover:bg-gray-400/50 group-hover:text-gray-700"
-                  />
+                  {demo.url && (
+                    <ArrowUpRight
+                      size={24}
+                      strokeWidth={3}
+                      className="h-5 w-5 flex-none rounded-md bg-gray-300/50 p-[2px] text-gray-500 group-hover:bg-gray-400/50 group-hover:text-gray-700"
+                    />
+                  )}
                 </div>
               </div>
-              <p className="italic leading-5 text-gray-700">
-                {demo.description}
-              </p>
+              {demo.description && (
+                <p className="italic leading-5 text-gray-700">
+                  {demo.description}
+                </p>
+              )}
             </Link>
           ))}
         </div>

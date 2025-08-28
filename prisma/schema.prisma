@@ -118,9 +118,9 @@ model Demo {
   secret  String @default(cuid())
 
   name        String
-  description String
-  email       String
-  url         String
+  description String?
+  email       String?
+  url         String?
   votable     Boolean @default(true)
 
   feedback Feedback[]

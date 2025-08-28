@@ -95,11 +95,11 @@ export function UpdateDemoForm({
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Startup Website</span>
+        <span className="text-lg font-semibold">Startup Website (Optional)</span>
         <input
           type="url"
           placeholder="https://aicollective.com"
-          {...register("url", { required: "Startup website is required" })}
+          {...register("url")}
           className={cn(
             "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.url ? "border-red-500" : "border-gray-200",
@@ -110,14 +110,14 @@ export function UpdateDemoForm({
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Email 📧</span>
+        <span className="text-lg font-semibold">Email 📧 (Optional)</span>
         <span className="italic text-gray-400">
           This is made public so attendees can connect with you after the event!
         </span>
         <input
           type="email"
           placeholder="hello@aicollective.com"
-          {...register("email", { required: "Email is required" })}
+          {...register("email")}
           className={cn(
             "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.email ? "border-red-500" : "border-gray-200",
@@ -129,17 +129,17 @@ export function UpdateDemoForm({
       </label>
       <label className="flex w-full flex-col gap-1">
         <div className="flex w-full flex-row items-center justify-start gap-2">
-          <span className="text-lg font-semibold">Tagline 👋</span>
-          {watch("description")?.length >= 100 && (
+          <span className="text-lg font-semibold">Tagline 👋 (Optional)</span>
+          {(watch("description")?.length ?? 0) >= 100 && (
             <span
               className={cn(
                 "text-sm font-semibold italic",
-                watch("description")?.length >= TAGLINE_MAX_LENGTH
+                (watch("description")?.length ?? 0) >= TAGLINE_MAX_LENGTH
                   ? "text-red-500"
                   : "text-gray-400",
               )}
             >
-              {`(${watch("description").length} / ${TAGLINE_MAX_LENGTH})`}
+              {`(${watch("description")?.length ?? 0} / ${TAGLINE_MAX_LENGTH})`}
             </span>
           )}
         </div>
@@ -149,7 +149,6 @@ export function UpdateDemoForm({
         <textarea
           placeholder="Building a community of the brightest minds in AI to discuss, exchange, and innovate."
           {...register("description", {
-            required: "Tagline is required",
             maxLength: {
               value: TAGLINE_MAX_LENGTH,
               message: `Tagline must be ${TAGLINE_MAX_LENGTH} characters or less`,

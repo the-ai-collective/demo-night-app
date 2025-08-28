@@ -42,10 +42,10 @@ export default function AdminHomePage() {
         <div className="container mx-auto flex items-center justify-between gap-1 px-8 py-2">
           <Logos size={36} />
           <div className="flex flex-col items-center justify-center">
-            <h1 className="line-clamp-1 font-kallisto text-xl font-bold leading-6 tracking-tight">
+            <h1 className="line-clamp-1 font-marker text-xl font-bold leading-6 tracking-tight">
               Demo Night App
             </h1>
-            <span className="font-kallisto text-sm font-bold text-muted-foreground">
+            <span className="font-marker text-sm font-bold text-muted-foreground">
               Admin Dashboard
             </span>
           </div>
