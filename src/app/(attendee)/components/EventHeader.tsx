@@ -43,7 +43,7 @@ function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
           key={phase}
           className={`flex h-3 flex-1 items-center justify-center rounded-[6px] text-center font-kallisto text-[8px] font-bold tracking-wide backdrop-blur transition-all duration-500 ease-in-out ${
             phase === currentPhase
-              ? "bg-orange-500/80 text-white"
+              ? "bg-green-500/80 text-white"
               : "bg-black/5 text-gray-500"
           }`}
         >

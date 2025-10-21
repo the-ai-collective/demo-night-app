@@ -35,8 +35,8 @@ export function ActionButtons({
           whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
           whileTap={{ scale: 1.5, transition: { duration: 0.2 } }}
           className={cn(
-            "aspect-square w-20 rounded-full border-4 from-blue-400/40 from-50% to-blue-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(59,130,246,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-blue-500/20",
-            feedback?.tellMeMore ? "border-blue-500" : "border-transparent",
+            "aspect-square w-20 rounded-full border-4 from-green-400/40 from-50% to-green-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(34,197,94,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-green-500/20",
+            feedback?.tellMeMore ? "border-green-500" : "border-transparent",
           )}
           onClick={() => {
             if (feedback) {
@@ -53,7 +53,7 @@ export function ActionButtons({
             <ConfettiExplosion
               active={isExploding}
               config={{
-                colors: ["#809fff", "#99b3ff", "#b3c6ff"],
+                colors: ["#86efac", "#4ade80", "#22c55e"],
                 elementCount: 200,
                 duration: 5000,
               }}
@@ -70,8 +70,8 @@ export function ActionButtons({
           whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
           whileTap={{ scale: 1.5, transition: { duration: 0.2 } }}
           className={cn(
-            "relative aspect-square w-28 rounded-full border-4 from-orange-400/40 from-50% to-orange-600/60 text-center text-lg text-orange-600 shadow-[0_15px_60px_rgb(234,88,12,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-orange-500/20",
-            feedback?.claps ? "border-orange-500" : "border-transparent",
+            "relative aspect-square w-28 rounded-full border-4 from-green-400/40 from-50% to-green-600/60 text-center text-lg text-green-600 shadow-[0_15px_60px_rgb(34,197,94,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-green-500/20",
+            feedback?.claps ? "border-green-500" : "border-transparent",
           )}
           onClick={() => {
             if (feedback) {
@@ -118,11 +118,11 @@ function QuickActionsButton({
           whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
           whileTap={{ scale: 1.5, transition: { duration: 0.2 } }}
           className={cn(
-            "aspect-square w-20 rounded-full border-4 border-transparent from-yellow-300/40 from-50% to-yellow-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(234,179,8,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-yellow-500/20",
+            "aspect-square w-20 rounded-full border-4 border-transparent from-green-300/40 from-50% to-green-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(34,197,94,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-green-500/20",
             showButtons
               ? "from-red-400/40 to-red-500/60 shadow-[0_10px_40px_rgb(239,68,68,0.5)] hover:bg-red-500/20"
               : feedback?.quickActions.length
-                ? "border-yellow-500"
+                ? "border-green-500"
                 : "",
           )}
           onClick={() => setShowButtons(!showButtons)}
@@ -150,9 +150,9 @@ function QuickActionsButton({
                   whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
                   whileTap={{ scale: 1.5, transition: { duration: 0.2 } }}
                   className={cn(
-                    "relative aspect-square w-20 rounded-full border-4 border-transparent from-yellow-300/40 from-50% to-yellow-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(234,179,8,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-yellow-500/20",
+                    "relative aspect-square w-20 rounded-full border-4 border-transparent from-green-300/40 from-50% to-green-500/60 text-center text-[40px] shadow-[0_10px_40px_rgb(34,197,94,0.5)] backdrop-blur transition-all bg-radient-ellipse-c hover:bg-green-500/20",
                     feedback?.quickActions.includes(action.id)
-                      ? "border-yellow-500"
+                      ? "border-green-500"
                       : "",
                   )}
                   onClick={() => {

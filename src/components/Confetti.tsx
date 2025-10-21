@@ -143,7 +143,7 @@ export function ResultsConfetti({
       height={windowSize.height}
       tweenDuration={3000}
       gravity={0.05}
-      colors={["#a864fd", "#29cdff", "#78ff44", "#ff718d", "#fdff6a"]}
+      colors={["#22c55e", "#4ade80", "#86efac", "#a7f3d0", "#d1fae5"]}
       numberOfPieces={_active ? 500 : 0}
     />
   );

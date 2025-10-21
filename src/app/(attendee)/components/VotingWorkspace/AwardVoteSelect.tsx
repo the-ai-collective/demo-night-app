@@ -50,7 +50,7 @@ export default function AwardVoteSelect({
         onClick={toggleExpand}
         className={cn(
           "flex w-full cursor-pointer flex-row items-center justify-between rounded-xl px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out",
-          vote?.demoId ? "bg-green-400/50" : "bg-red-400/50",
+          vote?.demoId ? "bg-green-400/50" : "bg-green-200/50",
         )}
       >
         <motion.div

@@ -220,7 +220,7 @@ export default function SubmissionsDashboard({
                           <div className="flex flex-row items-center justify-end gap-2">
                             {submission.flagged && (
                               <FlagIcon
-                                className="h-[18px] w-[18px] fill-orange-500 text-orange-700"
+                                className="h-[18px] w-[18px] fill-green-500 text-green-700"
                                 strokeWidth={2.5}
                               />
                             )}
@@ -321,7 +321,7 @@ function StarRating({ rating }: { rating: number }) {
           className={cn(
             "h-[20px] w-[20px] transition-all duration-300",
             index < rating
-              ? "fill-yellow-300 text-yellow-500"
+              ? "fill-green-300 text-green-500"
               : "text-muted-foreground/50",
           )}
           strokeWidth={2.25}

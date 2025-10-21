@@ -173,7 +173,7 @@ function SubmissionReview({
                 className={cn(
                   "h-6 w-6 cursor-pointer transition-all duration-300",
                   watch("flagged")
-                    ? "fill-orange-500 text-orange-700"
+                    ? "fill-green-500 text-green-700"
                     : "text-muted-foreground/50",
                 )}
                 strokeWidth={2.5}
@@ -189,7 +189,7 @@ function SubmissionReview({
                   className={cn(
                     "h-[26px] w-[26px] cursor-pointer transition-all duration-300",
                     (watch("rating") ?? 0) >= value
-                      ? "fill-yellow-300 text-yellow-500"
+                      ? "fill-green-300 text-green-500"
                       : "text-muted-foreground/50",
                   )}
                   strokeWidth={2.25}

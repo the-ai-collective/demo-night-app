@@ -11,7 +11,7 @@ export default function ErrorPage() {
       </h1>
       <p className="text-lg font-semibold italic">(hang with us!)</p>
       <button
-        className="mt-4 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white shadow-xl hover:bg-orange-600"
+        className="mt-4 rounded-xl bg-green-500 px-4 py-3 font-semibold text-white shadow-xl hover:bg-green-600"
         onClick={() => window.location.reload()}
       >
         Refresh page

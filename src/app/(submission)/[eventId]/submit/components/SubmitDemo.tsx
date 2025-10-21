@@ -82,7 +82,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           close the Saturday before the event at 11:59pm. For more info, see our{" "}
           <a
             href={event.url}
-            className="text-blue-500 underline"
+            className="text-green-500 underline"
             target="_blank"
           >
             event page
@@ -90,7 +90,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           ! Demos will be timed at two minutes. Please read our{" "}
           <a
             href={GUIDELINES_URL}
-            className="text-blue-500 underline"
+            className="text-green-500 underline"
             target="_blank"
           >
             demo guidelines

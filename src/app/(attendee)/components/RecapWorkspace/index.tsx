@@ -120,16 +120,16 @@ function ContributeButton() {
       <Link
         href={"https://github.com/the-ai-collective/demo-night-app"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-blue-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur"
       >
-        <div className="flex items-center justify-between gap-2 text-blue-800">
+        <div className="flex items-center justify-between gap-2 text-green-800">
           <h3 className="line-clamp-1 text-lg font-semibold italic group-hover:underline">
             Build this open source app with us!
           </h3>
           <Github
             size={24}
             strokeWidth={2.5}
-            className="h-7 w-7 flex-none rounded-full bg-blue-300/50 p-1 group-hover:bg-blue-400/50"
+            className="h-7 w-7 flex-none rounded-full bg-green-300/50 p-1 group-hover:bg-green-400/50"
           />
         </div>
       </Link>
@@ -156,7 +156,7 @@ function AwardWinnerItem({
       <Link
         href={winner?.url ?? "/"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur"
       >
         <div className="flex items-center gap-2">
           <h3 className="line-clamp-1 text-xl font-bold group-hover:underline">
@@ -165,7 +165,7 @@ function AwardWinnerItem({
           <ArrowUpRight
             size={24}
             strokeWidth={3}
-            className="h-5 w-5 flex-none rounded-md bg-yellow-400/50 p-[2px] text-yellow-600 group-hover:bg-yellow-500/50 group-hover:text-yellow-700"
+            className="h-5 w-5 flex-none rounded-md bg-green-400/50 p-[2px] text-green-600 group-hover:bg-green-500/50 group-hover:text-green-700"
           />
         </div>
         <p className="min-h-10 italic leading-5 text-gray-700">
@@ -288,7 +288,7 @@ function FeedbackItem({
       <Link
         href={demo?.url ?? "/"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-2 rounded-xl bg-purple-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-2 rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur"
       >
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ function FeedbackItem({
             <ArrowUpRight
               size={24}
               strokeWidth={3}
-              className="h-5 w-5 flex-none rounded-md bg-purple-300/50 p-[2px] text-purple-500 group-hover:bg-purple-400/50 group-hover:text-purple-700"
+              className="h-5 w-5 flex-none rounded-md bg-green-300/50 p-[2px] text-green-500 group-hover:bg-green-400/50 group-hover:text-green-700"
             />
           </div>
           <p
