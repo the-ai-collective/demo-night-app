@@ -107,7 +107,7 @@ export default function EventSelector({
                     className={cn(
                       "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-xl bg-white/80 px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 hover:bg-gray-100/80 focus:outline-none",
                       selectedEvent.id === event.id &&
-                        "bg-yellow-200/80 hover:bg-yellow-300/70",
+                        "bg-green-200/80 hover:bg-green-300/70",
                     )}
                   >
                     <div className="flex w-full flex-col leading-6">

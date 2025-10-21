@@ -191,7 +191,7 @@ export default function AttendeesTab() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600"
+                                className="text-green-600"
                                 onClick={() => {
                                   setSelectedAttendeeId(attendee.id);
                                   setDeleteDialogOpen(true);

@@ -143,7 +143,7 @@ function PhaseButton({
     if (currentPhase === config.warningPhase) {
       return (
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          <AlertTriangle className="h-4 w-4 text-green-500" />
           {config.warningDescription}
         </div>
       );
@@ -164,7 +164,7 @@ function PhaseButton({
               : "",
             currentPhase === config.warningPhase &&
               suggestedPhase !== config.phase &&
-              "hover:bg-yellow-100/80 hover:text-yellow-500",
+              "hover:bg-green-100/80 hover:text-green-500",
             suggestedPhase === config.phase && "animate-pulse-border border-2",
           )}
         >

@@ -87,11 +87,11 @@ export function UpdateDemoForm({
           {...register("name", { required: "Startup name is required" })}
           className={cn(
             "z-30 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.name ? "border-red-500" : "border-gray-200",
+            errors.name ? "border-green-500" : "border-gray-200",
           )}
         />
         {errors.name && (
-          <span className="text-sm text-red-500">{errors.name.message}</span>
+          <span className="text-sm text-green-500">{errors.name.message}</span>
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -102,11 +102,11 @@ export function UpdateDemoForm({
           {...register("url")}
           className={cn(
             "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.url ? "border-red-500" : "border-gray-200",
+            errors.url ? "border-green-500" : "border-gray-200",
           )}
         />
         {errors.url && (
-          <span className="text-sm text-red-500">{errors.url.message}</span>
+          <span className="text-sm text-green-500">{errors.url.message}</span>
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -120,11 +120,11 @@ export function UpdateDemoForm({
           {...register("email")}
           className={cn(
             "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.email ? "border-red-500" : "border-gray-200",
+            errors.email ? "border-green-500" : "border-gray-200",
           )}
         />
         {errors.email && (
-          <span className="text-sm text-red-500">{errors.email.message}</span>
+          <span className="text-sm text-green-500">{errors.email.message}</span>
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -135,7 +135,7 @@ export function UpdateDemoForm({
               className={cn(
                 "text-sm font-semibold italic",
                 (watch("description")?.length ?? 0) >= TAGLINE_MAX_LENGTH
-                  ? "text-red-500"
+                  ? "text-green-500"
                   : "text-gray-400",
               )}
             >
@@ -156,12 +156,12 @@ export function UpdateDemoForm({
           })}
           className={cn(
             "z-30 max-h-32 min-h-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.description ? "border-red-500" : "border-gray-200",
+            errors.description ? "border-green-500" : "border-gray-200",
           )}
           rows={2}
         />
         {errors.description && (
-          <span className="text-sm text-red-500">
+          <span className="text-sm text-green-500">
             {errors.description.message}
           </span>
         )}

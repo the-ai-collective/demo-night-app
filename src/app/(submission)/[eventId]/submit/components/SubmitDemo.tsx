@@ -82,7 +82,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           close the Saturday before the event at 11:59pm. For more info, see our{" "}
           <a
             href={event.url}
-            className="text-blue-500 underline"
+            className="text-green-500 underline"
             target="_blank"
           >
             event page
@@ -90,7 +90,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           ! Demos will be timed at two minutes. Please read our{" "}
           <a
             href={GUIDELINES_URL}
-            className="text-blue-500 underline"
+            className="text-green-500 underline"
             target="_blank"
           >
             demo guidelines
@@ -109,11 +109,11 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             })}
             className={cn(
               "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.name ? "border-red-500" : "border-gray-200",
+              errors.name ? "border-green-500" : "border-gray-200",
             )}
           />
           {errors.name && (
-            <span className="text-red-500">{errors.name.message}</span>
+            <span className="text-green-500">{errors.name.message}</span>
           )}
         </label>
         <label className="flex w-full flex-col gap-1">
@@ -126,11 +126,11 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             })}
             className={cn(
               "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.url ? "border-red-500" : "border-gray-200",
+              errors.url ? "border-green-500" : "border-gray-200",
             )}
           />
           {errors.url && (
-            <span className="text-red-500">{errors.url.message}</span>
+            <span className="text-green-500">{errors.url.message}</span>
           )}
         </label>
       </div>
@@ -146,7 +146,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             className={`z-10 rounded-xl border-2 p-2 text-lg backdrop-blur ${errors.pocName ? "border-red-500" : "border-gray-200 bg-white/60"}`}
           />
           {errors.pocName && (
-            <span className="text-red-500">{errors.pocName.message}</span>
+            <span className="text-green-500">{errors.pocName.message}</span>
           )}
         </label>
         <label className="flex w-full flex-col gap-1">
@@ -159,11 +159,11 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             })}
             className={cn(
               "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.email ? "border-red-500" : "border-gray-200",
+              errors.email ? "border-green-500" : "border-gray-200",
             )}
           />
           {errors.email && (
-            <span className="text-red-500">{errors.email.message}</span>
+            <span className="text-green-500">{errors.email.message}</span>
           )}
         </label>
       </div>
@@ -175,7 +175,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
               className={cn(
                 "text-sm italic",
                 watch("tagline")?.length >= TAGLINE_MAX_LENGTH
-                  ? "text-red-500"
+                  ? "text-green-500"
                   : "text-gray-400",
               )}
             >
@@ -197,12 +197,12 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           })}
           className={cn(
             "z-10 max-h-32 min-h-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.tagline ? "border-red-500" : "border-gray-200",
+            errors.tagline ? "border-green-500" : "border-gray-200",
           )}
           rows={2}
         />
         {errors.tagline && (
-          <span className="text-red-500">{errors.tagline.message}</span>
+          <span className="text-green-500">{errors.tagline.message}</span>
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -219,12 +219,12 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           })}
           className={cn(
             "z-30 max-h-96 min-h-24 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.description ? "border-red-500" : "border-gray-200",
+            errors.description ? "border-green-500" : "border-gray-200",
           )}
           rows={3}
         />
         {errors.description && (
-          <span className="text-red-500">{errors.description.message}</span>
+          <span className="text-green-500">{errors.description.message}</span>
         )}
       </label>
       <label className="flex w-full flex-col gap-1">

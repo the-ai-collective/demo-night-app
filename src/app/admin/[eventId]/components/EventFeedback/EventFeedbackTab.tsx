@@ -184,7 +184,7 @@ export default function EventFeedbackTab() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600"
+                                className="text-green-600"
                                 onClick={() => {
                                   setSelectedFeedbackId(feedback.id);
                                   setDeleteDialogOpen(true);

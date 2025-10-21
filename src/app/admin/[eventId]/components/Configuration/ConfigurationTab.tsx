@@ -329,7 +329,7 @@ function PartnerRow({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600"
+                    className="text-green-600"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteDialogOpen(true);
@@ -472,7 +472,7 @@ function QuickActionRow({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600"
+                    className="text-green-600"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteDialogOpen(true);

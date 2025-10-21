@@ -112,7 +112,7 @@ function CsvModalContent<T extends string>(
           <ArrowUpFromLine className="h-[14px] w-[14px]" strokeWidth={3} />{" "}
           {isDragActive ? "Drop CSV here" : "Upload CSV"}
         </p>
-        <p className="text-xs italic text-red-500">
+        <p className="text-xs italic text-green-500">
           WARNING: overwrites existing rows!
         </p>
         <p className="text-sm text-muted-foreground">

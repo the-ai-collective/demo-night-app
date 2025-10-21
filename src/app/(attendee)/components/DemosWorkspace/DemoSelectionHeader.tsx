@@ -44,7 +44,7 @@ export function DemoSelectionHeader({
             "flex w-full cursor-pointer flex-row items-center justify-between rounded-xl px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out",
             selectedDemo?.id === currentDemoId
               ? "bg-green-400/50"
-              : "bg-red-400/50",
+              : "bg-green-400/50",
             isExpanded ? " bg-black/40 hover:bg-black/50" : "",
           )}
         >
@@ -65,7 +65,7 @@ export function DemoSelectionHeader({
                 </p>
                 <p>
                   {selectedDemo?.name ?? ""}
-                  <span className="font-bold text-red-700">
+                  <span className="font-bold text-green-700">
                     {selectedDemo?.id !== currentDemoId
                       ? " (NOT current!)"
                       : ""}
@@ -107,7 +107,7 @@ export function DemoSelectionHeader({
                     "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-xl px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 focus:outline-none",
                     demo.id === currentDemoId
                       ? "bg-green-300/80 hover:bg-green-400/80"
-                      : "bg-white/60 hover:bg-red-200/60",
+                      : "bg-white/60 hover:bg-green-200/60",
                   )}
                 >
                   <div className="flex flex-row gap-2">

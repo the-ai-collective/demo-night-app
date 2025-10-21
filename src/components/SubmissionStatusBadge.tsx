@@ -7,14 +7,14 @@ export function statusColor(status: SubmissionStatus): string {
     case SubmissionStatus.PENDING:
       return "bg-gray-200";
     case SubmissionStatus.WAITLISTED:
-      return "bg-blue-200";
+      return "bg-green-200";
     case SubmissionStatus.AWAITING_CONFIRMATION:
-      return "bg-yellow-200";
+      return "bg-green-200";
     case SubmissionStatus.CONFIRMED:
       return "bg-green-200";
     case SubmissionStatus.CANCELLED:
     case SubmissionStatus.REJECTED:
-      return "bg-red-200";
+      return "bg-green-600";
     default:
       return "bg-gray-200";
   }

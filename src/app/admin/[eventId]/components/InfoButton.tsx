@@ -21,7 +21,7 @@ export default function InfoButton({
       className={cn(
         "group h-6 w-6 rounded-full p-1 outline-none transition-all duration-300 hover:shadow-md",
         variant === "warning"
-          ? "bg-red-200 hover:bg-red-300"
+          ? "bg-green-200 hover:bg-green-300"
           : "bg-gray-200 hover:bg-gray-300",
       )}
       title="Info"
@@ -31,7 +31,7 @@ export default function InfoButton({
         className={cn(
           "h-4 w-4",
           variant === "warning"
-            ? "text-red-500 group-hover:text-red-600"
+            ? "text-green-500 group-hover:text-green-600"
             : "text-gray-500 group-hover:text-gray-600",
         )}
       />

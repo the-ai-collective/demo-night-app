@@ -30,7 +30,7 @@ export default function AwardWinnerItem({
         <Link
           href={winner.url}
           target="_blank"
-          className="group z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+          className="group z-10 flex min-h-28 flex-col rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur"
         >
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold group-hover:underline">
@@ -39,7 +39,7 @@ export default function AwardWinnerItem({
             <ArrowUpRight
               size={24}
               strokeWidth={3}
-              className="h-5 w-5 flex-none rounded-md bg-yellow-400/50 p-[2px] text-yellow-600 group-hover:bg-yellow-500/50 group-hover:text-yellow-700"
+              className="h-5 w-5 flex-none rounded-md bg-green-400/50 p-[2px] text-green-600 group-hover:bg-green-500/50 group-hover:text-green-700"
             />
           </div>
           {winner.description && (
@@ -47,7 +47,7 @@ export default function AwardWinnerItem({
           )}
         </Link>
       ) : (
-        <div className="z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur">
+        <div className="z-10 flex min-h-28 flex-col rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur">
           <h2 className="text-2xl font-bold">{winner.name}</h2>
           {winner.description && (
             <p className="italic leading-5 text-gray-700">{winner.description}</p>

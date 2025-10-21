@@ -112,7 +112,7 @@ function AwardWinnerItem({
               transition: { delay: 2.0, duration: 1.5, type: "spring" },
             }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+            className="z-10 flex min-h-28 flex-col rounded-xl bg-green-300/50 p-4 shadow-xl backdrop-blur"
           >
             <h2 className="font-kallisto text-2xl font-bold">{winner.name}</h2>
             <p className="italic leading-5 text-gray-700">

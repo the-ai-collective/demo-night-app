@@ -110,7 +110,7 @@ export default function AwardVoteSelect({
                     className={cn(
                       "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-xl bg-white/80 px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 hover:bg-gray-100/80 focus:outline-none",
                       voteDemoIds.includes(demo.id) &&
-                        "bg-gray-200/60 hover:bg-red-200/60",
+                        "bg-gray-200/60 hover:bg-green-200/60",
                       vote?.demoId === demo.id &&
                         "bg-green-300/80 hover:bg-green-400/80",
                     )}

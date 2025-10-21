@@ -17,7 +17,7 @@ export default function ResultsDashboard() {
     return (
       <div className="flex size-full flex-1 flex-col items-center justify-center gap-2 rounded-xl bg-gray-100 p-4">
         <h2 className="text-2xl font-bold">Awards</h2>
-        <p className="text-lg font-medium text-red-500">
+        <p className="text-lg font-medium text-green-500">
           All awards must have a winner before revealing results!
         </p>
       </div>
@@ -42,7 +42,7 @@ export default function ResultsDashboard() {
           />
         </div>
         <button
-          className="rounded-xl bg-red-200 px-4 font-semibold"
+          className="rounded-xl bg-green-200 px-4 font-semibold"
           onClick={() => {
             updateCurrentStateMutation
               .mutateAsync({ currentAwardId: null })
