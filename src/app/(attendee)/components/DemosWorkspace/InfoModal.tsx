@@ -1,5 +1,3 @@
-import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
-
 import { getBrandingClient } from "~/lib/branding";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import {
@@ -8,6 +6,7 @@ import {
   type QuickAction,
 } from "~/lib/types/quickAction";
 import { cn } from "~/lib/utils";
+import { type CompleteEvent } from "~/server/api/routers/event";
 
 import Button from "~/components/Button";
 import { useModal } from "~/components/modal/provider";
@@ -39,10 +38,11 @@ const actionItems: ActionItem[] = [
 
 export default function InfoModal({
   quickActions,
+  event,
 }: {
   quickActions: QuickAction[];
+  event: CompleteEvent;
 }) {
-  const { event } = useWorkspaceContext();
   const config = event.config as EventConfig;
   const { isPitchNight } = getBrandingClient(config?.isPitchNight);
   const modal = useModal();

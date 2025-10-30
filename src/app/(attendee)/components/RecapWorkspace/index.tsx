@@ -18,6 +18,7 @@ import { useEventFeedback } from "./hooks/useEventFeedback";
 
 export default function RecapWorkspace() {
   const { currentEvent, event, attendee, config } = useWorkspaceContext();
+  const isPitchNight = currentEvent?.isPitchNight ?? false;
   const { eventFeedback, setEventFeedback } = useEventFeedback(
     currentEvent.id,
     attendee.id,
@@ -118,7 +119,7 @@ export default function RecapWorkspace() {
       )}
       <div className="flex w-full flex-col gap-2">
         <h2 className="w-full font-kallisto text-2xl font-bold">
-          All Demos 🧑‍💻
+          All {isPitchNight ? "Pitches" : "Demos"} 🧑‍💻
         </h2>
         <div className="z-10 flex w-full flex-col gap-4">
           {event.demos.map((demo) => (

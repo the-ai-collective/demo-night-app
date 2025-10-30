@@ -123,7 +123,9 @@ export default function DemosWorkspace() {
       <button
         className="fixed bottom-2 left-2 z-10 h-9 w-9 cursor-pointer rounded-full bg-gray-200 p-[6px] text-gray-500 shadow-xl hover:bg-gray-300 hover:text-gray-700"
         onClick={() =>
-          modal?.show(<InfoModal quickActions={config.quickActions} />)
+          modal?.show(
+            <InfoModal quickActions={config.quickActions} event={event} />,
+          )
         }
       >
         <BadgeInfo />
