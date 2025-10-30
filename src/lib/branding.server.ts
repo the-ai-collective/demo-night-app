@@ -10,7 +10,7 @@ import { type Branding } from "./branding";
  *
  * Priority:
  * 1. If isPitchNight parameter provided (from event config), use it
- * 2. Otherwise, detect from host header (pitch.aicollective.com or pitch.localhost)
+ * 2. Otherwise, detect from host header (pitches.aicollective.com or pitches.localhost)
  * 3. Default to Demo Night
  */
 export async function getBranding(isPitchNight?: boolean): Promise<Branding> {
@@ -24,9 +24,9 @@ export async function getBranding(isPitchNight?: boolean): Promise<Branding> {
     const headersList = headers();
     const host = headersList.get("host") ?? "";
     finalIsPitchNight =
-      host.startsWith("pitch.") ||
-      host === "pitch.localhost:3000" ||
-      host === "pitch.localhost";
+      host.startsWith("pitches.") ||
+      host === "pitches.localhost:3000" ||
+      host === "pitches.localhost";
   }
 
   return {
