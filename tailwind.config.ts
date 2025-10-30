@@ -72,9 +72,12 @@ export default {
         ],
       },
       borderRadius: {
+        "3xl": "calc(var(--radius) * 2.5)",
+        "2xl": "calc(var(--radius) * 2)",
+        xl: "calc(var(--radius) * 1.5)",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) * 0.75)",
+        sm: "calc(var(--radius) * 0.5)",
       },
       colors: {
         background: "hsl(var(--background))",

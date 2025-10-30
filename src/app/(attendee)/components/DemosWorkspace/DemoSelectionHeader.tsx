@@ -1,7 +1,9 @@
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, CircleCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { getBrandingClient } from "~/lib/branding";
 import { cn } from "~/lib/utils";
 import { type PublicDemo } from "~/server/api/routers/event";
 
@@ -16,6 +18,9 @@ export function DemoSelectionHeader({
   setSelectedDemo: (demo: PublicDemo) => void;
   currentDemoId: string | null;
 }) {
+  const { currentEvent } = useWorkspaceContext();
+  const { isPitchNight } = getBrandingClient(currentEvent?.isPitchNight);
+
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
@@ -41,7 +46,7 @@ export function DemoSelectionHeader({
         <div
           onClick={toggleExpand}
           className={cn(
-            "flex w-full cursor-pointer flex-row items-center justify-between rounded-xl px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out",
+            "flex w-full cursor-pointer flex-row items-center justify-between rounded-lg px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out",
             selectedDemo?.id === currentDemoId
               ? "bg-green-400/50"
               : "bg-red-400/50",
@@ -57,13 +62,15 @@ export function DemoSelectionHeader({
             className="flex flex-row gap-2"
           >
             {(isExpanded && (
-              <p className="italic text-white">Select a demo:</p>
+              <p className="italic text-white">
+                Select a {isPitchNight ? "pitch" : "demo"}:
+              </p>
             )) || (
               <>
                 <p className="w-7">
                   {votableIndices.get(selectedDemo?.id ?? "") ?? "-"}
                 </p>
-                <p>
+                <p className="line-clamp-1">
                   {selectedDemo?.name ?? ""}
                   <span className="font-bold text-red-700">
                     {selectedDemo?.id !== currentDemoId
@@ -104,7 +111,7 @@ export function DemoSelectionHeader({
                     setIsExpanded(false);
                   }}
                   className={cn(
-                    "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-xl px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 focus:outline-none",
+                    "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-lg px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 focus:outline-none",
                     demo.id === currentDemoId
                       ? "bg-green-300/80 hover:bg-green-400/80"
                       : "bg-white/60 hover:bg-red-200/60",

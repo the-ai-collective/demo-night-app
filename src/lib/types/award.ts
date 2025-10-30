@@ -15,3 +15,18 @@ export const DEFAULT_AWARDS = [
     index: 2,
   },
 ];
+
+export const PITCH_NIGHT_AWARDS = [
+  {
+    name: "💰 Crowd Favorite",
+    description: "The company that received the most investment from the crowd!",
+    index: 0,
+    votable: true,
+  },
+  {
+    name: "🏆 Judges' Favorite",
+    description: "The company selected by our panel of expert judges!",
+    index: 1,
+    votable: false,
+  },
+];

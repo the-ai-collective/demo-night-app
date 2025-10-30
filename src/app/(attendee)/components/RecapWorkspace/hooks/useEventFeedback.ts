@@ -52,6 +52,7 @@ function emptyEventFeedback(
     eventId,
     attendeeId,
     comment: null,
+    surveyOpened: false,
   };
 }
 

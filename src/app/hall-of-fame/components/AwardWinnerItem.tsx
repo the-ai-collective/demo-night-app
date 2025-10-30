@@ -15,7 +15,7 @@ export default function AwardWinnerItem({
 
   if (!winner)
     return (
-      <div className="group z-10 flex min-h-28 items-center justify-center rounded-xl bg-gray-300/50 p-4 shadow-xl backdrop-blur">
+      <div className="group z-10 flex min-h-28 items-center justify-center rounded-lg bg-gray-300/50 p-4 shadow-xl backdrop-blur">
         <h2 className="text-4xl">🤫</h2>
       </div>
     );
@@ -30,7 +30,7 @@ export default function AwardWinnerItem({
         <Link
           href={winner.url}
           target="_blank"
-          className="group z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+          className="group z-10 flex min-h-28 flex-col rounded-lg bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
         >
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold group-hover:underline">
@@ -43,14 +43,18 @@ export default function AwardWinnerItem({
             />
           </div>
           {winner.description && (
-            <p className="italic leading-5 text-gray-700">{winner.description}</p>
+            <p className="italic leading-5 text-gray-700">
+              {winner.description}
+            </p>
           )}
         </Link>
       ) : (
-        <div className="z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur">
+        <div className="z-10 flex min-h-28 flex-col rounded-lg bg-yellow-300/50 p-4 shadow-xl backdrop-blur">
           <h2 className="text-2xl font-bold">{winner.name}</h2>
           {winner.description && (
-            <p className="italic leading-5 text-gray-700">{winner.description}</p>
+            <p className="italic leading-5 text-gray-700">
+              {winner.description}
+            </p>
           )}
         </div>
       )}

@@ -3,7 +3,8 @@ import { AdminTab } from "../AdminSidebar";
 import { AlertTriangle, CircleCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { EventPhase } from "~/lib/types/currentEvent";
+import { EventPhase, displayName } from "~/lib/types/currentEvent";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -27,6 +28,8 @@ export default function ControlCenterTab({
   setSelectedTab: (tab: AdminTab) => void;
 }) {
   const { currentEvent, event, refetchEvent } = useDashboardContext();
+  const eventConfig = event?.config as EventConfig;
+  const isPitchNight = eventConfig?.isPitchNight ?? false;
   const updateCurrentStateMutation = api.event.updateCurrentState.useMutation();
   const [suggestedPhase, setSuggestedPhase] = useState<EventPhase | null>(null);
 
@@ -101,6 +104,7 @@ export default function ControlCenterTab({
                 config={config}
                 currentPhase={currentEvent.phase}
                 suggestedPhase={suggestedPhase}
+                isPitchNight={isPitchNight}
                 onPhaseSelect={() => setPhase(config.phase)}
               />
             ))}
@@ -122,6 +126,7 @@ interface PhaseButtonProps {
   config: (typeof phaseConfigs)[number];
   currentPhase: EventPhase;
   suggestedPhase: EventPhase | null;
+  isPitchNight: boolean;
   onPhaseSelect: () => void;
 }
 
@@ -129,6 +134,7 @@ function PhaseButton({
   config,
   currentPhase,
   suggestedPhase,
+  isPitchNight,
   onPhaseSelect,
 }: PhaseButtonProps) {
   const tooltipContent = useMemo(() => {
@@ -170,7 +176,7 @@ function PhaseButton({
         >
           <div className="flex min-w-0 items-center gap-2">
             <config.icon className="size-4 shrink-0" />
-            <span className="truncate">{config.label}</span>
+            <span className="truncate">{displayName(config.phase, isPitchNight)}</span>
           </div>
         </Button>
       </TooltipTrigger>

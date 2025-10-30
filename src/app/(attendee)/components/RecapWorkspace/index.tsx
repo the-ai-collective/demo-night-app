@@ -1,5 +1,6 @@
 import RatingSlider from "../../../../components/RatingSlider";
 import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
+import { SurveyCTA } from "../SurveyCTA";
 import { type Award, type Feedback } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Github } from "lucide-react";
@@ -27,6 +28,16 @@ export default function RecapWorkspace() {
     attendeeId: attendee.id,
   });
 
+  const markSurveyOpenedMutation =
+    api.eventFeedback.markSurveyOpened.useMutation();
+
+  const handleSurveyClick = () => {
+    markSurveyOpenedMutation.mutate({
+      eventId: currentEvent.id,
+      attendeeId: attendee.id,
+    });
+  };
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setAwardIndex((i) => (i + 1) % (event?.awards.length ?? 1));
@@ -36,20 +47,28 @@ export default function RecapWorkspace() {
   }, [event?.awards.length]);
 
   const award = event.awards[awardIndex]!;
+  const surveyUrl = config?.surveyUrl;
 
   return (
     <div className="flex size-full flex-1 flex-col items-center justify-center gap-8 p-4">
       <div className="flex w-full flex-col gap-2">
-        <h1 className="-mb-2 text-center font-kallisto text-4xl font-bold tracking-tight">
+        <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
           Event Recap 🎉
         </h1>
+        {surveyUrl && (
+          <SurveyCTA
+            surveyUrl={surveyUrl}
+            onSurveyClick={handleSurveyClick}
+            className="z-10 -mb-2 mt-2"
+          />
+        )}
         <textarea
           rows={3}
           value={eventFeedback?.comment ?? ""}
           onChange={(e) =>
             setEventFeedback({ ...eventFeedback, comment: e.target.value })
           }
-          className="z-10 mt-4 block w-full resize-none rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg font-medium backdrop-blur"
+          className="z-10 mt-2 block w-full resize-none rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg font-medium backdrop-blur"
           placeholder={`What'd ya think?! How can we make these community demo nights even better?`}
         />
         <ContributeButton />
@@ -120,10 +139,10 @@ function ContributeButton() {
       <Link
         href={"https://github.com/the-ai-collective/demo-night-app"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-blue-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-1 rounded-lg bg-blue-300/50 p-4 shadow-xl backdrop-blur"
       >
         <div className="flex items-center justify-between gap-2 text-blue-800">
-          <h3 className="line-clamp-1 text-lg font-semibold italic group-hover:underline">
+          <h3 className="line-clamp-1 font-medium group-hover:underline">
             Build this open source app with us!
           </h3>
           <Github
@@ -156,7 +175,7 @@ function AwardWinnerItem({
       <Link
         href={winner?.url ?? "/"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-1 rounded-lg bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
       >
         <div className="flex items-center gap-2">
           <h3 className="line-clamp-1 text-xl font-bold group-hover:underline">
@@ -191,7 +210,7 @@ function PartnerItem({
     <Link
       href={url}
       target="_blank"
-      className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
+      className="group z-10 flex w-full flex-col gap-1 rounded-lg bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
     >
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -221,13 +240,13 @@ function DemoItem({ demo }: { demo: PublicDemo }) {
     navigator.clipboard.writeText(demo.email);
     toast.success("Email copied to clipboard!");
   };
-  
+
   const hasEmail = Boolean(demo.email);
   const hasUrl = Boolean(demo.url);
-  
+
   return (
     <div
-      className={`group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur ${hasEmail ? 'cursor-pointer' : ''}`}
+      className={`group z-10 flex w-full flex-col gap-1 rounded-lg bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur ${hasEmail ? "cursor-pointer" : ""}`}
       onClick={hasEmail ? copyEmailToClipboard : undefined}
     >
       <div className="flex w-full items-center justify-between gap-2">
@@ -247,9 +266,7 @@ function DemoItem({ demo }: { demo: PublicDemo }) {
             />
           </Link>
         ) : (
-          <h3 className="line-clamp-1 text-xl font-bold">
-            {demo.name}
-          </h3>
+          <h3 className="line-clamp-1 text-xl font-bold">{demo.name}</h3>
         )}
         {hasEmail && (
           <p className="flex-shrink-0 truncate text-gray-500">
@@ -288,7 +305,7 @@ function FeedbackItem({
       <Link
         href={demo?.url ?? "/"}
         target="_blank"
-        className="group z-10 flex w-full flex-col gap-2 rounded-xl bg-purple-300/50 p-4 shadow-xl backdrop-blur"
+        className="group z-10 flex w-full flex-col gap-2 rounded-lg bg-purple-300/50 p-4 shadow-xl backdrop-blur"
       >
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center gap-2">

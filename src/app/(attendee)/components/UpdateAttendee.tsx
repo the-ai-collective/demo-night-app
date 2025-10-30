@@ -1,10 +1,12 @@
 "use client";
 
+import { useWorkspaceContext } from "../contexts/WorkspaceContext";
 import { type Attendee } from "@prisma/client";
 import { CircleUserRoundIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { getBrandingClient } from "~/lib/branding";
 import { ATTENDEE_TYPES, type AttendeeType } from "~/lib/types/attendeeTypes";
 import { cn } from "~/lib/utils";
 
@@ -18,6 +20,8 @@ export function UpdateAttendeeButton({
   attendee: Attendee | null;
   setAttendee: (attendee: Attendee) => void;
 }) {
+  const { currentEvent } = useWorkspaceContext();
+  const { isPitchNight } = getBrandingClient(currentEvent?.isPitchNight);
   const modal = useModal();
   return (
     <CircleUserRoundIcon
@@ -26,7 +30,11 @@ export function UpdateAttendeeButton({
       color="black"
       onClick={() =>
         modal?.show(
-          <UpdateAttendeeModal attendee={attendee} setAttendee={setAttendee} />,
+          <UpdateAttendeeModal
+            attendee={attendee}
+            setAttendee={setAttendee}
+            isPitchNight={isPitchNight}
+          />,
         )
       }
     />
@@ -36,9 +44,11 @@ export function UpdateAttendeeButton({
 export function UpdateAttendeeModal({
   attendee,
   setAttendee,
+  isPitchNight,
 }: {
   attendee: Attendee | null;
   setAttendee: (attendee: Attendee) => void;
+  isPitchNight: boolean;
 }) {
   const modal = useModal();
 
@@ -48,6 +58,7 @@ export function UpdateAttendeeModal({
       setAttendee={setAttendee}
       onSubmit={() => modal?.hide()}
       isPreDemo={false}
+      isPitchNight={isPitchNight}
     />
   );
 }
@@ -57,11 +68,13 @@ export function UpdateAttendeeForm({
   setAttendee,
   onSubmit,
   isPreDemo = true,
+  isPitchNight,
 }: {
   attendee: Attendee | null;
   setAttendee: (attendee: Attendee) => void;
   onSubmit?: () => void;
   isPreDemo?: boolean;
+  isPitchNight: boolean;
 }) {
   const { register, handleSubmit, watch } = useForm({
     values: {
@@ -90,8 +103,8 @@ export function UpdateAttendeeForm({
           type: data.type,
         });
         const message = isPreDemo
-          ? "Profile updated! Hang tight – demos starting soon 😎"
-          : "Sweet! Demoists will see your updated profile 😎";
+          ? `Profile updated! Hang tight – ${isPitchNight ? "pitches" : "demos"} starting soon 😎`
+          : "Sweet! Presenters will see your updated profile 😎";
         toast.success(message);
         onSubmit?.();
       })}
@@ -103,8 +116,8 @@ export function UpdateAttendeeForm({
         </h1>
         <p className="text-md max-w-[330px] pt-2 text-center font-medium leading-5 text-gray-500">
           {isPreDemo
-            ? "We're glad you're here! Tell us more about yourself – don't worry, we'll only share your contact info with demoists you choose to connect with!"
-            : "Tell us more about yourself! Don't worry, we'll only share your contact info with demoists you choose to connect with!"}
+            ? "We're glad you're here! Tell us more about yourself – don't worry, we'll only share your contact info with presenters you choose to connect with!"
+            : "Tell us more about yourself! Don't worry, we'll only share your contact info with presenters you choose to connect with!"}
         </p>
       </div>
       <label className="flex w-full flex-col gap-1">
@@ -113,7 +126,7 @@ export function UpdateAttendeeForm({
           type="text"
           placeholder="Ada Lovelace"
           {...register("name")}
-          className="z-30 rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
+          className="z-30 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
         />
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -122,7 +135,7 @@ export function UpdateAttendeeForm({
           type="email"
           placeholder="ada@aicollective.com"
           {...register("email")}
-          className="z-10 rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
+          className="z-10 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
         />
       </label>
       <label className="flex w-full flex-col gap-1">
@@ -131,7 +144,7 @@ export function UpdateAttendeeForm({
           type="url"
           placeholder="https://www.linkedin.com/in/ada-lovelace"
           {...register("linkedin")}
-          className="z-10 rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
+          className="z-10 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
         />
       </label>
       <label className="flex w-full flex-col gap-1 pb-2">
@@ -139,7 +152,7 @@ export function UpdateAttendeeForm({
         <select
           {...register("type")}
           className={cn(
-            "z-30 appearance-none rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 appearance-none rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur",
             watch("type") === "" && "text-gray-400",
           )}
         >
@@ -154,11 +167,11 @@ export function UpdateAttendeeForm({
           <input
             type="text"
             {...register("customType")}
-            className="rounded-xl border border-gray-200 p-2"
+            className="rounded-lg border border-gray-200 p-2"
           />
         )} */}
       </label>
-      <Button>Update Profile</Button>
+      <Button isPitchNight={isPitchNight}>Update Profile</Button>
     </form>
   );
 }

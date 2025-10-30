@@ -98,9 +98,10 @@ export default function DemoSheet({
         url: data.url,
         votable: data.votable,
       });
-      onOpenChange(false);
       toast.success(`Successfully ${demo ? "updated" : "created"} demo!`);
       onSubmit(result);
+      form.reset();
+      onOpenChange(false);
     } catch (error) {
       toast.error(
         `Failed to ${demo ? "update" : "create"} demo: ${(error as Error).message}`,

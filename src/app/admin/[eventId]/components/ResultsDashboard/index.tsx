@@ -15,7 +15,7 @@ export default function ResultsDashboard() {
 
   if (event.awards.some((a) => a.winnerId === null)) {
     return (
-      <div className="flex size-full flex-1 flex-col items-center justify-center gap-2 rounded-xl bg-gray-100 p-4">
+      <div className="flex size-full flex-1 flex-col items-center justify-center gap-2 rounded-lg bg-gray-100 p-4">
         <h2 className="text-2xl font-bold">Awards</h2>
         <p className="text-lg font-medium text-red-500">
           All awards must have a winner before revealing results!
@@ -31,7 +31,7 @@ export default function ResultsDashboard() {
   );
 
   return (
-    <div className="flex size-full flex-1 flex-col gap-2 rounded-xl bg-gray-100 p-4">
+    <div className="flex size-full flex-1 flex-col gap-2 rounded-lg bg-gray-100 p-4">
       <div className="flex justify-between">
         <div className="flex flex-row items-center justify-between gap-2">
           <h2 className="text-2xl font-bold">Voting Results</h2>
@@ -42,7 +42,7 @@ export default function ResultsDashboard() {
           />
         </div>
         <button
-          className="rounded-xl bg-red-200 px-4 font-semibold"
+          className="rounded-lg bg-red-200 px-4 font-semibold"
           onClick={() => {
             updateCurrentStateMutation
               .mutateAsync({ currentAwardId: null })
@@ -59,7 +59,7 @@ export default function ResultsDashboard() {
             <li
               key={award.id}
               title="Reveal"
-              className="flex flex-1 cursor-pointer items-center justify-between rounded-xl text-start font-medium focus:outline-none"
+              className="flex flex-1 cursor-pointer items-center justify-between rounded-lg text-start font-medium focus:outline-none"
               onClick={() => {
                 updateCurrentStateMutation
                   .mutateAsync({ currentAwardId: award.id })
@@ -68,7 +68,7 @@ export default function ResultsDashboard() {
             >
               <div
                 className={cn(
-                  "flex h-full basis-1/2 flex-col justify-start rounded-xl bg-white p-2",
+                  "flex h-full basis-1/2 flex-col justify-start rounded-lg bg-white p-2",
                   index <= (currentAwardIndex ?? -1) && "bg-green-200",
                 )}
               >
@@ -86,7 +86,7 @@ export default function ResultsDashboard() {
               />
               <div
                 className={cn(
-                  "flex h-full basis-1/2 flex-col justify-start rounded-xl bg-white p-2",
+                  "flex h-full basis-1/2 flex-col justify-start rounded-lg bg-white p-2",
                   index <= (currentAwardIndex ?? -1) && "bg-green-200",
                 )}
               >

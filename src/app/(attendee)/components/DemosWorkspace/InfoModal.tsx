@@ -1,8 +1,12 @@
+import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
+
+import { getBrandingClient } from "~/lib/branding";
 import {
   QUICK_ACTIONS_ICON,
   QUICK_ACTIONS_TITLE,
   type QuickAction,
 } from "~/lib/types/quickAction";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 
 import Button from "~/components/Button";
@@ -38,6 +42,9 @@ export default function InfoModal({
 }: {
   quickActions: QuickAction[];
 }) {
+  const { event } = useWorkspaceContext();
+  const config = event.config as EventConfig;
+  const { isPitchNight } = getBrandingClient(config?.isPitchNight);
   const modal = useModal();
 
   const allActionItems: ActionItem[] = [
@@ -62,8 +69,9 @@ export default function InfoModal({
           About Actions
         </h1>
         <p className="text-md max-w-[330px] pt-2 text-center font-medium leading-5 text-gray-500">
-          Now&apos;s your chance to engage with the demos! Demoists will receive
-          a summary of all feedback after the event and will follow up!
+          Now&apos;s your chance to engage with the{" "}
+          {isPitchNight ? "pitches" : "demos"}! Presenters will receive a
+          summary of all feedback after the event and can follow up!
         </p>
       </div>
       <ul className="text-md flex w-full flex-col gap-2 font-semibold leading-6 text-gray-700">

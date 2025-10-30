@@ -8,77 +8,84 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { ModalProvider } from "~/components/modal/provider";
 
 import "~/styles/globals.css";
+import { getBranding } from "~/lib/branding.server";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Demo Night App | The AI Collective",
-    template: "%s | Demo Night App",
-  },
-  description:
-    "The premier platform for showcasing innovative demos, connecting builders, and discovering the next big ideas in technology.",
-  keywords: [
-    "demo night",
-    "technology showcase",
-    "innovation",
-    "startup demos",
-    "product demos",
-    "tech presentations",
-    "developer showcase",
-    "innovation platform",
-    "startup pitch",
-    "technology demos",
-    "demo platform",
-    "innovation showcase",
-    "tech community",
-    "product launch",
-    "startup events",
-    "demo competition",
-    "technology exhibition",
-    "innovation events",
-    "demo presentations",
-    "tech innovation",
-  ],
-  authors: [{ name: "The AI Collective" }],
-  creator: "The AI Collective",
-  publisher: "The AI Collective",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    title: "Demo Night App | The AI Collective",
-    description:
-      "The premier platform for showcasing innovative demos, connecting builders, and discovering the next big ideas in technology.",
-    siteName: "Demo Night App",
-    images: [
-      {
-        url: "/opengraph-image.jpeg",
-        width: 1200,
-        height: 630,
-        alt: "Demo Night App - The AI Collective",
-      },
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getBranding();
+  const appName = branding.appName;
+  const orgName = branding.orgName;
+
+  const title = `${appName} App | ${orgName}`;
+  const description = `The premier platform for showcasing innovative ${appName.toLowerCase()}s, connecting builders, and discovering the next big ideas in technology.`;
+
+  return {
+    title: {
+      default: title,
+      template: `%s | ${appName} App`,
+    },
+    description,
+    keywords: [
+      appName.toLowerCase(),
+      "technology showcase",
+      "innovation",
+      "startup demos",
+      "product demos",
+      "tech presentations",
+      "developer showcase",
+      "innovation platform",
+      "startup pitch",
+      "technology demos",
+      "demo platform",
+      "innovation showcase",
+      "tech community",
+      "product launch",
+      "startup events",
+      "demo competition",
+      "technology exhibition",
+      "innovation events",
+      "demo presentations",
+      "tech innovation",
     ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Demo Night App | The AI Collective",
-    description:
-      "The premier platform for showcasing innovative demos, connecting builders, and discovering the next big ideas in technology.",
-    images: ["/opengraph-image.jpeg"],
-  },
-  robots: {
-    index: false,
-    follow: true,
-    googleBot: {
+    authors: [{ name: orgName }],
+    creator: orgName,
+    publisher: orgName,
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      title,
+      description,
+      siteName: `${appName} App`,
+      images: [
+        {
+          url: "/opengraph-image.jpeg",
+          width: 1200,
+          height: 630,
+          alt: `${appName} App - ${orgName}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/opengraph-image.jpeg"],
+    },
+    robots: {
       index: false,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: false,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-  category: "Technology",
-  classification: "Demo Platform",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
-};
+    category: "Technology",
+    classification: "Demo Platform",
+    icons: [{ rel: "icon", url: "/favicon.ico" }],
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#fff",

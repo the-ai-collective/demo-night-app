@@ -67,7 +67,7 @@ export function UpdateIndexDialog<T extends Item>({
                 valueAsNumber: true,
                 min: 1,
               })}
-              className="rounded-xl border border-gray-200 p-2"
+              className="rounded-lg border border-gray-200 p-2"
               autoComplete="off"
               autoFocus
               required

@@ -76,4 +76,29 @@ export const eventFeedbackRouter = createTRPCRouter({
       where: { id: input },
     });
   }),
+  markSurveyOpened: publicProcedure
+    .input(
+      z.object({
+        eventId: z.string(),
+        attendeeId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      return db.eventFeedback.upsert({
+        where: {
+          eventId_attendeeId: {
+            eventId: input.eventId,
+            attendeeId: input.attendeeId,
+          },
+        },
+        create: {
+          eventId: input.eventId,
+          attendeeId: input.attendeeId,
+          surveyOpened: true,
+        },
+        update: {
+          surveyOpened: true,
+        },
+      });
+    }),
 });

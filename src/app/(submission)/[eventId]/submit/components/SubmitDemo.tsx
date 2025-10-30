@@ -108,7 +108,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
               required: "Startup / demo name is required",
             })}
             className={cn(
-              "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
               errors.name ? "border-red-500" : "border-gray-200",
             )}
           />
@@ -125,7 +125,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
               required: "Startup / demo website is required",
             })}
             className={cn(
-              "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
               errors.url ? "border-red-500" : "border-gray-200",
             )}
           />
@@ -143,7 +143,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             {...register("pocName", {
               required: "Point of contact name is required",
             })}
-            className={`z-10 rounded-xl border-2 p-2 text-lg backdrop-blur ${errors.pocName ? "border-red-500" : "border-gray-200 bg-white/60"}`}
+            className={`z-10 rounded-lg border-2 p-2 text-lg backdrop-blur ${errors.pocName ? "border-red-500" : "border-gray-200 bg-white/60"}`}
           />
           {errors.pocName && (
             <span className="text-red-500">{errors.pocName.message}</span>
@@ -158,7 +158,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
               required: "Point of contact email is required",
             })}
             className={cn(
-              "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
               errors.email ? "border-red-500" : "border-gray-200",
             )}
           />
@@ -196,7 +196,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             },
           })}
           className={cn(
-            "z-10 max-h-32 min-h-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-10 max-h-32 min-h-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.tagline ? "border-red-500" : "border-gray-200",
           )}
           rows={2}
@@ -218,7 +218,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             required: "Demo description is required",
           })}
           className={cn(
-            "z-30 max-h-96 min-h-24 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 max-h-96 min-h-24 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.description ? "border-red-500" : "border-gray-200",
           )}
           rows={3}
@@ -240,7 +240,7 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           type="url"
           placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
           {...register("demoUrl")}
-          className="z-10 rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
+          className="z-10 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
         />
       </label>
       <Button pending={createMutation.isPending}>Submit Demo</Button>

@@ -20,7 +20,15 @@ export function useVotes(eventId: string, attendee: Attendee) {
 
   useEffect(() => {
     if (votesData) {
-      setVotes(votesData);
+      // Convert array to VoteByAwardId format (for demo nights with one vote per award)
+      const votesMap = votesData.reduce(
+        (acc, vote) => {
+          acc[vote.awardId] = vote;
+          return acc;
+        },
+        {} as VoteByAwardId,
+      );
+      setVotes(votesMap);
     }
   }, [votesData]);
 
@@ -58,6 +66,7 @@ function emptyVote(
     attendeeId,
     awardId,
     demoId: null,
+    amount: null,
   };
 }
 

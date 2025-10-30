@@ -1,3 +1,5 @@
+"use client";
+
 import { type Attendee } from "@prisma/client";
 import { createContext, useContext } from "react";
 

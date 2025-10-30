@@ -55,7 +55,7 @@ function DemoItem({ demo }: { demo: Demo }) {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: -100, scale: 0.75 }}
       transition={{ duration: 0.5, type: "spring" }}
-      className="group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
+      className="group z-10 flex w-full flex-col gap-1 rounded-lg bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur"
     >
       <div className="flex w-full items-center justify-between gap-2">
         <div className="group/inner flex items-center gap-2">

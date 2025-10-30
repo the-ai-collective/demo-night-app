@@ -1,5 +1,6 @@
 import { useWorkspaceContext } from "../contexts/WorkspaceContext";
 
+import { getBrandingClient } from "~/lib/branding";
 import { EventPhase, allPhases, displayName } from "~/lib/types/currentEvent";
 
 import Logos from "~/components/Logos";
@@ -36,18 +37,22 @@ export default function EventHeader() {
 }
 
 function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
+  const { currentEvent } = useWorkspaceContext();
+  const { isPitchNight } = getBrandingClient(currentEvent?.isPitchNight);
   return (
     <div className="flex w-full flex-row items-center justify-between gap-1 px-4 pt-1">
       {allPhases.map((phase) => (
         <div
           key={phase}
-          className={`flex h-3 flex-1 items-center justify-center rounded-[6px] text-center font-kallisto text-[8px] font-bold tracking-wide backdrop-blur transition-all duration-500 ease-in-out ${
+          className={`flex h-3 flex-1 items-center justify-center truncate rounded-[6px] text-center font-kallisto text-[8px] font-bold tracking-wide backdrop-blur transition-all duration-500 ease-in-out ${
             phase === currentPhase
-              ? "bg-orange-500/80 text-white"
+              ? isPitchNight
+                ? "bg-green-800/80 text-white"
+                : "bg-orange-500/80 text-white"
               : "bg-black/5 text-gray-500"
           }`}
         >
-          <p>{displayName(phase)}</p>
+          <p>{displayName(phase, isPitchNight)}</p>
         </div>
       ))}
     </div>

@@ -3,7 +3,7 @@
 import { useDashboardContext } from "../../contexts/DashboardContext";
 import { AnimatePresence } from "framer-motion";
 import { Copy, Trash } from "lucide-react";
-import React from "react";
+import React, { useMemo } from "react";
 import { toast } from "sonner";
 
 import { cn } from "~/lib/utils";
@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Button, buttonVariants } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import {
@@ -106,7 +107,16 @@ export default function AttendeesTab() {
     string | null
   >(null);
 
-  const filteredAttendees = event?.attendees.filter(
+  // Fetch attendee analytics data only when this tab is active
+  const {
+    data: attendeesWithAnalytics,
+    isLoading,
+    refetch: refetchAnalytics,
+  } = api.attendee.getAnalytics.useQuery(event?.id ?? "", {
+    enabled: !!event?.id,
+  });
+
+  const filteredAttendees = attendeesWithAnalytics?.filter(
     (attendee) =>
       (attendee.name?.toLowerCase() ?? "").includes(
         searchFilter.toLowerCase(),
@@ -117,8 +127,26 @@ export default function AttendeesTab() {
       attendee.type?.toLowerCase().includes(searchFilter.toLowerCase()),
   );
 
+  const stats = useMemo(() => {
+    if (!filteredAttendees) return null;
+
+    const totalAttendees = filteredAttendees.length;
+    const surveyOpened = filteredAttendees.filter(
+      (a) => a.eventFeedback[0]?.surveyOpened,
+    ).length;
+    const totalFeedback = filteredAttendees.reduce(
+      (sum, a) => sum + a._count.feedback,
+      0,
+    );
+    const avgFeedback =
+      totalAttendees > 0 ? (totalFeedback / totalAttendees).toFixed(1) : "0";
+    const hasVoted = filteredAttendees.filter((a) => a._count.votes > 0).length;
+
+    return { totalAttendees, surveyOpened, avgFeedback, hasVoted };
+  }, [filteredAttendees]);
+
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
       <div className="flex items-end justify-between gap-2">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="p-5 md:hidden" />
@@ -131,6 +159,28 @@ export default function AttendeesTab() {
           className="max-w-xs"
         />
       </div>
+
+      {stats && (
+        <div className="grid grid-cols-4 gap-2">
+          <Card className="p-4">
+            <p className="text-sm text-muted-foreground">Total Attendees</p>
+            <p className="text-2xl font-bold">{stats.totalAttendees}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-muted-foreground">Survey Opened</p>
+            <p className="text-2xl font-bold">{stats.surveyOpened}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-muted-foreground">Avg Feedback</p>
+            <p className="text-2xl font-bold">{stats.avgFeedback}</p>
+          </Card>
+          <Card className="p-4">
+            <p className="text-sm text-muted-foreground">Voted</p>
+            <p className="text-2xl font-bold">{stats.hasVoted}</p>
+          </Card>
+        </div>
+      )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -138,22 +188,34 @@ export default function AttendeesTab() {
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead className="text-center">Survey</TableHead>
+              <TableHead className="text-center">Feedback</TableHead>
+              <TableHead className="text-center">Votes</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <AnimatePresence>
-              {filteredAttendees?.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
                   <td
-                    colSpan={4}
+                    colSpan={7}
+                    className="h-24 text-center italic text-muted-foreground/50"
+                  >
+                    Loading attendees...
+                  </td>
+                </TableRow>
+              ) : !filteredAttendees || filteredAttendees.length === 0 ? (
+                <TableRow>
+                  <td
+                    colSpan={7}
                     className="h-24 text-center italic text-muted-foreground/50"
                   >
                     No attendees (yet!)
                   </td>
                 </TableRow>
               ) : (
-                filteredAttendees?.map((attendee) => (
+                filteredAttendees.map((attendee) => (
                   <TableRow key={attendee.id} className="group">
                     <TableCell>
                       {attendee.name ? (
@@ -169,6 +231,33 @@ export default function AttendeesTab() {
                     </TableCell>
                     <TableCell>
                       <span className="line-clamp-1">{attendee.email}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {attendee.eventFeedback[0]?.surveyOpened ? (
+                        <span className="font-semibold text-green-600">
+                          ✓ Opened
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {attendee._count.feedback > 0 ? (
+                        <span className="font-medium">
+                          {attendee._count.feedback}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">0</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {attendee._count.votes > 0 ? (
+                        <span className="font-medium">
+                          {attendee._count.votes}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">0</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
@@ -219,6 +308,7 @@ export default function AttendeesTab() {
           onOpenChange={setDeleteDialogOpen}
           onDeleted={() => {
             refetchEvent();
+            void refetchAnalytics();
             setSelectedAttendeeId(null);
           }}
         />

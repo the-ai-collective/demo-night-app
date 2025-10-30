@@ -55,7 +55,7 @@ export default function EventSelector({
       {typeof isOpen !== "boolean" && (
         <div
           onClick={toggleExpand}
-          className="flex w-full cursor-pointer flex-row items-center justify-between rounded-xl bg-white/80 px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out hover:bg-gray-100/80"
+          className="flex w-full cursor-pointer flex-row items-center justify-between rounded-lg bg-white/80 px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out hover:bg-gray-100/80"
         >
           <motion.div
             key={selectedEvent.id}
@@ -87,7 +87,7 @@ export default function EventSelector({
               className="m-auto mt-24 flex max-w-xl flex-col"
             >
               <div className="p-4 pb-0">
-                <div className="left-0 z-20 m-auto flex w-full max-w-xl flex-col rounded-xl bg-black/60 px-4 pb-2 pt-3 shadow-xl backdrop-blur-lg backdrop-brightness-150">
+                <div className="left-0 z-20 m-auto flex w-full max-w-xl flex-col rounded-lg bg-black/60 px-4 pb-2 pt-3 shadow-xl backdrop-blur-lg backdrop-brightness-150">
                   <h1 className="text-2xl font-bold text-white">
                     Select a Demo Night
                   </h1>
@@ -105,7 +105,7 @@ export default function EventSelector({
                     key={event.id}
                     onClick={() => handleEventSelect(event)}
                     className={cn(
-                      "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-xl bg-white/80 px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 hover:bg-gray-100/80 focus:outline-none",
+                      "flex cursor-pointer flex-row items-center justify-between gap-2 rounded-lg bg-white/80 px-4 py-3 text-lg font-semibold shadow-xl backdrop-blur-lg backdrop-brightness-150 hover:bg-gray-100/80 focus:outline-none",
                       selectedEvent.id === event.id &&
                         "bg-yellow-200/80 hover:bg-yellow-300/70",
                     )}

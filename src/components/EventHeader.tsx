@@ -1,7 +1,10 @@
 import { ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 
+import { getBrandingClient } from "~/lib/branding";
+
 import Logos from "./Logos";
+import { useWorkspaceContext } from "~/app/(attendee)/contexts/WorkspaceContext";
 
 export default function EventHeader({
   eventName,
@@ -14,6 +17,9 @@ export default function EventHeader({
   eventId?: string;
   isAdmin?: boolean;
 }) {
+  const { currentEvent } = useWorkspaceContext();
+  const branding = getBrandingClient(currentEvent?.isPitchNight);
+
   return (
     <header className="fixed left-0 right-0 z-20 flex h-14 w-full select-none flex-col items-center bg-white/60 text-black backdrop-blur">
       <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-between">
@@ -21,7 +27,9 @@ export default function EventHeader({
           <Logos size={36} />
           <div className="flex flex-col items-center">
             <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
-              {demoName ? `${demoName} Demo Recap` : eventName}
+              {demoName
+                ? `${demoName} ${branding.appName.replace(" Night", "")} Recap`
+                : eventName}
             </h1>
             {demoName && (
               <h2 className="-mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-sm font-bold tracking-tight">

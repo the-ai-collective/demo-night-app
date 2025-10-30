@@ -7,7 +7,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
-import { DEFAULT_AWARDS } from "~/lib/types/award";
+import { DEFAULT_AWARDS, PITCH_NIGHT_AWARDS } from "~/lib/types/award";
 import * as kv from "~/lib/types/currentEvent";
 import { DEFAULT_DEMOS } from "~/lib/types/demo";
 import {
@@ -64,10 +64,27 @@ export const eventRouter = createTRPCRouter({
           phase: z.nativeEnum(kv.EventPhase),
           currentDemoId: z.string().nullable(),
           currentAwardId: z.string().nullable(),
+          isPitchNight: z.boolean().optional().default(false),
         })
         .nullable(),
     )
-    .query(() => kv.getCurrentEvent()),
+    .query(async () => {
+      const currentEvent = await kv.getCurrentEvent();
+      // Handle migration: add isPitchNight if missing from old data
+      if (currentEvent && !("isPitchNight" in currentEvent)) {
+        const oldEvent = currentEvent as Omit<kv.CurrentEvent, "isPitchNight">;
+        const migratedEvent: kv.CurrentEvent = {
+          id: oldEvent.id,
+          name: oldEvent.name,
+          phase: oldEvent.phase,
+          currentDemoId: oldEvent.currentDemoId,
+          currentAwardId: oldEvent.currentAwardId,
+          isPitchNight: false,
+        };
+        return migratedEvent;
+      }
+      return currentEvent;
+    }),
   get: publicProcedure
     .input(z.string())
     .query(async ({ input }): Promise<CompleteEvent | null> => {
@@ -106,23 +123,31 @@ export const eventRouter = createTRPCRouter({
             .then(async (res: Event) => {
               const currentEvent = await kv.getCurrentEvent();
               if (currentEvent?.id === input.originalId) {
-                kv.updateCurrentEvent(res);
+                kv.updateCurrentEvent({
+                  id: res.id,
+                  name: res.name,
+                  config: res.config,
+                });
               }
               return res;
             });
         }
+        const eventConfig = data.config ?? DEFAULT_EVENT_CONFIG;
+        const isPitchNight = eventConfig.isPitchNight ?? false;
+        const awardsToCreate = isPitchNight ? PITCH_NIGHT_AWARDS : DEFAULT_AWARDS;
+
         const result = await db.event.create({
           data: {
             id: data.id!,
             name: data.name!,
             date: data.date!,
             url: data.url!,
-            config: data.config ?? DEFAULT_EVENT_CONFIG,
+            config: eventConfig,
             demos: {
               create: DEFAULT_DEMOS,
             },
             awards: {
-              create: DEFAULT_AWARDS,
+              create: awardsToCreate,
             },
           },
         });
@@ -137,6 +162,20 @@ export const eventRouter = createTRPCRouter({
   allAdmin: protectedProcedure.query(() => {
     return db.event.findMany({
       orderBy: { date: "desc" },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        url: true,
+        config: true,
+        secret: true,
+        _count: {
+          select: {
+            demos: true,
+            attendees: true,
+          },
+        },
+      },
     });
   }),
   getAdmin: protectedProcedure
@@ -160,6 +199,7 @@ export const eventRouter = createTRPCRouter({
       }
       const event = await db.event.findUnique({
         where: { id: input },
+        select: { id: true, name: true, config: true },
       });
       if (!event) {
         throw new Error("Event not found");

@@ -86,7 +86,7 @@ export function UpdateDemoForm({
           placeholder="The AI Collective"
           {...register("name", { required: "Startup name is required" })}
           className={cn(
-            "z-30 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.name ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -95,13 +95,15 @@ export function UpdateDemoForm({
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Startup Website (Optional)</span>
+        <span className="text-lg font-semibold">
+          Startup Website (Optional)
+        </span>
         <input
           type="url"
           placeholder="https://aicollective.com"
           {...register("url")}
           className={cn(
-            "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.url ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -119,7 +121,7 @@ export function UpdateDemoForm({
           placeholder="hello@aicollective.com"
           {...register("email")}
           className={cn(
-            "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.email ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -155,7 +157,7 @@ export function UpdateDemoForm({
             },
           })}
           className={cn(
-            "z-30 max-h-32 min-h-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 max-h-32 min-h-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.description ? "border-red-500" : "border-gray-200",
           )}
           rows={2}

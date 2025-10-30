@@ -5,12 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import ConfettiExplosion from "react-dom-confetti";
 
 import { EventPhase } from "~/lib/types/currentEvent";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { type PublicDemo } from "~/server/api/routers/event";
 
 import { LogoConfetti, ResultsConfetti } from "~/components/Confetti";
 
 export default function AwardsPresentation() {
   const { currentEvent, event } = usePresentationContext();
+  const config = event.config as EventConfig;
+  const isPitchNight = config?.isPitchNight ?? false;
 
   const awards = [...event.awards].reverse();
 
@@ -21,15 +24,15 @@ export default function AwardsPresentation() {
   const title = useMemo(() => {
     switch (currentEvent.phase) {
       case EventPhase.Voting:
-        return "Voting Time! 🗳️";
+        return isPitchNight ? "Investing Time! 💰" : "Voting Time! 🗳️";
       case EventPhase.Results:
-        return "Voting Results! 🤩";
+        return isPitchNight ? "Investment Results! 🤩" : "Voting Results! 🤩";
       case EventPhase.Recap:
         return "Event Recap! 🎉";
       default:
         return "Awards Presentation";
     }
-  }, [currentEvent.phase]);
+  }, [currentEvent.phase, isPitchNight]);
 
   return (
     <>
@@ -112,7 +115,7 @@ function AwardWinnerItem({
               transition: { delay: 2.0, duration: 1.5, type: "spring" },
             }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+            className="z-10 flex min-h-28 flex-col rounded-lg bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
           >
             <h2 className="font-kallisto text-2xl font-bold">{winner.name}</h2>
             <p className="italic leading-5 text-gray-700">
@@ -125,7 +128,7 @@ function AwardWinnerItem({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ duration: 1.0, ease: "easeInOut" }}
-            className="group z-10 flex min-h-28 items-center justify-center rounded-xl bg-gray-300/50 p-4 shadow-xl backdrop-blur"
+            className="group z-10 flex min-h-28 items-center justify-center rounded-lg bg-gray-300/50 p-4 shadow-xl backdrop-blur"
           >
             <h2 className="text-4xl">🤫</h2>
           </motion.div>

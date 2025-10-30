@@ -172,11 +172,11 @@ function RatingSummary({ demo }: { demo: CompleteDemo }) {
   );
 
   return (
-    <div className="z-10 flex w-full flex-row gap-2 rounded-xl bg-gray-300/50 p-2 shadow-xl backdrop-blur">
+    <div className="z-10 flex w-full flex-row gap-2 rounded-lg bg-gray-300/50 p-2 shadow-xl backdrop-blur">
       {Object.entries(numByRating).map(([rating, count]) => (
         <div
           key={rating}
-          className="flex basis-1/5 flex-col items-center justify-center rounded-xl bg-white/50 py-2"
+          className="flex basis-1/5 flex-col items-center justify-center rounded-lg bg-white/50 py-2"
         >
           <p className="line-clamp-1">{RATING_EMOJIS[Number(rating)]}</p>
           <p className="line-clamp-1 text-xl font-bold">{count}</p>

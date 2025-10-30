@@ -6,10 +6,14 @@ import Logos from "~/components/Logos";
 
 export default function PresentationHeader() {
   const { currentEvent } = usePresentationContext();
+  const isPitchNight = currentEvent?.isPitchNight ?? false;
   return (
     <header className="fixed left-0 right-0 z-[11] flex h-20 w-full select-none flex-col items-center bg-white/60 text-black backdrop-blur">
       <div className="flex w-full max-w-xl flex-1 flex-col items-center justify-between">
-        <PhasePills currentPhase={currentEvent?.phase ?? EventPhase.Pre} />
+        <PhasePills
+          currentPhase={currentEvent?.phase ?? EventPhase.Pre}
+          isPitchNight={isPitchNight}
+        />
         <div className="flex w-full flex-1 flex-row items-center justify-between px-3">
           <Logos size={36} />
           <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
@@ -22,7 +26,13 @@ export default function PresentationHeader() {
   );
 }
 
-function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
+function PhasePills({
+  currentPhase,
+  isPitchNight
+}: {
+  currentPhase: EventPhase;
+  isPitchNight: boolean;
+}) {
   return (
     <div className="flex w-full flex-row items-center justify-between gap-1 px-4 pt-1">
       {allPhases.map((phase) => (
@@ -30,11 +40,13 @@ function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
           key={phase}
           className={`flex h-3 flex-1 items-center justify-center rounded-[6px] text-center font-kallisto text-[8px] font-bold tracking-wide backdrop-blur transition-all duration-500 ease-in-out ${
             phase === currentPhase
-              ? "bg-orange-500/80 text-white"
+              ? isPitchNight
+                ? "bg-green-800/80 text-white"
+                : "bg-orange-500/80 text-white"
               : "bg-black/5 text-gray-500"
           }`}
         >
-          <p>{displayName(phase)}</p>
+          <p>{displayName(phase, isPitchNight)}</p>
         </div>
       ))}
     </div>

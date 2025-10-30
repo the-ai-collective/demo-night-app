@@ -41,4 +41,26 @@ export const attendeeRouter = createTRPCRouter({
   delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.attendee.delete({ where: { id: input } });
   }),
+  getAnalytics: protectedProcedure
+    .input(z.string())
+    .query(async ({ input: eventId }) => {
+      const attendees = await db.attendee.findMany({
+        where: { events: { some: { id: eventId } } },
+        include: {
+          _count: {
+            select: {
+              feedback: { where: { eventId } },
+              votes: { where: { eventId } },
+            },
+          },
+          eventFeedback: {
+            where: { eventId },
+            select: { surveyOpened: true, comment: true },
+          },
+        },
+        orderBy: { name: "asc" },
+      });
+
+      return attendees;
+    }),
 });

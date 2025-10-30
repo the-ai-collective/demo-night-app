@@ -1,4 +1,5 @@
 import { kv } from "@vercel/kv";
+import { type EventConfig } from "./eventConfig";
 
 export enum EventPhase {
   Pre,
@@ -16,14 +17,14 @@ export const allPhases = [
   EventPhase.Recap,
 ];
 
-export function displayName(phase: EventPhase): string {
+export function displayName(phase: EventPhase, isPitchNight = false): string {
   switch (phase) {
     case EventPhase.Pre:
-      return "Pre-Demos";
+      return isPitchNight ? "Pre-Pitches" : "Pre-Demos";
     case EventPhase.Demos:
-      return "Demos";
+      return isPitchNight ? "Pitches" : "Demos";
     case EventPhase.Voting:
-      return "Voting";
+      return isPitchNight ? "Investing" : "Voting";
     case EventPhase.Results:
       return "Results";
     case EventPhase.Recap:
@@ -37,6 +38,7 @@ export type CurrentEvent = {
   phase: EventPhase;
   currentDemoId: string | null;
   currentAwardId: string | null;
+  isPitchNight: boolean;
 };
 
 export async function getCurrentEvent(): Promise<CurrentEvent | null> {
@@ -44,7 +46,7 @@ export async function getCurrentEvent(): Promise<CurrentEvent | null> {
 }
 
 export async function updateCurrentEvent(
-  event: { id: string; name: string } | null,
+  event: { id: string; name: string; config?: any } | null,
 ) {
   if (!event) {
     return kv.set("currentEvent", null);
@@ -53,12 +55,18 @@ export async function updateCurrentEvent(
   if (currentEvent && currentEvent.id === event.id) {
     return;
   }
+
+  // Parse config to get isPitchNight
+  const config = event.config as EventConfig | undefined;
+  const isPitchNight = config?.isPitchNight ?? false;
+
   currentEvent = {
     id: event.id,
     name: event.name,
     phase: EventPhase.Pre,
     currentDemoId: null,
     currentAwardId: null,
+    isPitchNight,
   };
   return kv.set("currentEvent", currentEvent);
 }
