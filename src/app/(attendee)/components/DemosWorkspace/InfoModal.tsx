@@ -1,12 +1,12 @@
 import { useWorkspaceContext } from "../../contexts/WorkspaceContext";
 
 import { getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import {
   QUICK_ACTIONS_ICON,
   QUICK_ACTIONS_TITLE,
   type QuickAction,
 } from "~/lib/types/quickAction";
-import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 
 import Button from "~/components/Button";
@@ -88,7 +88,9 @@ export default function InfoModal({
           </li>
         ))}
       </ul>
-      <Button pending={false}>Got it!</Button>
+      <Button pending={false} isPitchNight={isPitchNight}>
+        Got it!
+      </Button>
     </form>
   );
 }

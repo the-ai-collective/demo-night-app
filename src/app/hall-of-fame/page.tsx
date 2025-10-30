@@ -1,5 +1,7 @@
 import { type Metadata } from "next";
 
+import { getBrandingClient } from "~/lib/branding";
+import { getBranding } from "~/lib/branding.server";
 import { api } from "~/trpc/server";
 
 import EventDisplay from "./components/EventDisplay";
@@ -9,7 +11,6 @@ import { LogoConfetti } from "~/components/Confetti";
 import Logos from "~/components/Logos";
 
 import { env } from "~/env";
-import { getBranding } from "~/lib/branding.server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding();
@@ -27,7 +28,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HallOfFamePage() {
   const events = await api.event.all();
   const branding = await getBranding();
-  if (!events || events.length === 0) return <NoEventsPage branding={branding} />;
+  if (!events || events.length === 0)
+    return <NoEventsPage branding={branding} />;
 
   return (
     <main className="m-auto flex size-full max-w-xl flex-col text-black">
@@ -42,10 +44,14 @@ export default async function HallOfFamePage() {
   );
 }
 
-function NoEventsPage({ branding }: { branding: Awaited<ReturnType<typeof getBranding>> }) {
+function NoEventsPage({
+  branding,
+}: {
+  branding: Awaited<ReturnType<typeof getBranding>>;
+}) {
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center pb-16 font-kallisto text-black">
-      <Logos size={120} />
+      <Logos size={120} logoPath={branding.logoPath} />
       <h1 className="pt-4 text-center text-2xl font-semibold">
         {branding.appName} App
       </h1>

@@ -83,7 +83,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     category: "Technology",
     classification: "Demo Platform",
-    icons: [{ rel: "icon", url: "/favicon.ico" }],
+    icons: [
+      {
+        rel: "icon",
+        url: branding.isPitchNight ? "/favicon-pitch.ico" : "/favicon.ico",
+      },
+    ],
   };
 }
 

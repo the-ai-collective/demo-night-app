@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { getBrandingClient } from "~/lib/branding";
 import { cn } from "~/lib/utils";
 
 import LoadingDots from "./loading/LoadingDots";

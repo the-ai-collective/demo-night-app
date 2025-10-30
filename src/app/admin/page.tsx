@@ -1,10 +1,13 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Users, Presentation } from "lucide-react";
+import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -12,9 +15,6 @@ import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
-import { getBrandingClient } from "~/lib/branding";
-import Image from "next/image";
-import { type EventConfig } from "~/lib/types/eventConfig";
 
 export default function AdminHomePage() {
   const branding = getBrandingClient();
@@ -44,7 +44,7 @@ export default function AdminHomePage() {
     <main className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 border-b bg-white/60 shadow-sm backdrop-blur">
         <div className="container mx-auto flex items-center justify-between gap-1 px-8 py-2">
-          <Logos size={36} />
+          <Logos size={36} logoPath={branding.logoPath} />
           <div className="flex flex-col items-center justify-center">
             <h1 className="line-clamp-1 font-marker text-xl font-bold leading-6 tracking-tight">
               {branding.appName} App
@@ -92,7 +92,11 @@ export default function AdminHomePage() {
                           ? "/images/pitch.png"
                           : "/images/logo.png"
                       }
-                      alt={(event.config as EventConfig | null)?.isPitchNight ? "Pitch Night" : "Demo Night"}
+                      alt={
+                        (event.config as EventConfig | null)?.isPitchNight
+                          ? "Pitch Night"
+                          : "Demo Night"
+                      }
                       width={48}
                       height={48}
                       className="h-12 w-12 rounded-lg object-contain"

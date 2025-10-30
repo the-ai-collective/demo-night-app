@@ -5,8 +5,11 @@ import { useEffect, useMemo, useState } from "react";
 import { CSVLink } from "react-csv";
 import { toast } from "sonner";
 
+import { type Branding, getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { QUICK_ACTIONS_TITLE, type QuickAction } from "~/lib/types/quickAction";
 import { type CompleteDemo } from "~/server/api/routers/demo";
+import { type CompleteEvent } from "~/server/api/routers/event";
 
 import Button from "~/components/Button";
 import { LogoConfetti } from "~/components/Confetti";
@@ -18,9 +21,11 @@ import InfoModal from "./InfoModal";
 
 export default function DemoRecap({
   demo,
+  event,
   quickActions,
 }: {
   demo: CompleteDemo;
+  event: CompleteEvent;
   quickActions: QuickAction[];
 }) {
   return (
@@ -35,7 +40,11 @@ export default function DemoRecap({
               Here&apos;s all your feedback and followups!
             </p>
           </div>
-          <ActionButtons demo={demo} quickActions={quickActions} />
+          <ActionButtons
+            demo={demo}
+            event={event}
+            quickActions={quickActions}
+          />
           <RatingSummary demo={demo} />
           {demo.feedback.map((feedback) => (
             <FeedbackItem
@@ -55,10 +64,12 @@ export default function DemoRecap({
 }
 
 function CSVDownloadButton({
+  branding,
   data,
   headers,
   filename,
 }: {
+  branding: Branding;
   data: any[];
   headers: { label: string; key: string }[];
   filename: string;
@@ -71,7 +82,7 @@ function CSVDownloadButton({
 
   if (!isClient) {
     return (
-      <Button className="basis-1/3">
+      <Button className="basis-1/3" isPitchNight={branding.isPitchNight}>
         CSV <Download className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
     );
@@ -84,7 +95,7 @@ function CSVDownloadButton({
       headers={headers}
       filename={filename}
     >
-      <Button>
+      <Button isPitchNight={branding.isPitchNight}>
         CSV <Download className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
     </CSVLink>
@@ -93,15 +104,20 @@ function CSVDownloadButton({
 
 function ActionButtons({
   demo,
+  event,
   quickActions,
 }: {
   demo: CompleteDemo;
+  event: CompleteEvent;
   quickActions: QuickAction[];
 }) {
+  const branding = getBrandingClient(
+    (event.config as EventConfig | null)?.isPitchNight ?? false,
+  );
   const modal = useModal();
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success("URL to view demo recap copied to clipboard!");
+    toast.success(`URL to view ${branding.appName} recap copied to clipboard!`);
   };
 
   const showInfoModal = () => {
@@ -143,15 +159,24 @@ function ActionButtons({
 
   return (
     <div className="flex w-full flex-row gap-4">
-      <Button className="basis-1/3" onClick={copyLink}>
+      <Button
+        className="basis-1/3"
+        onClick={copyLink}
+        isPitchNight={branding.isPitchNight}
+      >
         Share
         <ShareIcon className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
-      <Button className="basis-1/3" onClick={showInfoModal}>
+      <Button
+        className="basis-1/3"
+        onClick={showInfoModal}
+        isPitchNight={branding.isPitchNight}
+      >
         Help
         <CircleHelp className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
       <CSVDownloadButton
+        branding={branding}
         data={feedback}
         headers={headers}
         filename={`${demo.name} feedback.csv`}

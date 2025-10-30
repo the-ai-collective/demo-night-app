@@ -9,12 +9,12 @@ import { useWorkspaceContext } from "./contexts/WorkspaceContext";
 
 export default function ErrorPage() {
   const context = useWorkspaceContext();
-  const { isPitchNight } = getBrandingClient(
-    context?.currentEvent?.isPitchNight,
+  const branding = getBrandingClient(
+    context?.currentEvent?.isPitchNight as boolean,
   );
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center pb-16 font-kallisto text-black">
-      <Logos size={120} />
+      <Logos size={120} logoPath={branding.logoPath} />
       <h1 className="pt-4 text-center text-2xl font-semibold">
         Something went wrong 🥲
       </h1>
@@ -22,7 +22,7 @@ export default function ErrorPage() {
       <button
         className={cn(
           "mt-4 rounded-lg px-4 py-3 font-semibold text-white shadow-xl",
-          isPitchNight
+          branding.isPitchNight
             ? "bg-green-800/80 hover:bg-green-900/80"
             : "bg-orange-500/80 hover:bg-orange-600/80",
         )}

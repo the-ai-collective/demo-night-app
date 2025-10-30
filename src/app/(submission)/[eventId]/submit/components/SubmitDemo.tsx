@@ -3,6 +3,8 @@
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { TAGLINE_MAX_LENGTH } from "~/lib/types/taglineMaxLength";
 import { cn } from "~/lib/utils";
 import { type CompleteEvent } from "~/server/api/routers/event";
@@ -11,8 +13,10 @@ import { api } from "~/trpc/react";
 import Button from "~/components/Button";
 import { LogoConfetti } from "~/components/Confetti";
 
-const GUIDELINES_URL =
-  "https://docs.google.com/document/d/1Z-c4KaGAWzH2siuGYoocQ7uVI_o8E6gocUXJO3BMLw8/edit";
+const DEMO_GUIDELINES_URL =
+  "https://theaicollective.notion.site/demo-night-guidelines";
+const PITCH_GUIDELINES_URL =
+  "https://theaicollective.notion.site/pitch-night-guidelines";
 
 export default function SubmitDemoPage({ event }: { event: CompleteEvent }) {
   return (
@@ -31,6 +35,9 @@ export default function SubmitDemoPage({ event }: { event: CompleteEvent }) {
 }
 
 export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
+  const branding = getBrandingClient(
+    (event.config as EventConfig | null)?.isPitchNight ?? false,
+  );
   const createMutation = api.submission.create.useMutation();
   const {
     register,
@@ -64,7 +71,9 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             demoUrl: data.demoUrl,
           })
           .then(() => {
-            toast.success("Successfully submitted demo!");
+            toast.success(
+              `Successfully submitted ${branding.isPitchNight ? "pitch" : "demo"}!`,
+            );
             window.location.href = `${window.location.pathname}?success=true`;
           })
           .catch((error) => {
@@ -75,7 +84,9 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
     >
       <div>
         <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
-          Submit Your Demo! 🚀
+          {branding.isPitchNight
+            ? "Submit Your Pitch! 🚀"
+            : "Submit Your Demo! 🚀"}
         </h1>
         <p className="text-md max-w-xl pt-2 text-center font-medium leading-5 text-gray-500">
           We are so excited to see what you&apos;ve been building! Submissions
@@ -87,25 +98,35 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           >
             event page
           </a>
-          ! Demos will be timed at two minutes. Please read our{" "}
+          !{" "}
+          {branding.isPitchNight
+            ? "Pitches will be timed at five minutes."
+            : "Demos will be timed at three minutes."}{" "}
+          Please read our{" "}
           <a
-            href={GUIDELINES_URL}
+            href={
+              branding.isPitchNight
+                ? PITCH_GUIDELINES_URL
+                : DEMO_GUIDELINES_URL
+            }
             className="text-blue-500 underline"
             target="_blank"
           >
-            demo guidelines
+            {branding.isPitchNight ? "pitch" : "demo"} guidelines
           </a>
           !
         </p>
       </div>
       <div className="flex w-full flex-col gap-4 md:flex-row">
         <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">Demo / Startup Name</span>
+          <span className="text-lg font-semibold">
+            {branding.isPitchNight ? "Startup Name" : "Demo / Startup Name"}
+          </span>
           <input
             type="text"
             placeholder="The AI Collective"
             {...register("name", {
-              required: "Startup / demo name is required",
+              required: `${branding.isPitchNight ? "Startup" : "Startup / demo"} name is required`,
             })}
             className={cn(
               "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
@@ -117,12 +138,16 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           )}
         </label>
         <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">Demo / Startup Website</span>
+          <span className="text-lg font-semibold">
+            {branding.isPitchNight
+              ? "Startup Website"
+              : "Demo / Startup Website"}
+          </span>
           <input
             type="url"
             placeholder="https://aicollective.com"
             {...register("url", {
-              required: "Startup / demo website is required",
+              required: `${branding.isPitchNight ? "Startup" : "Startup / demo"} website is required`,
             })}
             className={cn(
               "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
@@ -184,7 +209,9 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           )}
         </div>
         <span className="italic text-gray-400">
-          Please describe your startup / demo in 120 characters or less!
+          {branding.isPitchNight
+            ? "Please describe your startup in 120 characters or less!"
+            : "Please describe your startup / demo in 120 characters or less!"}
         </span>
         <textarea
           placeholder="Building a global community of the brightest minds in AI to discuss, exchange, and innovate."
@@ -206,16 +233,20 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Demo Description 🧑‍💻</span>
+        <span className="text-lg font-semibold">
+          {branding.isPitchNight
+            ? "Pitch Description 🧑‍💻"
+            : "Demo Description 🧑‍💻"}
+        </span>
         <span className="italic text-gray-400">
-          What does your startup do? What do you plan to demo to the community
-          during your two minutes? What feedback would you like from the
-          community?
+          {branding.isPitchNight
+            ? "What does your startup do? What will you pitch during your five minutes? What feedback would you like from investors and the community?"
+            : "What does your startup do? What do you plan to demo to the community during your three minutes? What feedback would you like from the community?"}
         </span>
         <textarea
           placeholder="Tell us more!"
           {...register("description", {
-            required: "Demo description is required",
+            required: `${branding.isPitchNight ? "Pitch" : "Demo"} description is required`,
           })}
           className={cn(
             "z-30 max-h-96 min-h-24 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
@@ -229,12 +260,15 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
       </label>
       <label className="flex w-full flex-col gap-1">
         <div className="flex w-full flex-row items-center justify-start gap-1 font-semibold">
-          <span className="text-lg ">Demo Link 🔗</span>
+          <span className="text-lg ">
+            {branding.isPitchNight ? "Additional Resources 🔗" : "Demo Link 🔗"}
+          </span>
           <span className="text-sm italic text-gray-400">(optional)</span>
         </div>
         <span className="italic text-gray-400">
-          Have a link which could help us get a better picture of what you plan
-          to demo? Drop it here!
+          {branding.isPitchNight
+            ? "Have a link that showcases your startup? (e.g., pitch deck, demo video, website)"
+            : "Have a link which could help us get a better picture of what you plan to demo? Drop it here!"}
         </span>
         <input
           type="url"
@@ -243,7 +277,12 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
           className="z-10 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
         />
       </label>
-      <Button pending={createMutation.isPending}>Submit Demo</Button>
+      <Button
+        pending={createMutation.isPending}
+        isPitchNight={branding.isPitchNight}
+      >
+        {branding.isPitchNight ? "Submit Pitch" : "Submit Demo"}
+      </Button>
     </form>
   );
 }

@@ -14,6 +14,12 @@ export async function generateMetadata() {
       index: true,
       follow: true,
     },
+    icons: [
+      {
+        rel: "icon",
+        url: branding.isPitchNight ? "/favicon-pitch.ico" : "/favicon.ico",
+      },
+    ],
   };
 }
 

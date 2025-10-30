@@ -2,7 +2,10 @@ import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { EventPhase } from "~/lib/types/currentEvent";
-import { eventConfigSchema } from "~/lib/types/eventConfig";
+import {
+  eventConfigSchema,
+  type EventConfig,
+} from "~/lib/types/eventConfig";
 import { api } from "~/trpc/server";
 
 import DemoRecap from "./components/DemoRecap";
@@ -32,8 +35,17 @@ export async function generateMetadata({
       };
     }
 
+    const isPitchNight =
+      (event.config as EventConfig | null)?.isPitchNight ?? false;
+
     return {
       title: `${demo.name} - ${event.name}`,
+      icons: [
+        {
+          rel: "icon",
+          url: isPitchNight ? "/favicon-pitch.ico" : "/favicon.ico",
+        },
+      ],
     };
   } catch {
     return {
@@ -79,8 +91,8 @@ export default async function DemoistPage({
   if (!showRecap) {
     return (
       <main className="m-auto flex size-full max-w-xl flex-col text-black">
-        <EventHeader eventName={event.name} />
-        <UpdateDemoPage demo={demo} secret={secret} />
+        <EventHeader event={event} />
+        <UpdateDemoPage demo={demo} event={event} secret={secret} />
       </main>
     );
   }
@@ -89,8 +101,8 @@ export default async function DemoistPage({
 
   return (
     <main className="m-auto flex size-full max-w-xl flex-col text-black">
-      <EventHeader eventName={event.name} demoName={demo.name} />
-      <DemoRecap demo={demo} quickActions={quickActions} />
+      <EventHeader event={event} demoName={demo.name} />
+      <DemoRecap demo={demo} event={event} quickActions={quickActions} />
     </main>
   );
 }

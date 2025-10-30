@@ -9,13 +9,14 @@ import { UpdateAttendeeButton } from "./UpdateAttendee";
 
 export default function EventHeader() {
   const { currentEvent, attendee, setAttendee } = useWorkspaceContext();
+  const branding = getBrandingClient(currentEvent?.isPitchNight as boolean);
   return (
     <header className="fixed left-0 right-0 z-[11] flex h-20 w-full select-none flex-col items-center bg-white/60 text-black backdrop-blur">
       <div className="flex w-full max-w-xl flex-1 flex-col items-center justify-between">
         <PhasePills currentPhase={currentEvent?.phase ?? EventPhase.Pre} />
         <div className="flex w-full flex-1 flex-row items-center justify-between gap-1 px-4">
           <div className="flex w-[72px] shrink-0 items-center gap-0">
-            <Logos size={36} />
+            <Logos size={36} logoPath={branding.logoPath} />
           </div>
           <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
             {currentEvent?.name ?? ""}

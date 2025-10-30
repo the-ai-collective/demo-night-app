@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+
 import { type Branding } from "./branding";
 
 /**
@@ -20,11 +21,12 @@ export async function getBranding(isPitchNight?: boolean): Promise<Branding> {
     finalIsPitchNight = isPitchNight;
   } else {
     // Fallback: Check host header for pitch.* domains
-    const headersList = await headers();
+    const headersList = headers();
     const host = headersList.get("host") ?? "";
-    finalIsPitchNight = host.startsWith("pitch.") ||
-                       host === "pitch.localhost:3000" ||
-                       host === "pitch.localhost";
+    finalIsPitchNight =
+      host.startsWith("pitch.") ||
+      host === "pitch.localhost:3000" ||
+      host === "pitch.localhost";
   }
 
   return {

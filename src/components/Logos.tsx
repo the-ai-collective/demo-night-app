@@ -5,20 +5,15 @@ import Image from "next/image";
 import React from "react";
 import { type ReactNode } from "react";
 
-import { getBrandingClient } from "~/lib/branding";
-
-import { useWorkspaceContext } from "~/app/(attendee)/contexts/WorkspaceContext";
-
 export default function Logos({
   size,
   className,
+  logoPath,
 }: {
   size?: number;
   className?: string;
+  logoPath: string;
 }): ReactNode {
-  const context = useWorkspaceContext();
-  const branding = getBrandingClient(context?.currentEvent?.isPitchNight);
-
   return (
     <div
       className={cn(
@@ -27,7 +22,7 @@ export default function Logos({
       )}
     >
       <Image
-        src={branding?.logoPath}
+        src={logoPath}
         id="logo"
         alt="logo"
         width={size}
