@@ -2,10 +2,7 @@ import { type Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { EventPhase } from "~/lib/types/currentEvent";
-import {
-  eventConfigSchema,
-  type EventConfig,
-} from "~/lib/types/eventConfig";
+import { type EventConfig, eventConfigSchema } from "~/lib/types/eventConfig";
 import { api } from "~/trpc/server";
 
 import DemoRecap from "./components/DemoRecap";

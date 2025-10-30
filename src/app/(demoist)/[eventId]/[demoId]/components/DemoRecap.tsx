@@ -10,9 +10,11 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { QUICK_ACTIONS_TITLE, type QuickAction } from "~/lib/types/quickAction";
 import { type CompleteDemo } from "~/server/api/routers/demo";
 import { type CompleteEvent } from "~/server/api/routers/event";
+import { api } from "~/trpc/react";
 
 import Button from "~/components/Button";
 import { LogoConfetti } from "~/components/Confetti";
+import DemoStats from "~/components/DemoStats";
 import { RATING_EMOJIS } from "~/components/RatingSlider";
 import { useModal } from "~/components/modal/provider";
 
@@ -28,9 +30,21 @@ export default function DemoRecap({
   event: CompleteEvent;
   quickActions: QuickAction[];
 }) {
+  const secret = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  ).get("secret");
+
+  const { data: stats } = api.demo.getStats.useQuery(
+    { id: demo.id, secret: secret ?? "" },
+    { enabled: !!secret },
+  );
+
+  const isPitchNight =
+    (event.config as EventConfig | null)?.isPitchNight ?? false;
+
   return (
     <>
-      <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl">
+      <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl overflow-y-auto">
         <div className="flex w-full flex-col items-center gap-4 p-4 font-medium">
           <div>
             <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
@@ -45,6 +59,13 @@ export default function DemoRecap({
             event={event}
             quickActions={quickActions}
           />
+          {stats && (
+            <DemoStats
+              stats={stats}
+              isPitchNight={isPitchNight}
+              quickActions={quickActions}
+            />
+          )}
           <RatingSummary demo={demo} />
           {demo.feedback.map((feedback) => (
             <FeedbackItem

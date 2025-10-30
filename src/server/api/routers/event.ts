@@ -22,6 +22,7 @@ import {
 import { db } from "~/server/db";
 
 import { type AdminEvent } from "~/app/admin/[eventId]/contexts/DashboardContext";
+import { env } from "~/env";
 
 export type CompleteEvent = Event & {
   demos: PublicDemo[];
@@ -134,7 +135,9 @@ export const eventRouter = createTRPCRouter({
         }
         const eventConfig = data.config ?? DEFAULT_EVENT_CONFIG;
         const isPitchNight = eventConfig.isPitchNight ?? false;
-        const awardsToCreate = isPitchNight ? PITCH_NIGHT_AWARDS : DEFAULT_AWARDS;
+        const awardsToCreate = isPitchNight
+          ? PITCH_NIGHT_AWARDS
+          : DEFAULT_AWARDS;
 
         const result = await db.event.create({
           data: {
@@ -216,6 +219,271 @@ export const eventRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       return kv.updateCurrentEventState(input);
+    }),
+  populateTestData: protectedProcedure
+    .input(
+      z.object({
+        eventId: z.string(),
+        isPitchNight: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      // Only allow in development mode
+      if (env.NODE_ENV !== "development") {
+        throw new Error(
+          "Test data population is only available in development mode",
+        );
+      }
+
+      const { eventId, isPitchNight } = input;
+
+      // Test demo data from seed.ts
+      const demosInfo = [
+        {
+          name: "Cofactory",
+          description: "The future of value creation in an AI-based economy.",
+          url: "https://cofactory.ai/",
+        },
+        {
+          name: "Revamp",
+          description:
+            "The future of email + SMS personalization for brands and customers is here.",
+          url: "https://getrevamp.ai/",
+        },
+        {
+          name: "Cognition",
+          description:
+            "We are an applied AI lab focused on reasoning, and code is just the beginning.",
+          url: "https://cognition.ai/",
+        },
+        {
+          name: "Cursor",
+          description: "The AI-first Code Editor.",
+          url: "https://cursor.sh/",
+        },
+        {
+          name: "Paradigm.ai",
+          description: "Perfectly human-in-the-loop agents that work for you.",
+          url: "https://paradigm.ai/",
+        },
+        {
+          name: "Marblism",
+          description: "Launch your React and Node.js app in minutes.",
+          url: "https://marblism.com/",
+        },
+        {
+          name: "Mercor",
+          description:
+            "An AI-powered platform that sources, vets, and pays your next employees.",
+          url: "https://mercor.com/",
+        },
+        {
+          name: "LlamaIndex",
+          description:
+            "The central interface between LLMs and your external data.",
+          url: "https://www.llamaindex.ai/",
+        },
+        {
+          name: "Higgsfield AI",
+          description:
+            "Using video AI to democratize social media video creation for all.",
+          url: "https://higgsfield.ai/",
+        },
+        {
+          name: "Software Applications Inc.",
+          description: "Rethinking the personal computing experience",
+          url: "https://software.inc/",
+        },
+      ];
+
+      // Test attendee data
+      const attendeesInfo = [
+        {
+          name: "Chappy Asel",
+          email: "chappy@aicollective.com",
+          type: "Founder",
+          linkedin: "https://linkedin.com/in/chappyasel",
+        },
+        { name: "Tim Cook", email: "tim@apple.com", type: "Founder" },
+        { name: "Elon Musk", email: "elon@x.com", type: "Investor" },
+        { name: "Sam Altman", email: "sam@openai.com", type: "Founder" },
+        {
+          name: "Satya Nadella",
+          email: "satya@microsoft.com",
+          type: "Founder",
+        },
+        { name: "Sundar Pichai", email: "sundar@google.com", type: "Founder" },
+        { name: "Mark Zuckerberg", email: "mark@meta.com", type: "Founder" },
+        { name: "Jeff Bezos", email: "jeff@amazon.com", type: "Investor" },
+        { name: "Jensen Huang", email: "jensen@nvidia.com", type: "Founder" },
+        { name: "Marc Andreessen", email: "marc@a16z.com", type: "Investor" },
+      ];
+
+      return db.$transaction(async (tx) => {
+        // Create attendees
+        const attendees = await Promise.all(
+          attendeesInfo.map((attendee, index) =>
+            tx.attendee.create({
+              data: {
+                id: `${eventId}-attendee-${index + 1}`,
+                name: attendee.name,
+                email: attendee.email,
+                type: attendee.type,
+                linkedin: attendee.linkedin,
+                events: { connect: { id: eventId } },
+              },
+            }),
+          ),
+        );
+
+        // Delete existing demos and create fresh ones
+        await tx.demo.deleteMany({
+          where: { eventId },
+        });
+
+        // Create all 10 test demos
+        const demos = await Promise.all(
+          demosInfo.map((demoInfo, index) =>
+            tx.demo.create({
+              data: {
+                eventId,
+                index,
+                name: demoInfo.name,
+                description: demoInfo.description,
+                url: demoInfo.url,
+                email: `${demoInfo.name.toLowerCase().replace(/\s+/g, "")}@example.com`,
+              },
+            }),
+          ),
+        );
+
+        // Create feedback entries (3-4 per demo)
+        const feedbackPromises = demos.slice(0, 5).flatMap((demo, demoIndex) =>
+          attendees
+            .slice(0, 3 + (demoIndex % 2))
+            .map((attendee, attendeeIndex) => {
+              const rating = Math.floor(Math.random() * 3) + 3; // 3-5 stars
+              const claps = Math.floor(Math.random() * 8); // 0-7 claps
+              const tellMeMore = Math.random() > 0.7; // 30% chance
+              const comments = [
+                "Great demo! Really impressive work.",
+                "Love the idea, excited to see where this goes!",
+                "Interesting concept, would like to learn more.",
+                "Well presented and clear value proposition.",
+                "",
+              ];
+
+              return tx.feedback.create({
+                data: {
+                  id: `${eventId}-feedback-${demoIndex}-${attendeeIndex}`,
+                  eventId,
+                  demoId: demo.id,
+                  attendeeId: attendee.id,
+                  rating,
+                  claps,
+                  tellMeMore,
+                  comment:
+                    comments[Math.floor(Math.random() * comments.length)]!,
+                  quickActions: Math.random() > 0.7 ? ["invest"] : [],
+                },
+              });
+            }),
+        );
+
+        await Promise.all(feedbackPromises);
+
+        // Get awards for the event
+        const awards = await tx.award.findMany({
+          where: { eventId },
+          orderBy: { index: "asc" },
+        });
+
+        if (isPitchNight) {
+          // Pitch Night: Create votes with investment amounts ($100k budget per attendee)
+          const crowdFavoriteAward = awards.find((a) => a.votable);
+          if (crowdFavoriteAward) {
+            await Promise.all(
+              attendees.map((attendee) => {
+                // Distribute $100k across 3-5 demos
+                const numInvestments = Math.floor(Math.random() * 3) + 3; // 3-5 investments
+                const selectedDemos = demos
+                  .sort(() => Math.random() - 0.5)
+                  .slice(0, numInvestments);
+
+                // Generate random amounts that sum to $100k
+                const amounts = Array.from({ length: numInvestments }, () =>
+                  Math.random(),
+                );
+                const sum = amounts.reduce((a, b) => a + b, 0);
+                const normalizedAmounts = amounts.map(
+                  (amt) => Math.round(((amt / sum) * 100000) / 5000) * 5000, // Round to nearest $5k
+                );
+
+                // Adjust last amount to ensure total is exactly $100k
+                const currentSum = normalizedAmounts.reduce((a, b) => a + b, 0);
+                normalizedAmounts[normalizedAmounts.length - 1]! +=
+                  100000 - currentSum;
+
+                return Promise.all(
+                  selectedDemos.map((demo, index) =>
+                    tx.vote.create({
+                      data: {
+                        eventId,
+                        attendeeId: attendee.id,
+                        awardId: crowdFavoriteAward.id,
+                        demoId: demo.id,
+                        amount: normalizedAmounts[index]!,
+                      },
+                    }),
+                  ),
+                );
+              }),
+            );
+          }
+        } else {
+          // Demo Night: Create simple votes (one per award per attendee)
+          const votePromises = attendees.flatMap((attendee) =>
+            awards
+              .filter((award) => award.votable)
+              .map((award) => {
+                const randomDemo =
+                  demos[Math.floor(Math.random() * demos.length)]!;
+                return tx.vote.create({
+                  data: {
+                    eventId,
+                    attendeeId: attendee.id,
+                    awardId: award.id,
+                    demoId: randomDemo.id,
+                  },
+                });
+              }),
+          );
+
+          await Promise.all(votePromises);
+        }
+
+        // Create event feedback
+        const eventFeedbackComments = [
+          "Amazing event! The demos were incredibly inspiring. Looking forward to the next one!",
+          "Great organization and fantastic lineup of demos. The voting system worked smoothly.",
+          "Really enjoyed the variety of presentations. Well done!",
+        ];
+
+        await Promise.all(
+          attendees.slice(0, 3).map((attendee, index) =>
+            tx.eventFeedback.create({
+              data: {
+                eventId,
+                attendeeId: attendee.id,
+                comment: eventFeedbackComments[index]!,
+                surveyOpened: false,
+              },
+            }),
+          ),
+        );
+
+        return { success: true };
+      });
     }),
   delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.event

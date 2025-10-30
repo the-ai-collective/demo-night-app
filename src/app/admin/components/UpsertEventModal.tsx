@@ -20,6 +20,7 @@ import {
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
+import { env } from "~/env";
 
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
@@ -42,7 +43,12 @@ export function UpsertEventModal({
   const [isPitchNight, setIsPitchNight] = useState(
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
+  const [useTestData, setUseTestData] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
+  const populateTestDataMutation = api.event.populateTestData.useMutation();
+
+  const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
+
   const { register, handleSubmit } = useForm({
     values: {
       name: event?.name ?? "",
@@ -73,11 +79,27 @@ export function UpsertEventModal({
                 url: data.url,
                 config,
               })
-              .then((result) => {
+              .then(async (result) => {
+                // If creating new event and test data checkbox is checked, populate test data
+                if (!event && useTestData && isDevMode) {
+                  try {
+                    await populateTestDataMutation.mutateAsync({
+                      eventId: result.id,
+                      isPitchNight,
+                    });
+                    toast.success("Successfully created event with test data!");
+                  } catch (testDataError) {
+                    // Event was created successfully, but test data failed
+                    toast.warning(
+                      `Event created, but test data population failed: ${(testDataError as Error).message}`,
+                    );
+                  }
+                } else {
+                  toast.success(
+                    `Successfully ${event ? "updated" : "created"} event!`,
+                  );
+                }
                 onOpenChange(false);
-                toast.success(
-                  `Successfully ${event ? "updated" : "created"} event!`,
-                );
                 onSubmit(result);
               })
               .catch((error) => {
@@ -150,6 +172,30 @@ export function UpsertEventModal({
               </p>
             </div>
           </div>
+          {!event && isDevMode && (
+            <div className="flex items-start gap-3 rounded-md border border-yellow-200 bg-yellow-50 p-3">
+              <Switch
+                id="useTestData"
+                checked={useTestData}
+                onCheckedChange={(checked) => setUseTestData(checked === true)}
+                className="mt-0.5 select-none data-[state=checked]:border-yellow-500 data-[state=checked]:bg-yellow-500"
+              />
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="useTestData"
+                  className="cursor-pointer font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Use Test Data (Dev Only)
+                </label>
+                <p className="text-sm text-gray-600">
+                  Populate the event with 10 demo companies, 10 attendees,
+                  feedback entries, and{" "}
+                  {isPitchNight ? "$100k investment allocations" : "votes"}.
+                  Great for testing!
+                </p>
+              </div>
+            </div>
+          )}
           <div className="flex gap-2">
             <Button
               type="submit"
