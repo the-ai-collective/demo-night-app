@@ -175,7 +175,26 @@ export function LogoConfetti({ run = true }: { run?: boolean }) {
     const img = images[particle.shape % images.length];
     if (!img || !(img instanceof HTMLImageElement)) return;
     try {
-      ctx.drawImage(img, -18, -18, 36, 36);
+      const size = 36;
+      const aspectRatio = img.width / img.height;
+      let drawWidth = size;
+      let drawHeight = size;
+
+      if (aspectRatio > 1) {
+        // Image is wider than tall, fit to width
+        drawHeight = size / aspectRatio;
+      } else {
+        // Image is taller than wide, fit to height
+        drawWidth = size * aspectRatio;
+      }
+
+      ctx.drawImage(
+        img,
+        -drawWidth / 2,
+        -drawHeight / 2,
+        drawWidth,
+        drawHeight,
+      );
     } catch (error) {
       console.error("Error drawing image:", error);
     }

@@ -47,9 +47,30 @@ export function ConfigurationTab() {
   const { event, refetchEvent, config } = useDashboardContext();
   const [partnerSheetOpen, setPartnerSheetOpen] = useState(false);
   const [quickActionSheetOpen, setQuickActionSheetOpen] = useState(false);
+  const [surveyUrl, setSurveyUrl] = useState(config.surveyUrl ?? "");
+  const [isEditingSurvey, setIsEditingSurvey] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
 
   if (!event) return null;
+
+  const handleSaveSurveyUrl = () => {
+    upsertMutation
+      .mutateAsync({
+        originalId: event.id,
+        config: {
+          ...config,
+          surveyUrl: surveyUrl || undefined,
+        },
+      })
+      .then(() => {
+        toast.success("Survey URL updated!");
+        setIsEditingSurvey(false);
+        refetchEvent();
+      })
+      .catch((e) => {
+        toast.error("Failed to update survey URL: " + e.message);
+      });
+  };
 
   const onUploadPartners = (rows: Record<string, string>[]) => {
     const newPartners = rows.map((row) => {
@@ -112,6 +133,75 @@ export function ConfigurationTab() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-end justify-between">
+          <h2 className="text-2xl font-semibold">Event Survey</h2>
+        </div>
+        <div className="flex flex-col gap-2 rounded-md border p-4">
+          <p className="text-sm text-muted-foreground">
+            Optional external survey link (e.g., Google Form) shown to attendees
+            during voting and recap phases.
+          </p>
+          {isEditingSurvey ? (
+            <div className="flex flex-col gap-2">
+              <input
+                type="url"
+                value={surveyUrl}
+                onChange={(e) => setSurveyUrl(e.target.value)}
+                placeholder="https://forms.gle/..."
+                className="rounded-md border border-gray-200 p-2"
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSurveyUrl(config.surveyUrl ?? "");
+                    setIsEditingSurvey(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveSurveyUrl}
+                  disabled={upsertMutation.isPending}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {config.surveyUrl ? (
+                  <a
+                    href={config.surveyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {config.surveyUrl}
+                  </a>
+                ) : (
+                  <span className="italic text-muted-foreground">
+                    No survey URL set
+                  </span>
+                )}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditingSurvey(true)}
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2">
         <div className="flex items-end justify-between">
           <div className="flex items-end justify-start gap-2">

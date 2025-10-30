@@ -108,7 +108,7 @@ export function FeedbackItem({ feedback }: { feedback: FeedbackAndAttendee }) {
 
   return (
     <motion.li
-      className="flex flex-1 flex-col gap-1 rounded-xl bg-gray-300/50 p-4 shadow-xl backdrop-blur"
+      className="flex flex-1 flex-col gap-1 rounded-lg bg-gray-300/50 p-4 shadow-xl backdrop-blur"
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

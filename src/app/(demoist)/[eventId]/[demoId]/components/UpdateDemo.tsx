@@ -4,8 +4,11 @@ import { type Demo } from "@prisma/client";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { TAGLINE_MAX_LENGTH } from "~/lib/types/taglineMaxLength";
 import { cn } from "~/lib/utils";
+import { type CompleteEvent } from "~/server/api/routers/event";
 import { api } from "~/trpc/react";
 
 import Button from "~/components/Button";
@@ -13,16 +16,18 @@ import { LogoConfetti } from "~/components/Confetti";
 
 export function UpdateDemoPage({
   demo,
+  event,
   secret,
 }: {
   demo: Demo;
+  event: CompleteEvent;
   secret: string;
 }) {
   return (
     <>
       <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl">
         <div className="size-full p-4">
-          <UpdateDemoForm demo={demo} secret={secret} />
+          <UpdateDemoForm demo={demo} event={event} secret={secret} />
         </div>
       </div>
 
@@ -35,11 +40,16 @@ export function UpdateDemoPage({
 
 export function UpdateDemoForm({
   demo,
+  event,
   secret,
 }: {
   demo: Demo;
+  event: CompleteEvent;
   secret: string;
 }) {
+  const branding = getBrandingClient(
+    (event.config as EventConfig | null)?.isPitchNight ?? false,
+  );
   const updateDemoMutation = api.demo.update.useMutation();
   const {
     register,
@@ -75,8 +85,9 @@ export function UpdateDemoForm({
           Get Ready! 🧑‍💻
         </h1>
         <p className="text-md max-w-[330px] pt-2 text-center font-medium leading-5 text-gray-500">
-          It&apos;s almost time to demo! Let&apos;s make sure everything is in
-          order so the audience can leave feedback and connect with you!
+          It&apos;s almost time to {branding.isPitchNight ? "pitch" : "demo"}!
+          Let&apos;s make sure everything is in order so the audience can leave
+          feedback and connect with you!
         </p>
       </div>
       <label className="flex w-full flex-col gap-1">
@@ -86,7 +97,7 @@ export function UpdateDemoForm({
           placeholder="The AI Collective"
           {...register("name", { required: "Startup name is required" })}
           className={cn(
-            "z-30 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.name ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -95,13 +106,16 @@ export function UpdateDemoForm({
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Startup Website (Optional)</span>
+        <span className="text-lg font-semibold">
+          Startup Website{" "}
+          <span className="text-sm italic text-gray-400">(Optional)</span>
+        </span>
         <input
           type="url"
           placeholder="https://aicollective.com"
           {...register("url")}
           className={cn(
-            "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.url ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -110,7 +124,10 @@ export function UpdateDemoForm({
         )}
       </label>
       <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">Email 📧 (Optional)</span>
+        <span className="text-lg font-semibold">
+          Email 📧{" "}
+          <span className="text-sm italic text-gray-400">(Optional)</span>
+        </span>
         <span className="italic text-gray-400">
           This is made public so attendees can connect with you after the event!
         </span>
@@ -119,7 +136,7 @@ export function UpdateDemoForm({
           placeholder="hello@aicollective.com"
           {...register("email")}
           className={cn(
-            "z-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.email ? "border-red-500" : "border-gray-200",
           )}
         />
@@ -129,7 +146,10 @@ export function UpdateDemoForm({
       </label>
       <label className="flex w-full flex-col gap-1">
         <div className="flex w-full flex-row items-center justify-start gap-2">
-          <span className="text-lg font-semibold">Tagline 👋 (Optional)</span>
+          <span className="text-lg font-semibold">
+            Tagline 👋{" "}
+            <span className="text-sm italic text-gray-400">(Optional)</span>
+          </span>
           {(watch("description")?.length ?? 0) >= 100 && (
             <span
               className={cn(
@@ -155,7 +175,7 @@ export function UpdateDemoForm({
             },
           })}
           className={cn(
-            "z-30 max-h-32 min-h-10 rounded-xl border-2 bg-white/60 p-2 text-lg backdrop-blur",
+            "z-30 max-h-32 min-h-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
             errors.description ? "border-red-500" : "border-gray-200",
           )}
           rows={2}
@@ -166,7 +186,12 @@ export function UpdateDemoForm({
           </span>
         )}
       </label>
-      <Button pending={updateDemoMutation.isPending}>Update Demo</Button>
+      <Button
+        pending={updateDemoMutation.isPending}
+        isPitchNight={branding.isPitchNight}
+      >
+        Update Demo
+      </Button>
     </form>
   );
 }

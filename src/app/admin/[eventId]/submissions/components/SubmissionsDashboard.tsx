@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { statusScore } from "~/lib/types/submissionStatus";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { getBrandingClient } from "~/lib/branding";
 
 import SubmissionStatusBadge from "~/components/SubmissionStatusBadge";
 import { Button } from "~/components/ui/button";
@@ -68,6 +69,7 @@ export default function SubmissionsDashboard({
   event: Event;
   isAdmin: boolean;
 }) {
+  const branding = getBrandingClient();
   const { data: submissions, refetch } = api.submission.all.useQuery({
     eventId: initialEvent.id,
     secret: initialEvent.secret,
@@ -151,7 +153,7 @@ export default function SubmissionsDashboard({
             <div className="flex items-end gap-2">
               {!isAdmin && (
                 <Image
-                  src="/images/logo.png"
+                  src={branding.logoPath}
                   alt="logo"
                   width={40}
                   height={40}
@@ -252,7 +254,7 @@ export default function SubmissionsDashboard({
                   </HoverCardTrigger>
                   <HoverCardContent className="flex w-auto max-w-lg flex-row items-center gap-2">
                     <Image
-                      src="/images/logo.png"
+                      src={branding.logoPath}
                       alt="logo"
                       width={40}
                       height={40}

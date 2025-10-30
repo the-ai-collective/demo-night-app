@@ -5,11 +5,16 @@ import { useEffect, useMemo, useState } from "react";
 import { CSVLink } from "react-csv";
 import { toast } from "sonner";
 
+import { type Branding, getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { QUICK_ACTIONS_TITLE, type QuickAction } from "~/lib/types/quickAction";
 import { type CompleteDemo } from "~/server/api/routers/demo";
+import { type CompleteEvent } from "~/server/api/routers/event";
+import { api } from "~/trpc/react";
 
 import Button from "~/components/Button";
 import { LogoConfetti } from "~/components/Confetti";
+import DemoStats from "~/components/DemoStats";
 import { RATING_EMOJIS } from "~/components/RatingSlider";
 import { useModal } from "~/components/modal/provider";
 
@@ -18,14 +23,28 @@ import InfoModal from "./InfoModal";
 
 export default function DemoRecap({
   demo,
+  event,
   quickActions,
 }: {
   demo: CompleteDemo;
+  event: CompleteEvent;
   quickActions: QuickAction[];
 }) {
+  const secret = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  ).get("secret");
+
+  const { data: stats } = api.demo.getStats.useQuery(
+    { id: demo.id, secret: secret ?? "" },
+    { enabled: !!secret },
+  );
+
+  const isPitchNight =
+    (event.config as EventConfig | null)?.isPitchNight ?? false;
+
   return (
     <>
-      <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl">
+      <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl overflow-y-auto">
         <div className="flex w-full flex-col items-center gap-4 p-4 font-medium">
           <div>
             <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
@@ -35,7 +54,18 @@ export default function DemoRecap({
               Here&apos;s all your feedback and followups!
             </p>
           </div>
-          <ActionButtons demo={demo} quickActions={quickActions} />
+          <ActionButtons
+            demo={demo}
+            event={event}
+            quickActions={quickActions}
+          />
+          {stats && (
+            <DemoStats
+              stats={stats}
+              isPitchNight={isPitchNight}
+              quickActions={quickActions}
+            />
+          )}
           <RatingSummary demo={demo} />
           {demo.feedback.map((feedback) => (
             <FeedbackItem
@@ -55,10 +85,12 @@ export default function DemoRecap({
 }
 
 function CSVDownloadButton({
+  branding,
   data,
   headers,
   filename,
 }: {
+  branding: Branding;
   data: any[];
   headers: { label: string; key: string }[];
   filename: string;
@@ -71,7 +103,7 @@ function CSVDownloadButton({
 
   if (!isClient) {
     return (
-      <Button className="basis-1/3">
+      <Button className="basis-1/3" isPitchNight={branding.isPitchNight}>
         CSV <Download className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
     );
@@ -84,7 +116,7 @@ function CSVDownloadButton({
       headers={headers}
       filename={filename}
     >
-      <Button>
+      <Button isPitchNight={branding.isPitchNight}>
         CSV <Download className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
     </CSVLink>
@@ -93,15 +125,20 @@ function CSVDownloadButton({
 
 function ActionButtons({
   demo,
+  event,
   quickActions,
 }: {
   demo: CompleteDemo;
+  event: CompleteEvent;
   quickActions: QuickAction[];
 }) {
+  const branding = getBrandingClient(
+    (event.config as EventConfig | null)?.isPitchNight ?? false,
+  );
   const modal = useModal();
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success("URL to view demo recap copied to clipboard!");
+    toast.success(`URL to view ${branding.appName} recap copied to clipboard!`);
   };
 
   const showInfoModal = () => {
@@ -143,15 +180,24 @@ function ActionButtons({
 
   return (
     <div className="flex w-full flex-row gap-4">
-      <Button className="basis-1/3" onClick={copyLink}>
+      <Button
+        className="basis-1/3"
+        onClick={copyLink}
+        isPitchNight={branding.isPitchNight}
+      >
         Share
         <ShareIcon className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
-      <Button className="basis-1/3" onClick={showInfoModal}>
+      <Button
+        className="basis-1/3"
+        onClick={showInfoModal}
+        isPitchNight={branding.isPitchNight}
+      >
         Help
         <CircleHelp className="-mt-1" size={20} strokeWidth={3.5} />
       </Button>
       <CSVDownloadButton
+        branding={branding}
         data={feedback}
         headers={headers}
         filename={`${demo.name} feedback.csv`}
@@ -172,11 +218,11 @@ function RatingSummary({ demo }: { demo: CompleteDemo }) {
   );
 
   return (
-    <div className="z-10 flex w-full flex-row gap-2 rounded-xl bg-gray-300/50 p-2 shadow-xl backdrop-blur">
+    <div className="z-10 flex w-full flex-row gap-2 rounded-lg bg-gray-300/50 p-2 shadow-xl backdrop-blur">
       {Object.entries(numByRating).map(([rating, count]) => (
         <div
           key={rating}
-          className="flex basis-1/5 flex-col items-center justify-center rounded-xl bg-white/50 py-2"
+          className="flex basis-1/5 flex-col items-center justify-center rounded-lg bg-white/50 py-2"
         >
           <p className="line-clamp-1">{RATING_EMOJIS[Number(rating)]}</p>
           <p className="line-clamp-1 text-xl font-bold">{count}</p>

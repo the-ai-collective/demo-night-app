@@ -39,12 +39,14 @@ type FormValues = z.infer<typeof formSchema>;
 export default function AwardSheet({
   award,
   eventId,
+  isPitchNight = false,
   onSubmit,
   open,
   onOpenChange,
 }: {
   award?: Award;
   eventId: string;
+  isPitchNight?: boolean;
   onSubmit: (award: Award) => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -69,9 +71,10 @@ export default function AwardSheet({
         description: data.description,
         votable: data.votable,
       });
-      onOpenChange(false);
       toast.success(`Successfully ${award ? "updated" : "created"} award!`);
       onSubmit(result);
+      form.reset();
+      onOpenChange(false);
     } catch (error) {
       toast.error(
         `Failed to ${award ? "update" : "create"} award: ${(error as Error).message}`,
@@ -160,11 +163,13 @@ export default function AwardSheet({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Attendees can vote?</FormLabel>
+                    <FormLabel>
+                      {isPitchNight ? "Attendees can invest?" : "Attendees can vote?"}
+                    </FormLabel>
                     <p className="text-sm text-muted-foreground">
-                      Determine the winner of this award by audience vote. If
-                      unchecked, you can still manually select the winner (eg.
-                      for judges&apos; choice)
+                      {isPitchNight
+                        ? "Allow attendees to invest their $100k budget toward this award. The company with the most investment wins! If unchecked, you can still manually select the winner (e.g., for judges' choice)."
+                        : "Determine the winner of this award by audience vote. If unchecked, you can still manually select the winner (e.g., for judges' choice)."}
                     </p>
                   </div>
                 </FormItem>

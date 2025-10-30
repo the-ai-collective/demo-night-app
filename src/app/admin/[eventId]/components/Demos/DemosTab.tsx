@@ -59,6 +59,7 @@ const DEMO_CSV_HEADERS = [
   "email",
   "url",
   "votable",
+  "feedbackUrl",
 ];
 
 export function DemosTab() {
@@ -110,6 +111,11 @@ export function DemosTab() {
       });
   };
 
+  const demosWithFeedbackUrl = event.demos.map((demo) => ({
+    ...demo,
+    feedbackUrl: `${window.location.origin}/${event.id}/${demo.id}?secret=${demo.secret}`,
+  }));
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
       <div className="flex items-end justify-between">
@@ -118,7 +124,7 @@ export function DemosTab() {
           <h2 className="text-2xl font-semibold">Demos</h2>
         </div>
         <CsvButton
-          data={event.demos}
+          data={demosWithFeedbackUrl}
           headers={DEMO_CSV_HEADERS}
           filename="demos.csv"
           onUpload={onUploadDemos}

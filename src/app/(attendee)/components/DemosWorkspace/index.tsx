@@ -83,9 +83,9 @@ export default function DemosWorkspace() {
                 <ArrowUpRight
                   size={28}
                   strokeWidth={3}
-                className="-mt-[5px] aspect-square w-7 flex-none rounded-lg bg-gray-200 p-[2px] text-gray-500 group-hover:bg-gray-300 group-hover:text-gray-700"
-              />
-            </Link>
+                  className="-mt-[5px] aspect-square w-7 flex-none rounded-lg bg-gray-200 p-[2px] text-gray-500 group-hover:bg-gray-300 group-hover:text-gray-700"
+                />
+              </Link>
             ) : (
               <h1 className="line-clamp-1 font-kallisto text-4xl font-bold tracking-tight">
                 {selectedDemo.name}
@@ -108,8 +108,8 @@ export default function DemosWorkspace() {
                 setLastCommentChange(Date.now());
               }}
               rows={3}
-              className="z-10 mt-4 block w-full resize-none rounded-xl border-2 border-gray-200 bg-white/60 p-2 text-lg font-medium backdrop-blur"
-              placeholder={`• What was your favorite part?\n• What's one thing they could do better?\n• Any questions for the demoist?`}
+              className="z-10 mt-4 block w-full resize-none rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg font-medium backdrop-blur"
+              placeholder={`• What was your favorite part?\n• What's one thing they could do better?\n• Any questions for the presenter?`}
             />
             <SaveStatusIndicator status={saveStatus} />
           </div>
@@ -123,7 +123,9 @@ export default function DemosWorkspace() {
       <button
         className="fixed bottom-2 left-2 z-10 h-9 w-9 cursor-pointer rounded-full bg-gray-200 p-[6px] text-gray-500 shadow-xl hover:bg-gray-300 hover:text-gray-700"
         onClick={() =>
-          modal?.show(<InfoModal quickActions={config.quickActions} />)
+          modal?.show(
+            <InfoModal quickActions={config.quickActions} event={event} />,
+          )
         }
       >
         <BadgeInfo />

@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import { EventPhase } from "~/lib/types/currentEvent";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { type EventConfig } from "~/lib/types/eventConfig";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -44,6 +45,8 @@ const REFRESH_INTERVAL =
 
 export default function AwardsAndVotingTab() {
   const { event, currentEvent, refetchEvent } = useDashboardContext();
+  const config = event?.config as EventConfig;
+  const isPitchNight = config?.isPitchNight ?? false;
   const isResultsPhase =
     event?.id === currentEvent?.id &&
     currentEvent?.phase === EventPhase.Results;
@@ -75,10 +78,12 @@ export default function AwardsAndVotingTab() {
     );
     votes?.forEach((vote) => {
       if (!vote.demoId) return;
-      map.set(vote.demoId, (map.get(vote.demoId) ?? 0) + 1);
+      // For pitch nights, sum investment amounts; for demo nights, count votes
+      const value = isPitchNight && vote.amount ? vote.amount : 1;
+      map.set(vote.demoId, (map.get(vote.demoId) ?? 0) + value);
     });
     return map;
-  }, [event, votes]);
+  }, [event, votes, isPitchNight]);
 
   if (!event) return null;
 
@@ -201,8 +206,8 @@ export default function AwardsAndVotingTab() {
             <div className="flex w-full items-center justify-between gap-2">
               <h2 className="line-clamp-1 text-2xl font-semibold">
                 {selectedAward?.name
-                  ? `Votes for ${selectedAward.name}`
-                  : "Votes"}
+                  ? `${isPitchNight ? "Investments" : "Votes"} for ${selectedAward.name}`
+                  : isPitchNight ? "Investments" : "Votes"}
                 <span> ({votes?.length ?? 0} total)</span>
               </h2>
               <Tooltip>
@@ -248,7 +253,7 @@ export default function AwardsAndVotingTab() {
                         onClick={() => handleSelectWinner(demoId)}
                       >
                         <TableCell className="text-right font-medium">
-                          {voteCount}
+                          {isPitchNight ? `$${(voteCount / 1000).toFixed(0)}k` : voteCount}
                         </TableCell>
                         <TableCell className="flex items-center justify-start gap-2 font-medium">
                           {selectedAward?.winnerId === demoId && (

@@ -1,10 +1,13 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { getBrandingClient } from "~/lib/branding";
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
@@ -14,6 +17,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 
 export default function AdminHomePage() {
+  const branding = getBrandingClient();
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
   const {
@@ -40,10 +44,10 @@ export default function AdminHomePage() {
     <main className="min-h-screen bg-gray-50">
       <header className="sticky top-0 z-10 border-b bg-white/60 shadow-sm backdrop-blur">
         <div className="container mx-auto flex items-center justify-between gap-1 px-8 py-2">
-          <Logos size={36} />
+          <Logos size={36} logoPath={branding.logoPath} />
           <div className="flex flex-col items-center justify-center">
             <h1 className="line-clamp-1 font-marker text-xl font-bold leading-6 tracking-tight">
-              Demo Night App
+              {branding.appName} App
             </h1>
             <span className="font-marker text-sm font-bold text-muted-foreground">
               Admin Dashboard
@@ -53,26 +57,16 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <Card
-            className={cn(
-              "cursor-pointer transition-all hover:shadow-md",
-              "border-dashed border-border",
-              "active:scale-95",
-            )}
-            onClick={() => showUpsertEventModal()}
-          >
-            <CardContent className="flex h-[88px] items-center justify-center p-4">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <PlusIcon className="h-5 w-5" />
-                <span className="font-medium">Create Event</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Events</h2>
+          <Button onClick={() => showUpsertEventModal()}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Create Event
+          </Button>
+        </div>
+        <div className="flex flex-col gap-4">
           {isLoading ? (
             <>
-              <EventSkeleton />
-              <EventSkeleton />
               <EventSkeleton />
               <EventSkeleton />
               <EventSkeleton />
@@ -84,26 +78,79 @@ export default function AdminHomePage() {
                 className={cn(
                   "cursor-pointer transition-all hover:shadow-md",
                   "border-border",
-                  "active:scale-95",
+                  "active:scale-[0.99]",
                 )}
                 onClick={() => {
                   router.push(`/admin/${event.id}`);
                 }}
               >
                 <CardContent className="p-4">
-                  <CardTitle className="flex items-start justify-between">
-                    <div className="flex items-center">
-                      <span className="line-clamp-1 pr-2 text-xl">
-                        {event.name}
-                      </span>
-                      {event.id === currentEvent?.id && (
-                        <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
-                          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
-                          <span className="text-xs font-semibold text-green-600">
-                            LIVE
+                  <div className="flex items-center justify-between gap-4">
+                    <Image
+                      src={
+                        (event.config as EventConfig | null)?.isPitchNight
+                          ? "/images/pitch.png"
+                          : "/images/logo.png"
+                      }
+                      alt={
+                        (event.config as EventConfig | null)?.isPitchNight
+                          ? "Pitch Night"
+                          : "Demo Night"
+                      }
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 rounded-lg object-contain"
+                    />
+                    <div className="flex min-w-0 flex-1 items-center gap-4">
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="flex items-center gap-2">
+                          <span className="line-clamp-1 text-xl">
+                            {event.name}
+                          </span>
+                          {event.id === currentEvent?.id && (
+                            <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
+                              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
+                              <span className="text-xs font-semibold text-green-600">
+                                LIVE
+                              </span>
+                            </div>
+                          )}
+                        </CardTitle>
+                        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                          <CalendarIcon className="h-4 w-4" />
+                          <time>
+                            {event.date.toLocaleDateString("en-US", {
+                              timeZone: "UTC",
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </time>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Presentation className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {event._count.demos}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {event._count.demos === 1 ? "demo" : "demos"}
                           </span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {event._count.attendees}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {event._count.attendees === 1
+                              ? "attendee"
+                              : "attendees"}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <Button
                       variant="ghost"
@@ -129,18 +176,6 @@ export default function AdminHomePage() {
                         <path d="m15 5 4 4" />
                       </svg>
                     </Button>
-                  </CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CalendarIcon className="h-4 w-4" />
-                    <time>
-                      {event.date.toLocaleDateString("en-US", {
-                        timeZone: "UTC",
-                        weekday: "short",
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </time>
                   </div>
                 </CardContent>
               </Card>
@@ -166,13 +201,28 @@ function EventSkeleton() {
   return (
     <Card className="animate-pulse">
       <CardContent className="p-4">
-        <CardTitle className="flex items-start justify-between">
-          <div className="h-7 w-48 rounded bg-gray-200" />
+        <div className="flex items-center justify-between gap-4">
+          <div className="h-12 w-12 rounded-lg bg-gray-200" />
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="h-7 w-48 rounded bg-gray-200" />
+              <div className="mt-2 flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-32 rounded bg-gray-200" />
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-16 rounded bg-gray-200" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-gray-200" />
+                <div className="h-4 w-20 rounded bg-gray-200" />
+              </div>
+            </div>
+          </div>
           <div className="h-8 w-8 rounded bg-gray-200" />
-        </CardTitle>
-        <div className="mt-2 flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-gray-200" />
-          <div className="h-4 w-32 rounded bg-gray-200" />
         </div>
       </CardContent>
     </Card>

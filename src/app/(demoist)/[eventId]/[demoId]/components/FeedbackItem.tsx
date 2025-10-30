@@ -35,7 +35,7 @@ export function FeedbackItem({
   return (
     <div
       className={cn(
-        "group z-10 flex w-full flex-col gap-1 rounded-xl bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur",
+        "group z-10 flex w-full flex-col gap-1 rounded-lg bg-gray-300/50 p-4 font-medium leading-6 shadow-xl backdrop-blur",
         feedback.attendee?.email && "cursor-pointer",
       )}
       onClick={copyEmailToClipboard}

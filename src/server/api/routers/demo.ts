@@ -36,6 +36,15 @@ export type FeedbackAndAttendee = Feedback & {
   attendee: { name: string | null; type: string | null };
 };
 
+export type DemoStats = {
+  totalFeedback: number;
+  averageRating: number | null;
+  totalClaps: number;
+  totalTellMeMore: number;
+  quickActionCounts: Record<string, number>;
+  totalMoneyRaised: number;
+};
+
 export const demoRouter = createTRPCRouter({
   get: publicProcedure
     .input(z.object({ id: z.string(), secret: z.string() }))
@@ -276,4 +285,54 @@ export const demoRouter = createTRPCRouter({
       });
     });
   }),
+  getStats: publicProcedure
+    .input(z.object({ id: z.string(), secret: z.string() }))
+    .query(async ({ input }): Promise<DemoStats> => {
+      const demo = await db.demo.findUnique({
+        where: { id: input.id, secret: input.secret },
+        include: {
+          feedback: true,
+          votes: true,
+        },
+      });
+
+      if (!demo) {
+        throw new Error("Demo not found");
+      }
+
+      // Calculate aggregate stats
+      const totalFeedback = demo.feedback.length;
+      const ratingsOnly = demo.feedback
+        .filter((f) => f.rating !== null)
+        .map((f) => f.rating!);
+      const averageRating =
+        ratingsOnly.length > 0
+          ? ratingsOnly.reduce((sum, r) => sum + r, 0) / ratingsOnly.length
+          : null;
+      const totalClaps = demo.feedback.reduce((sum, f) => sum + f.claps, 0);
+      const totalTellMeMore = demo.feedback.filter((f) => f.tellMeMore).length;
+
+      // Count quick actions
+      const quickActionCounts: Record<string, number> = {};
+      demo.feedback.forEach((f) => {
+        f.quickActions.forEach((action) => {
+          quickActionCounts[action] = (quickActionCounts[action] ?? 0) + 1;
+        });
+      });
+
+      // Calculate total money raised (in cents)
+      const totalMoneyRaised = demo.votes.reduce(
+        (sum, v) => sum + (v.amount ?? 0),
+        0,
+      );
+
+      return {
+        totalFeedback,
+        averageRating,
+        totalClaps,
+        totalTellMeMore,
+        quickActionCounts,
+        totalMoneyRaised,
+      };
+    }),
 });

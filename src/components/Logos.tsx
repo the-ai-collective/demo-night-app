@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "../lib/utils";
 import Image from "next/image";
 import React from "react";
@@ -6,9 +8,11 @@ import { type ReactNode } from "react";
 export default function Logos({
   size,
   className,
+  logoPath,
 }: {
   size?: number;
   className?: string;
+  logoPath: string;
 }): ReactNode {
   return (
     <div
@@ -18,7 +22,7 @@ export default function Logos({
       )}
     >
       <Image
-        src="/images/logo.png"
+        src={logoPath}
         id="logo"
         alt="logo"
         width={size}

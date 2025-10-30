@@ -4,12 +4,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import ConfettiExplosion from "react-dom-confetti";
 
+import { type EventConfig } from "~/lib/types/eventConfig";
 import { type PublicDemo } from "~/server/api/routers/event";
 
 import { ResultsConfetti } from "~/components/Confetti";
 
 export default function ResultsWorkspace() {
   const { currentEvent, event } = useWorkspaceContext();
+  const config = event.config as EventConfig;
+  const isPitchNight = config?.isPitchNight ?? false;
 
   const awards = [...event.awards].reverse();
 
@@ -22,7 +25,7 @@ export default function ResultsWorkspace() {
       <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-xl">
         <div className="flex size-full flex-col items-center justify-center gap-4 p-4">
           <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
-            Voting Results! 🤩
+            {isPitchNight ? "Investment Results! 💸" : "Voting Results! 🚀"}
           </h1>
           <div className="flex w-full flex-col gap-8">
             {awards.map((award, index) => (
@@ -92,10 +95,10 @@ function AwardWinnerItem({
               transition: { delay: 2.0, duration: 1.5, type: "spring" },
             }}
             exit={{ opacity: 0, scale: 0.5 }}
-            className="z-10 flex min-h-28 flex-col rounded-xl bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
+            className="z-10 flex min-h-24 flex-col rounded-lg bg-yellow-300/50 p-4 shadow-xl backdrop-blur"
           >
-            <h2 className="font-kallisto text-2xl font-bold">{winner.name}</h2>
-            <p className="italic leading-5 text-gray-700">
+            <h2 className="text-xl font-bold">{winner.name}</h2>
+            <p className="font-medium italic leading-5 text-gray-700">
               {winner.description}
             </p>
           </motion.div>
@@ -105,7 +108,7 @@ function AwardWinnerItem({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ duration: 1.0, ease: "easeInOut" }}
-            className="group z-10 flex min-h-28 items-center justify-center rounded-xl bg-gray-300/50 p-4 shadow-xl backdrop-blur"
+            className="group z-10 flex min-h-24 items-center justify-center rounded-lg bg-gray-300/50 p-4 shadow-xl backdrop-blur"
           >
             <h2 className="text-4xl">🤫</h2>
           </motion.div>

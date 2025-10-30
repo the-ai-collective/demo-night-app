@@ -193,11 +193,12 @@ model Vote {
   awardId    String
   demo       Demo?    @relation(fields: [demoId], references: [id], onDelete: Cascade)
   demoId     String?
+  amount     Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([eventId, attendeeId, awardId])
+  @@unique([eventId, attendeeId, awardId, demoId])
   @@index(awardId)
 }
 
@@ -210,7 +211,8 @@ model EventFeedback {
   attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   attendeeId String
 
-  comment String?
+  comment      String?
+  surveyOpened Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

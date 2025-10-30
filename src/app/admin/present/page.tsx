@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation";
 
 import { api } from "~/trpc/server";
+import { getBranding } from "~/lib/branding.server";
 
 import Presentations from "./components/Presentations";
 
 export async function generateMetadata() {
   const currentEvent = await api.event.getCurrent();
-  return { title: currentEvent?.name ?? "Demo Night" };
+  const branding = await getBranding();
+  return { title: currentEvent?.name ?? branding.appName };
 }
 
 export default async function AdminPresentPage() {

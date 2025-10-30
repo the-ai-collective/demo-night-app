@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { type EventConfig } from "~/lib/types/eventConfig";
 
 import {
   AlertDialog,
@@ -47,6 +48,9 @@ export function AwardsTab() {
   const [awardSheetOpen, setAwardSheetOpen] = useState(false);
 
   if (!event) return null;
+
+  const config = event.config as EventConfig;
+  const isPitchNight = config?.isPitchNight ?? false;
 
   const handleAwardUpdate = async (award: Award, updates: Partial<Award>) => {
     try {
@@ -102,6 +106,7 @@ export function AwardsTab() {
       <div className="overflow-x-auto rounded-md border">
         <AwardSheet
           eventId={event.id}
+          isPitchNight={isPitchNight}
           open={awardSheetOpen}
           onOpenChange={setAwardSheetOpen}
           onSubmit={(_: Award) => {
@@ -134,6 +139,7 @@ export function AwardsTab() {
                     key={award.id}
                     award={award}
                     eventId={event.id}
+                    isPitchNight={isPitchNight}
                     onUpdate={(updates) => handleAwardUpdate(award, updates)}
                     refetchEvent={refetchEvent}
                   />
@@ -156,11 +162,13 @@ export function AwardsTab() {
 function AwardRow({
   award,
   eventId,
+  isPitchNight,
   onUpdate: _,
   refetchEvent,
 }: {
   award: Award;
   eventId: string;
+  isPitchNight: boolean;
   onUpdate: (updates: Partial<Award>) => void;
   refetchEvent: () => void;
 }) {
@@ -266,6 +274,7 @@ function AwardRow({
       <AwardSheet
         award={award}
         eventId={eventId}
+        isPitchNight={isPitchNight}
         open={editSheetOpen}
         onOpenChange={setEditSheetOpen}
         onSubmit={(_: Award) => {

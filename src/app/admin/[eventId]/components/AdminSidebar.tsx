@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { EventPhase } from "~/lib/types/currentEvent";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { api } from "~/trpc/react";
+import { getBrandingClient } from "~/lib/branding";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -74,6 +75,7 @@ export function AdminSidebar({
   selectedTab,
   setSelectedTab,
 }: AdminSidebarProps) {
+  const branding = getBrandingClient(config?.isPitchNight);
   const router = useRouter();
   const { data: events } = api.event.allAdmin.useQuery();
   const { data: currentEvent, refetch: refetchEvent } =
@@ -96,7 +98,7 @@ export function AdminSidebar({
                 <SidebarMenuButton className="h-14">
                   <div className="flex items-center gap-2">
                     <Image
-                      src="/images/logo.png"
+                      src={branding.logoPath}
                       alt="logo"
                       width={40}
                       height={40}
@@ -292,7 +294,9 @@ export function AdminSidebar({
                     >
                       <div className="flex items-center gap-2">
                         <PresentationIcon className="h-4 w-4 shrink-0" />
-                        <span className="line-clamp-1">Demos & Feedback</span>
+                        <span className="line-clamp-1">
+                          {branding.isPitchNight ? "Pitches & Feedback" : "Demos & Feedback"}
+                        </span>
                         {currentPhase === EventPhase.Demos && <LiveIndicator />}
                       </div>
                     </SidebarMenuSubButton>
@@ -308,7 +312,9 @@ export function AdminSidebar({
                     >
                       <div className="flex items-center gap-2">
                         <TrophyIcon className="h-4 w-4 shrink-0" />
-                        <span className="line-clamp-1">Awards & Voting</span>
+                        <span className="line-clamp-1">
+                          {branding.isPitchNight ? "Awards & Investing" : "Awards & Voting"}
+                        </span>
                         {currentPhase === EventPhase.Voting ||
                         currentPhase === EventPhase.Results ? (
                           <LiveIndicator />
