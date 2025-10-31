@@ -18,14 +18,14 @@ export const DEFAULT_AWARDS = [
 
 export const PITCH_NIGHT_AWARDS = [
   {
-    name: "💰 Crowd Favorite",
+    name: "💰 Top Funded",
     description: "The company that received the most investment from the crowd!",
     index: 0,
     votable: true,
   },
   {
-    name: "🏆 Judges' Favorite",
-    description: "The company selected by our panel of expert judges!",
+    name: "🏆 Best Pitch",
+    description: "The pitch that impressed our panel of expert judges the most!",
     index: 1,
     votable: false,
   },
