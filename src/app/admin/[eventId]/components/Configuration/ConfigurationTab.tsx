@@ -10,6 +10,7 @@ import { type Partner } from "~/lib/types/partner";
 import { type QuickAction } from "~/lib/types/quickAction";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { escapeCsvField } from "~/lib/csvUtils";
 
 import {
   AlertDialog,
@@ -131,6 +132,19 @@ export function ConfigurationTab() {
       });
   };
 
+  const partnersData = config.partners.map((partner) => ({
+    name: escapeCsvField(partner.name),
+    description: escapeCsvField(partner.description),
+    url: escapeCsvField(partner.url),
+    email: escapeCsvField(partner.email),
+  }));
+
+  const quickActionsData = config.quickActions.map((action) => ({
+    id: action.id,
+    icon: action.icon,
+    description: escapeCsvField(action.description),
+  }));
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
       <div className="flex flex-col gap-2">
@@ -208,7 +222,7 @@ export function ConfigurationTab() {
             <h2 className="text-2xl font-semibold">Quick Actions</h2>
           </div>
           <CsvButton
-            data={config.quickActions}
+            data={quickActionsData}
             headers={QUICK_ACTION_CSV_HEADERS}
             filename="quick-actions.csv"
             onUpload={onUploadQuickActions}
@@ -274,7 +288,7 @@ export function ConfigurationTab() {
             <h2 className="text-2xl font-semibold">Hosts & Sponsors</h2>
           </div>
           <CsvButton
-            data={config.partners}
+            data={partnersData}
             headers={PARTNER_CSV_HEADERS}
             filename="partners.csv"
             onUpload={onUploadPartners}

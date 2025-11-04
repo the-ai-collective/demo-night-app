@@ -6,6 +6,7 @@ import {
   CalendarIcon,
   ExternalLink,
   FlagIcon,
+  Link as LinkIcon,
   ShareIcon,
   StarIcon,
 } from "lucide-react";
@@ -14,13 +15,21 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { getBrandingClient } from "~/lib/branding";
+import { escapeCsvField } from "~/lib/csvUtils";
 import { statusScore } from "~/lib/types/submissionStatus";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
-import { getBrandingClient } from "~/lib/branding";
 
 import SubmissionStatusBadge from "~/components/SubmissionStatusBadge";
 import { Button } from "~/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import {
   HoverCard,
   HoverCardContent,
@@ -52,6 +61,10 @@ const CSV_HEADERS = [
   "url",
   "pocName",
   "demoUrl",
+  "status",
+  "flagged",
+  "rating",
+  "comment",
 ];
 
 export type Event = {
@@ -76,6 +89,7 @@ export default function SubmissionsDashboard({
   });
   const setSubmissionsMutation = api.submission.setSubmissions.useMutation();
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   submissions?.sort((a, b) => {
     if (a.status !== b.status) {
@@ -128,7 +142,31 @@ export default function SubmissionsDashboard({
       `${window.location.origin}/admin/${initialEvent.id}/submissions?secret=${initialEvent.secret}`,
     );
     toast.success("URL to view submissions copied to clipboard!");
+    setShareDialogOpen(false);
   };
+
+  const copyFormLink = () => {
+    navigator.clipboard.writeText(
+      `${window.location.origin}/${initialEvent.id}/submit`,
+    );
+    toast.success("Submission form URL copied to clipboard!");
+  };
+
+  // Transform submissions data for CSV export with proper formatting
+  const csvData = submissions?.map((submission) => ({
+    id: submission.id,
+    name: escapeCsvField(submission.name),
+    tagline: escapeCsvField(submission.tagline),
+    description: escapeCsvField(submission.description),
+    email: escapeCsvField(submission.email),
+    url: escapeCsvField(submission.url),
+    pocName: escapeCsvField(submission.pocName),
+    demoUrl: escapeCsvField(submission.demoUrl),
+    status: submission.status,
+    flagged: submission.flagged.toString(),
+    rating: submission.rating?.toString() ?? "",
+    comment: escapeCsvField(submission.comment),
+  }));
 
   const onUploadSubmissions = (rows: Record<string, string>[]) => {
     setSubmissionsMutation
@@ -167,9 +205,9 @@ export default function SubmissionsDashboard({
                 </h2>
               </div>
             </div>
-            {submissions && (
+            {csvData && (
               <CsvButton
-                data={submissions}
+                data={csvData}
                 headers={CSV_HEADERS}
                 filename="submissions.csv"
                 onUpload={onUploadSubmissions}
@@ -212,13 +250,15 @@ export default function SubmissionsDashboard({
                         <TableCell className="font-medium">
                           {index + 1}
                         </TableCell>
-                        <TableCell className="py-2">
-                          <div className="font-medium">{submission.name}</div>
-                          <div className="line-clamp-2 text-sm italic text-muted-foreground">
+                        <TableCell className="py-1.5">
+                          <div className="line-clamp-1 font-semibold">
+                            {submission.name}
+                          </div>
+                          <div className="line-clamp-2 text-xs italic text-muted-foreground">
                             {submission.tagline}
                           </div>
                         </TableCell>
-                        <TableCell className="flex flex-col items-end justify-end gap-1 text-right">
+                        <TableCell className="flex flex-col items-end justify-end gap-1 py-1.5 text-right">
                           <div className="flex flex-row items-center justify-end gap-2">
                             {submission.flagged && (
                               <FlagIcon
@@ -288,7 +328,11 @@ export default function SubmissionsDashboard({
                   View form
                 </Link>
               </Button>
-              <Button onClick={copyLink}>
+              <Button onClick={copyFormLink} variant="secondary">
+                <LinkIcon className="size-4" />
+                Copy form link
+              </Button>
+              <Button onClick={() => setShareDialogOpen(true)}>
                 <ShareIcon className="size-4" />
                 Share
               </Button>
@@ -310,6 +354,25 @@ export default function SubmissionsDashboard({
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Submissions Dashboard</DialogTitle>
+            <DialogDescription>
+              This link allows anyone to view all submissions for this event.
+              It&apos;s perfect for sharing with external partners, judges, or
+              collaborators who need access to review submissions without admin
+              privileges.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button onClick={copyLink} className="w-full">
+              <ShareIcon className="size-4" />
+              Copy shareable link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

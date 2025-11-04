@@ -10,7 +10,6 @@ import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,

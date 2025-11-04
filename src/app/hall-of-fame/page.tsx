@@ -1,6 +1,5 @@
 import { type Metadata } from "next";
 
-import { getBrandingClient } from "~/lib/branding";
 import { getBranding } from "~/lib/branding.server";
 import { api } from "~/trpc/server";
 

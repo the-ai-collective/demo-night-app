@@ -6,6 +6,7 @@ import { CSVLink } from "react-csv";
 import { toast } from "sonner";
 
 import { type Branding, getBrandingClient } from "~/lib/branding";
+import { escapeCsvField } from "~/lib/csvUtils";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { QUICK_ACTIONS_TITLE, type QuickAction } from "~/lib/types/quickAction";
 import { type CompleteDemo } from "~/server/api/routers/demo";
@@ -166,7 +167,15 @@ function ActionButtons({
   );
 
   const feedback = demo.feedback.map((feedback) => ({
-    ...feedback,
+    claps: feedback.claps,
+    comment: escapeCsvField(feedback.comment),
+    tellMeMore: feedback.tellMeMore,
+    attendee: {
+      name: escapeCsvField(feedback.attendee?.name),
+      email: escapeCsvField(feedback.attendee?.email),
+      linkedin: escapeCsvField(feedback.attendee?.linkedin),
+      type: escapeCsvField(feedback.attendee?.type),
+    },
     ...quickActions.reduce<Record<string, boolean | undefined>>(
       (acc, action) => {
         acc[`quickActions.${action.id}`] = feedback.quickActions?.includes(
