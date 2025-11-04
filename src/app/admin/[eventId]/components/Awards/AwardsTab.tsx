@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 import { type EventConfig } from "~/lib/types/eventConfig";
+import { escapeCsvField } from "~/lib/csvUtils";
 
 import {
   AlertDialog,
@@ -89,6 +90,13 @@ export function AwardsTab() {
       });
   };
 
+  const awardsData = event.awards.map((award) => ({
+    id: award.id,
+    name: escapeCsvField(award.name),
+    description: escapeCsvField(award.description),
+    votable: award.votable,
+  }));
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
       <div className="flex items-end justify-between gap-2">
@@ -97,7 +105,7 @@ export function AwardsTab() {
           <h2 className="text-2xl font-semibold">Awards</h2>
         </div>
         <CsvButton
-          data={event.awards}
+          data={awardsData}
           headers={AWARD_CSV_HEADERS}
           filename="awards.csv"
           onUpload={onUploadAwards}

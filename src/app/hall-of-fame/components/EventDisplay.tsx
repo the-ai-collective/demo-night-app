@@ -3,7 +3,6 @@
 import { ArrowUpDown, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
 
 import { eventConfigSchema } from "~/lib/types/eventConfig";
 import type { CompleteEvent } from "~/server/api/routers/event";

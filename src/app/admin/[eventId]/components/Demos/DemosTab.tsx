@@ -18,6 +18,7 @@ import { toast } from "sonner";
 
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { escapeCsvField } from "~/lib/csvUtils";
 
 import {
   AlertDialog,
@@ -112,7 +113,12 @@ export function DemosTab() {
   };
 
   const demosWithFeedbackUrl = event.demos.map((demo) => ({
-    ...demo,
+    id: demo.id,
+    name: escapeCsvField(demo.name),
+    description: escapeCsvField(demo.description),
+    email: escapeCsvField(demo.email),
+    url: escapeCsvField(demo.url),
+    votable: demo.votable,
     feedbackUrl: `${window.location.origin}/${event.id}/${demo.id}?secret=${demo.secret}`,
   }));
 
