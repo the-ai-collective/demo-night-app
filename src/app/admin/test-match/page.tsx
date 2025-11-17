@@ -11,9 +11,6 @@ export default function TestMatchPage() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="mb-8 text-3xl font-bold">Match Mode Test Page</h1>
-      <p className="mb-4 text-sm text-gray-600">
-        Note: Replace 'test-event-id' with a real event ID from your database
-      </p>
       <MatchModeTab eventId={eventId} />
     </div>
   );
