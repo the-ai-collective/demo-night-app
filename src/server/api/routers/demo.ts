@@ -90,6 +90,14 @@ export const demoRouter = createTRPCRouter({
       }
       return { ...demo, feedback: allFeedback };
     }),
+  all: publicProcedure
+    .input(z.object({ eventId: z.string() }))
+    .query(async ({ input }) => {
+      return db.demo.findMany({
+        where: { eventId: input.eventId },
+        orderBy: { index: "asc" },
+      });
+    }),
   update: publicProcedure
     .input(
       z.object({

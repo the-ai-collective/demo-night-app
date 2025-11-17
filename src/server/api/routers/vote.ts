@@ -26,6 +26,8 @@ export const voteRouter = createTRPCRouter({
         awardId: z.string(),
         demoId: z.string().nullable(),
         amount: z.number().nullable().optional(),
+        matchId: z.string().nullable().optional(),
+        voteType: z.enum(["audience", "judge"]).optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -88,8 +90,20 @@ export const voteRouter = createTRPCRouter({
               demoId: input.demoId,
             },
           },
-          create: { ...input },
-          update: { ...input },
+          create: {
+            eventId: input.eventId,
+            attendeeId: input.attendeeId,
+            awardId: input.awardId,
+            demoId: input.demoId,
+            amount: input.amount,
+            matchId: input.matchId ?? null,
+            voteType: input.voteType ?? "audience",
+          },
+          update: {
+            amount: input.amount,
+            matchId: input.matchId ?? null,
+            voteType: input.voteType ?? "audience",
+          },
         });
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -133,4 +147,16 @@ export const voteRouter = createTRPCRouter({
       where: { id: input },
     });
   }),
+  // Get votes for a specific match
+  getMatchVotes: publicProcedure
+    .input(z.object({ matchId: z.string() }))
+    .query(async ({ input }) => {
+      return db.vote.findMany({
+        where: { matchId: input.matchId },
+        include: {
+          attendee: true,
+          demo: true,
+        },
+      });
+    }),
 });

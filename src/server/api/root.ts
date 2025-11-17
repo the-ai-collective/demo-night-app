@@ -6,6 +6,7 @@ import { awardRouter } from "./routers/award";
 import { demoRouter } from "./routers/demo";
 import { eventFeedbackRouter } from "./routers/eventFeedback";
 import { feedbackRouter } from "./routers/feedback";
+import { matchRouter } from "./routers/match";
 import { submissionRouter } from "./routers/submission";
 import { voteRouter } from "./routers/vote";
 
@@ -23,6 +24,7 @@ export const appRouter = createTRPCRouter({
   feedback: feedbackRouter,
   vote: voteRouter,
   eventFeedback: eventFeedbackRouter,
+  match: matchRouter,
 });
 
 // export type definition of API

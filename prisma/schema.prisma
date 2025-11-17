@@ -45,6 +45,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  isJudge       Boolean   @default(false)
   accounts      Account[]
   sessions      Session[]
 }
@@ -62,11 +63,12 @@ model VerificationToken {
 model Event {
   id String @id @default(cuid())
 
-  name   String
-  date   DateTime
-  url    String
-  config Json     @default("{}")
-  secret String   @default(cuid())
+  name         String
+  date         DateTime
+  url          String
+  config       Json     @default("{}")
+  secret       String   @default(cuid())
+  oneVsOneMode Boolean  @default(false)
 
   submissions   Submission[]
   demos         Demo[]
@@ -75,6 +77,7 @@ model Event {
   feedback      Feedback[]
   votes         Vote[]
   eventFeedback EventFeedback[]
+  matches       Match[]
 }
 
 enum SubmissionStatus {
@@ -123,9 +126,11 @@ model Demo {
   url         String?
   votable     Boolean @default(true)
 
-  feedback Feedback[]
-  votes    Vote[]
-  awards   Award[]
+  feedback   Feedback[]
+  votes      Vote[]
+  awards     Award[]
+  matchesAsA Match[]    @relation("MatchStartupA")
+  matchesAsB Match[]    @relation("MatchStartupB")
 
   @@index([eventId])
 }
@@ -194,12 +199,39 @@ model Vote {
   demo       Demo?    @relation(fields: [demoId], references: [id], onDelete: Cascade)
   demoId     String?
   amount     Int?
+  match      Match?   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId    String?
+  voteType   String   @default("audience")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([eventId, attendeeId, awardId, demoId])
   @@index(awardId)
+  @@index(matchId)
+}
+
+model Match {
+  id           String    @id @default(cuid())
+  event        Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId      String
+  startupA     Demo      @relation("MatchStartupA", fields: [startupAId], references: [id], onDelete: Cascade)
+  startupAId   String
+  startupB     Demo      @relation("MatchStartupB", fields: [startupBId], references: [id], onDelete: Cascade)
+  startupBId   String
+  roundType    String?
+  startTime    DateTime?
+  endTime      DateTime?
+  isActive     Boolean   @default(false)
+  votingWindow Int?
+  winnerId     String?
+
+  votes Vote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
 }
 
 // ############# Event Feedback #############
