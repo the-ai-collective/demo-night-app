@@ -3,10 +3,7 @@ import { useEffect, useState } from "react";
 
 import { api } from "~/trpc/react";
 
-export type LocalVote = Omit<Vote, "id" | "createdAt" | "updatedAt"> & {
-  voteType?: "audience" | "judge";
-  matchId?: string | null;
-};
+export type LocalVote = Omit<Vote, "id" | "createdAt" | "updatedAt">;
 export type VoteByAwardId = Record<string, LocalVote>;
 
 export function useVotes(eventId: string, attendee: Attendee) {
