@@ -176,7 +176,9 @@ export default function AdminHomePage() {
                       className="h-8 w-8 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        showUpsertEventModal(event);
+                        // Pass only the Event properties, excluding _count
+                        const { _count, ...eventData } = event;
+                        showUpsertEventModal(eventData as Event);
                       }}
                     >
                       <span className="sr-only">Edit</span>
