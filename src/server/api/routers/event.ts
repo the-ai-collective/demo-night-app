@@ -29,6 +29,11 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapter: {
+    id: string;
+    name: string;
+    emoji: string;
+  } | null;
 };
 
 export type PublicDemo = Omit<
