@@ -1,7 +1,7 @@
 "use client";
 
-import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { type Chapter, type Event } from "@prisma/client";
+import { CalendarIcon, PlusIcon, Presentation, Users, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 import { UpsertEventModal } from "./components/UpsertEventModal";
+import { UpsertChapterModal } from "./components/UpsertChapterModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
@@ -38,18 +39,38 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
+  const {
+    data: chapters,
+    refetch: refetchChapters,
+    isLoading: isLoadingChapters,
+  } = api.chapter.allWithCounts.useQuery();
+
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [chapterModalOpen, setChapterModalOpen] = useState(false);
+  const [chapterToEdit, setChapterToEdit] = useState<Chapter | undefined>(undefined);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const [showChapters, setShowChapters] = useState(false);
 
   const refetch = () => {
     refetchCurrentEvent();
     refetchEvents();
+    refetchChapters();
   };
 
   const showUpsertEventModal = (event?: Event) => {
     setEventToEdit(event);
     setModalOpen(true);
   };
+
+  const showUpsertChapterModal = (chapter?: Chapter) => {
+    setChapterToEdit(chapter);
+    setChapterModalOpen(true);
+  };
+
+  const filteredEvents = events?.filter(
+    (event) => !selectedChapterId || event.chapterId === selectedChapterId
+  );
 
   const router = useRouter();
 
@@ -70,8 +91,91 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
+        {/* Chapters Section */}
+        <div className="mb-8">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              onClick={() => setShowChapters(!showChapters)}
+              className="flex items-center gap-2 text-2xl font-bold hover:text-gray-600"
+            >
+              Chapters
+              <ChevronDown
+                className={cn(
+                  "h-5 w-5 transition-transform",
+                  showChapters && "rotate-180"
+                )}
+              />
+            </button>
+            <Button onClick={() => showUpsertChapterModal()} variant="outline">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Chapter
+            </Button>
+          </div>
+          {showChapters && (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {isLoadingChapters ? (
+                <>
+                  <ChapterSkeleton />
+                  <ChapterSkeleton />
+                  <ChapterSkeleton />
+                  <ChapterSkeleton />
+                </>
+              ) : chapters && chapters.length > 0 ? (
+                chapters.map((chapter) => (
+                  <Card
+                    key={chapter.id}
+                    className="cursor-pointer transition-all hover:shadow-md active:scale-[0.98]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showUpsertChapterModal(chapter);
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">{chapter.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold line-clamp-1">
+                            {chapter.name}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {chapter._count.events}{" "}
+                            {chapter._count.events === 1 ? "event" : "events"}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full text-center text-sm text-muted-foreground py-8">
+                  No chapters yet. Create one to organize your events!
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Events Section */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Events</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold">Events</h2>
+            {chapters && chapters.length > 0 && (
+              <select
+                value={selectedChapterId ?? ""}
+                onChange={(e) =>
+                  setSelectedChapterId(e.target.value || null)
+                }
+                className="rounded-md border border-gray-200 px-3 py-1.5 text-sm"
+              >
+                <option value="">All Chapters</option>
+                {chapters.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <Button onClick={() => showUpsertEventModal()}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Create Event
@@ -85,7 +189,7 @@ export default function AdminHomePage() {
               <EventSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            filteredEvents?.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -118,6 +222,9 @@ export default function AdminHomePage() {
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
                           <span className="line-clamp-1 text-xl">
+                            {event.chapter && (
+                              <span className="mr-1">{event.chapter.emoji}</span>
+                            )}
                             {event.name}
                           </span>
                           {event.id === currentEvent?.id && (
@@ -211,6 +318,19 @@ export default function AdminHomePage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
+      <UpsertChapterModal
+        chapter={chapterToEdit}
+        onSubmit={() => {
+          setChapterModalOpen(false);
+          refetch();
+        }}
+        onDeleted={() => {
+          setChapterModalOpen(false);
+          refetch();
+        }}
+        open={chapterModalOpen}
+        onOpenChange={setChapterModalOpen}
+      />
     </main>
   );
 }
@@ -241,6 +361,22 @@ function EventSkeleton() {
             </div>
           </div>
           <div className="h-8 w-8 rounded bg-gray-200" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ChapterSkeleton() {
+  return (
+    <Card className="animate-pulse">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded bg-gray-200" />
+          <div className="min-w-0 flex-1">
+            <div className="h-5 w-24 rounded bg-gray-200" />
+            <div className="mt-1 h-4 w-16 rounded bg-gray-200" />
+          </div>
         </div>
       </CardContent>
     </Card>

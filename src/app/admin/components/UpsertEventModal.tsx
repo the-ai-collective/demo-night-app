@@ -45,6 +45,7 @@ export function UpsertEventModal({
   const [useTestData, setUseTestData] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.all.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
@@ -54,6 +55,7 @@ export function UpsertEventModal({
       id: event?.id ?? defaultId,
       date: (event?.date ?? new Date()).toISOString().substring(0, 10),
       url: event?.url ?? "",
+      chapterId: (event as any)?.chapterId ?? "",
     },
   });
 
@@ -77,6 +79,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: data.chapterId || null,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -149,6 +152,20 @@ export function UpsertEventModal({
               placeholder="https://lu.ma/demo-night"
               required
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter (Optional)</span>
+            <select
+              {...register("chapterId")}
+              className="rounded-md border border-gray-200 p-2"
+            >
+              <option value="">No chapter</option>
+              {chapters?.map((chapter) => (
+                <option key={chapter.id} value={chapter.id}>
+                  {chapter.emoji} {chapter.name}
+                </option>
+              ))}
+            </select>
           </label>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch

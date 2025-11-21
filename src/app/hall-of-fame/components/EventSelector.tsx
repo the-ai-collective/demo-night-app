@@ -65,7 +65,12 @@ export default function EventSelector({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-row gap-2"
           >
-            <p>{selectedEvent.name}</p>
+            <p>
+              {(selectedEvent as any).chapter?.emoji && (
+                <span className="mr-1">{(selectedEvent as any).chapter.emoji}</span>
+              )}
+              {selectedEvent.name}
+            </p>
           </motion.div>
           <Expand size={22} strokeWidth={2.25} color="black" />
         </div>
@@ -111,7 +116,12 @@ export default function EventSelector({
                     )}
                   >
                     <div className="flex w-full flex-col leading-6">
-                      <p>{event.name}</p>
+                      <p>
+                        {(event as any).chapter?.emoji && (
+                          <span className="mr-1">{(event as any).chapter.emoji}</span>
+                        )}
+                        {event.name}
+                      </p>
                       <p className="text-sm font-semibold italic leading-5 text-gray-700">
                         {new Date(event.date).toLocaleDateString()}
                       </p>
