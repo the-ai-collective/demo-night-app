@@ -15,6 +15,15 @@ import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import { ChapterList } from "./components/ChapterList";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import type { Chapter } from "~/lib/types/chapter";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -40,10 +49,15 @@ export default function AdminHomePage() {
   } = api.event.allAdmin.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const { data: chapters } = api.chapter.all.useQuery();
+  const utils = api.useUtils();
 
   const refetch = () => {
     refetchCurrentEvent();
     refetchEvents();
+    // Invalidate to ensure fresh data with chapter relations
+    utils.event.allAdmin.invalidate();
   };
 
   const showUpsertEventModal = (event?: Event) => {
@@ -52,6 +66,11 @@ export default function AdminHomePage() {
   };
 
   const router = useRouter();
+
+  // Filter events by chapter
+  const filteredEventsToDisplay = selectedChapterId
+    ? events?.filter((event) => event.chapterId === selectedChapterId)
+    : events;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -70,14 +89,41 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
-        </div>
-        <div className="flex flex-col gap-4">
+        {/* Events Section */}
+        <div className="mb-12">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Events</h2>
+            <Button onClick={() => showUpsertEventModal()}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </div>
+          {/* Chapter Filter */}
+          {chapters && chapters.length > 0 && (
+            <div className="mb-4 flex items-center gap-4">
+              <span className="text-sm font-medium">Filter by Chapter:</span>
+              <Select
+                value={selectedChapterId ?? "all"}
+                onValueChange={(value) =>
+                  setSelectedChapterId(value === "all" ? null : value)
+                }
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="All Chapters" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Chapters</SelectItem>
+                  {chapters.map((chapter: Chapter) => (
+                    <SelectItem key={chapter.id} value={chapter.id}>
+                      {chapter.emoji} {chapter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {/* Events List */}
+          <div className="flex flex-col gap-4">
           {isLoading ? (
             <>
               <EventSkeleton />
@@ -85,7 +131,7 @@ export default function AdminHomePage() {
               <EventSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            filteredEventsToDisplay?.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -116,6 +162,13 @@ export default function AdminHomePage() {
                     />
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
+                        {/* ADD THIS: Chapter badge */}
+                        {event.chapter && (
+                          <div className="mb-1 inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs">
+                            <span>{event.chapter.emoji}</span>
+                            <span className="font-medium">{event.chapter.name}</span>
+                          </div>
+                        )}
                         <CardTitle className="flex items-center gap-2">
                           <span className="line-clamp-1 text-xl">
                             {event.name}
@@ -199,6 +252,12 @@ export default function AdminHomePage() {
               </Card>
             ))
           )}
+        </div>
+        </div>
+
+        {/* Chapters Section */}
+        <div className="mt-12">
+          <ChapterList />
         </div>
       </div>
       <UpsertEventModal
