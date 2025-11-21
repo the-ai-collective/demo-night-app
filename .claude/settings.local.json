@@ -18,10 +18,19 @@
       "Bash(rg:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(lsof:*)",
+      "Bash(docker stop:*)",
+      "Bash(./start-database.sh)",
+      "Bash(docker compose:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(docker inspect:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["context7"]
+  "enabledMcpjsonServers": [
+    "context7"
+  ]
 }
