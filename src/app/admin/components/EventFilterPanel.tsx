@@ -46,8 +46,14 @@ export function EventFilterPanel({
   chapters,
 }: EventFilterPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [chapterSearch, setChapterSearch] = useState("");
 
   const activeFilterCount = getActiveFilterCount(filters);
+
+  // Filter chapters based on search query
+  const filteredChapters = chapters.filter((chapter) =>
+    chapter.name.toLowerCase().includes(chapterSearch.toLowerCase())
+  );
 
   const handleReset = () => {
     onChange({
@@ -111,25 +117,39 @@ export function EventFilterPanel({
             {chapters.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Chapters</Label>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {chapters.map((chapter) => (
-                    <div
-                      key={chapter.id}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`chapter-${chapter.id}`}
-                        checked={filters.chapterIds.includes(chapter.id)}
-                        onCheckedChange={() => toggleChapter(chapter.id)}
-                      />
-                      <Label
-                        htmlFor={`chapter-${chapter.id}`}
-                        className="cursor-pointer text-sm font-normal"
-                      >
-                        {chapter.emoji} {chapter.name}
-                      </Label>
-                    </div>
-                  ))}
+                <Input
+                  placeholder="Search chapters..."
+                  value={chapterSearch}
+                  onChange={(e) => setChapterSearch(e.target.value)}
+                  className="h-9"
+                />
+                <div className="max-h-[300px] overflow-y-auto rounded-md border p-3">
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                    {filteredChapters.length > 0 ? (
+                      filteredChapters.map((chapter) => (
+                        <div
+                          key={chapter.id}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`chapter-${chapter.id}`}
+                            checked={filters.chapterIds.includes(chapter.id)}
+                            onCheckedChange={() => toggleChapter(chapter.id)}
+                          />
+                          <Label
+                            htmlFor={`chapter-${chapter.id}`}
+                            className="cursor-pointer text-sm font-normal"
+                          >
+                            {chapter.emoji} {chapter.name}
+                          </Label>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 py-4 text-center text-sm text-muted-foreground md:col-span-3">
+                        No chapters found
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
