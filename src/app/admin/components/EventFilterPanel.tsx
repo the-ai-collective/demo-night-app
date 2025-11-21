@@ -456,7 +456,7 @@ export function EventFilterPanel({
 function getActiveFilterCount(filters: EventFilters): number {
   let count = 0;
   if (filters.chapterIds.length > 0) count++;
-  if (filters.dateFrom || filters.dateTo) count++;
+  if (filters.dateFrom ?? filters.dateTo) count++;
   if (filters.eventType !== "all") count++;
   if (filters.eventStatus !== "all") count++;
   if (filters.minDemos !== undefined || filters.maxDemos !== undefined) count++;
