@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -16,23 +16,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
 import { env } from "~/env";
 
+type ChapterOption = { id: string; name: string; emoji: string };
+
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
 };
 
+type EventWithChapter = Event & {
+  chapter?: { id: string; name: string; emoji: string } | null;
+  chapterId?: string | null;
+};
+
 export function UpsertEventModal({
   event,
+  chapters,
   onSubmit,
   onDeleted,
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventWithChapter;
+  chapters: ChapterOption[];
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -42,11 +58,21 @@ export function UpsertEventModal({
   const [isPitchNight, setIsPitchNight] = useState(
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
+  const [chapterId, setChapterId] = useState<string | null>(
+    event?.chapterId ?? null,
+  );
   const [useTestData, setUseTestData] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
+
+  // Reset state when event changes
+  useEffect(() => {
+    setIsPitchNight((event?.config as EventConfig)?.isPitchNight ?? false);
+    setChapterId(event?.chapterId ?? null);
+    setUseTestData(false);
+  }, [event]);
 
   const { register, handleSubmit } = useForm({
     values: {
@@ -77,6 +103,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -150,6 +177,27 @@ export function UpsertEventModal({
               required
             />
           </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={chapterId ?? "none"}
+              onValueChange={(value) =>
+                setChapterId(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"
