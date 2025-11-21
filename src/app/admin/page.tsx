@@ -79,10 +79,10 @@ export default function AdminHomePage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset page when filters change
+  // Reset page when filters change or when switching grouping mode
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, filters, sortBy, sortOrder]);
+  }, [debouncedSearch, filters, sortBy, sortOrder, groupBy]);
 
   // Save groupBy preference
   useEffect(() => {
@@ -101,6 +101,11 @@ export default function AdminHomePage() {
   // API queries
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
+
+  // When grouping is enabled, fetch all events to ensure complete groups
+  // Otherwise, use pagination for performance
+  const shouldFetchAll = groupBy !== "none";
+
   const {
     data: eventsData,
     refetch: refetchEvents,
@@ -122,8 +127,8 @@ export default function AdminHomePage() {
     hasVotes: filters.hasVotes,
     sortBy,
     sortOrder,
-    limit: eventsPerPage,
-    offset: (page - 1) * eventsPerPage,
+    limit: shouldFetchAll ? undefined : eventsPerPage,
+    offset: shouldFetchAll ? undefined : (page - 1) * eventsPerPage,
   });
   const {
     data: chapters,
@@ -131,8 +136,16 @@ export default function AdminHomePage() {
     isLoading: isLoadingChapters,
   } = api.chapter.allWithCounts.useQuery();
 
-  const events = eventsData?.events ?? [];
+  // Random data creation mutations
+  const createRandomChapters = api.chapter.createRandomBulk.useMutation();
+  const createRandomEvents = api.event.createRandomBulk.useMutation();
+
+  const allEvents = eventsData?.events ?? [];
   const totalCount = eventsData?.totalCount ?? 0;
+
+  // When grouping, show all events; otherwise use pagination
+  const events = shouldFetchAll ? allEvents : allEvents;
+  const displayTotalCount = shouldFetchAll ? allEvents.length : totalCount;
 
   const refetch = () => {
     refetchCurrentEvent();
@@ -148,6 +161,40 @@ export default function AdminHomePage() {
   const showUpsertChapterModal = (chapter?: Chapter) => {
     setChapterToEdit(chapter);
     setChapterModalOpen(true);
+  };
+
+  const handleCreateRandomChapters = async () => {
+    const count = prompt("How many random chapters do you want to create?");
+    if (!count) return;
+    const numCount = parseInt(count, 10);
+    if (isNaN(numCount) || numCount < 1 || numCount > 100) {
+      alert("Please enter a valid number between 1 and 100");
+      return;
+    }
+    try {
+      await createRandomChapters.mutateAsync({ count: numCount });
+      refetch();
+      alert(`Successfully created ${numCount} random chapters!`);
+    } catch (error) {
+      alert("Failed to create random chapters: " + (error as Error).message);
+    }
+  };
+
+  const handleCreateRandomEvents = async () => {
+    const count = prompt("How many random events do you want to create?");
+    if (!count) return;
+    const numCount = parseInt(count, 10);
+    if (isNaN(numCount) || numCount < 1 || numCount > 500) {
+      alert("Please enter a valid number between 1 and 500");
+      return;
+    }
+    try {
+      await createRandomEvents.mutateAsync({ count: numCount });
+      refetch();
+      alert(`Successfully created ${numCount} random events!`);
+    } catch (error) {
+      alert("Failed to create random events: " + (error as Error).message);
+    }
   };
 
   // Group events
@@ -213,7 +260,24 @@ export default function AdminHomePage() {
               Admin Dashboard
             </span>
           </div>
-          <div className="flex w-[108px] items-center justify-end" />
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              onClick={handleCreateRandomChapters}
+              disabled={createRandomChapters.isPending}
+              className="bg-gradient-to-r from-fuchsia-500 via-purple-600 to-pink-500 hover:from-fuchsia-600 hover:via-purple-700 hover:to-pink-600 text-white shadow-lg"
+              size="sm"
+            >
+              Random Chapters
+            </Button>
+            <Button
+              onClick={handleCreateRandomEvents}
+              disabled={createRandomEvents.isPending}
+              className="bg-gradient-to-br from-lime-400 via-cyan-500 to-blue-600 hover:from-lime-500 hover:via-cyan-600 hover:to-blue-700 text-white shadow-lg"
+              size="sm"
+            >
+              Random Events
+            </Button>
+          </div>
         </div>
       </header>
       <div className="container mx-auto p-8">
@@ -381,7 +445,20 @@ export default function AdminHomePage() {
                 ))
               )
             ) : (
-              Object.entries(groupedEvents).map(([groupName, groupEvents]) => (
+              Object.entries(groupedEvents)
+                .sort(([groupNameA], [groupNameB]) => {
+                  // Sort alphabetically, but keep "No Chapter" at the end
+                  if (groupBy === "chapter") {
+                    if (groupNameA === "No Chapter") return 1;
+                    if (groupNameB === "No Chapter") return -1;
+                    // Remove emoji prefix for comparison (emoji + space)
+                    const nameA = groupNameA.replace(/^[^\s]+\s/, "");
+                    const nameB = groupNameB.replace(/^[^\s]+\s/, "");
+                    return nameA.localeCompare(nameB);
+                  }
+                  return groupNameA.localeCompare(groupNameB);
+                })
+                .map(([groupName, groupEvents]) => (
                 <div key={groupName} className="space-y-3">
                   <div className="flex items-center gap-2 border-b pb-2">
                     <h3 className="text-lg font-semibold">{groupName}</h3>
@@ -420,7 +497,7 @@ export default function AdminHomePage() {
           </div>
 
           {/* Pagination */}
-          {!isLoading && events.length > 0 && (
+          {!isLoading && events.length > 0 && !shouldFetchAll && (
             <div className="flex items-center justify-between border-t pt-4">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * eventsPerPage + 1} to{" "}
@@ -447,6 +524,14 @@ export default function AdminHomePage() {
                   Next
                 </Button>
               </div>
+            </div>
+          )}
+          {/* Show count when grouping */}
+          {!isLoading && events.length > 0 && shouldFetchAll && (
+            <div className="flex items-center justify-center border-t pt-4">
+              <p className="text-sm text-muted-foreground">
+                Showing all {displayTotalCount} {displayTotalCount === 1 ? "event" : "events"}
+              </p>
             </div>
           )}
         </div>

@@ -220,7 +220,7 @@ export const eventRouter = createTRPCRouter({
       const where: Prisma.EventWhereInput = {};
 
       // Search filter
-      if (search && search.trim()) {
+      if (search?.trim()) {
         where.OR = [
           { name: { contains: search, mode: "insensitive" } },
           { url: { contains: search, mode: "insensitive" } },
@@ -239,7 +239,7 @@ export const eventRouter = createTRPCRouter({
       }
 
       // Date range filter
-      if (dateFrom || dateTo) {
+      if (dateFrom ?? dateTo) {
         const dateFilter: any = {};
         if (dateFrom) dateFilter.gte = dateFrom;
         if (dateTo) dateFilter.lte = dateTo;
@@ -688,6 +688,118 @@ export const eventRouter = createTRPCRouter({
         }
       });
   }),
+
+  // Bulk create random events (for testing)
+  createRandomBulk: protectedProcedure
+    .input(
+      z.object({
+        count: z.number().min(1).max(500),
+      }),
+    )
+    .mutation(async ({ input }): Promise<{ count: number }> => {
+      const interestingWords = [
+        "Quantum", "Nebula", "Phoenix", "Crystal", "Thunder", "Shadow", "Cosmic",
+        "Mystic", "Azure", "Crimson", "Golden", "Silver", "Emerald", "Sapphire",
+        "Ruby", "Diamond", "Stellar", "Lunar", "Solar", "Astral", "Ethereal",
+        "Celestial", "Radiant", "Luminous", "Infinite", "Eternal", "Ancient",
+        "Modern", "Future", "Digital", "Analog", "Virtual", "Reality", "Dream",
+        "Vision", "Horizon", "Summit", "Valley", "Ocean", "Mountain", "Forest",
+        "Desert", "Arctic", "Tropical", "Urban", "Rural", "Metro", "Cyber",
+        "Nano", "Mega", "Ultra", "Super", "Hyper", "Alpha", "Beta", "Gamma",
+        "Delta", "Omega", "Prime", "Nova", "Star", "Moon", "Sun", "Comet",
+        "Galaxy", "Universe", "Cosmos", "Void", "Nexus", "Core", "Edge", "Apex",
+        "Zenith", "Nadir", "Vertex", "Vortex", "Matrix", "Vector", "Tensor",
+        "Scalar", "Quantum", "Photon", "Electron", "Neutron", "Proton", "Atom",
+        "Molecule", "Particle", "Wave", "Field", "Force", "Energy", "Power",
+        "Velocity", "Momentum", "Inertia", "Gravity", "Magnetism", "Electric",
+        "Thermal", "Nuclear", "Fusion", "Fission", "Plasma", "Liquid", "Solid",
+        "Gas", "Crystal", "Prism", "Lens", "Mirror", "Reflection", "Refraction",
+        "Diffraction", "Interference", "Resonance", "Harmony", "Discord", "Chaos",
+        "Order", "Balance", "Symmetry", "Asymmetry", "Pattern", "Fractal", "Spiral",
+        "Helix", "Curve", "Line", "Point", "Plane", "Space", "Time", "Dimension",
+        "Parallel", "Perpendicular", "Tangent", "Arc", "Circle", "Square", "Triangle",
+        "Polygon", "Polyhedron", "Sphere", "Cube", "Pyramid", "Cone", "Cylinder",
+        "Torus", "Helix", "Spiral", "Vortex", "Whirl", "Spin", "Rotate", "Orbit",
+        "Revolve", "Circle", "Cycle", "Loop", "Iterate", "Recurse", "Branch",
+        "Merge", "Split", "Join", "Connect", "Link", "Node", "Graph", "Tree",
+        "Network", "Web", "Mesh", "Grid", "Lattice", "Array", "Matrix", "Table",
+        "Stack", "Queue", "Heap", "Hash", "Map", "Set", "List", "Vector",
+        "Tensor", "Scalar", "Vector", "Matrix", "Array", "Tuple", "Record",
+        "Struct", "Class", "Object", "Instance", "Entity", "Component", "System",
+      ];
+
+      const eventTypes = [
+        "Bash", "Festival", "Gathering", "Summit", "Conference", "Meetup",
+        "Symposium", "Convention", "Expo", "Showcase", "Forum", "Seminar",
+        "Workshop", "Hackathon", "Sprint", "Jam", "Rally", "Assembly",
+        "Congress", "Conclave", "Caucus", "Council", "Panel", "Roundtable",
+        "Colloquium", "Mixer", "Social", "Celebration", "Gala", "Soirée",
+      ];
+
+      // Get all existing chapters
+      const chapters = await db.chapter.findMany({
+        select: { id: true },
+      });
+
+      const events = [];
+      for (let i = 0; i < input.count; i++) {
+        // Pick 1-3 random words plus an event type
+        const wordCount = Math.floor(Math.random() * 3) + 1;
+        const words = [];
+        for (let j = 0; j < wordCount; j++) {
+          words.push(interestingWords[Math.floor(Math.random() * interestingWords.length)]!);
+        }
+        const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)]!;
+        const name = `${words.join(" ")} ${eventType}`;
+
+        // Generate a random date within the last 3 years or next year
+        const now = new Date();
+        const threeYearsAgo = new Date(now);
+        threeYearsAgo.setFullYear(now.getFullYear() - 3);
+        const oneYearFromNow = new Date(now);
+        oneYearFromNow.setFullYear(now.getFullYear() + 1);
+
+        const randomTime = threeYearsAgo.getTime() +
+          Math.random() * (oneYearFromNow.getTime() - threeYearsAgo.getTime());
+        const date = new Date(randomTime);
+
+        // Generate a URL-friendly ID
+        const id = `${words.join("-").toLowerCase()}-${eventType.toLowerCase()}-${Date.now()}-${i}`;
+
+        // Random URL
+        const url = `https://example.com/events/${id}`;
+
+        // Randomly assign to a chapter (70% chance if chapters exist)
+        let chapterId = null;
+        if (chapters.length > 0 && Math.random() < 0.7) {
+          chapterId = chapters[Math.floor(Math.random() * chapters.length)]!.id;
+        }
+
+        // Random config (20% chance of being a pitch night)
+        const isPitchNight = Math.random() < 0.2;
+
+        events.push({
+          id,
+          name,
+          date,
+          url,
+          config: { ...DEFAULT_EVENT_CONFIG, isPitchNight },
+          chapterId,
+        });
+      }
+
+      // Create events in batches of 50 to avoid transaction limits
+      const batchSize = 50;
+      for (let i = 0; i < events.length; i += batchSize) {
+        const batch = events.slice(i, i + batchSize);
+        await db.event.createMany({
+          data: batch,
+          skipDuplicates: true,
+        });
+      }
+
+      return { count: input.count };
+    }),
 });
 
 const completeEventSelect: Prisma.EventSelect = {
