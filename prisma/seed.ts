@@ -195,9 +195,22 @@ async function main() {
     comment: feedback.comment,
   }));
 
+  await prisma.chapter.upsert({
+    where: { name: "SF" },
+    update: {
+      emoji: "1F680", // rocket emoji unified ID
+    },
+    create: {
+      name: "SF",
+      emoji: "1F680",
+    }
+  })
+
   await prisma.event.upsert({
     where: { id: "sf-demo" },
-    update: {},
+    update: {
+      chapter: { connect: { name: "SF" } },
+    },
     create: {
       id: "sf-demo",
       name: "SF Demo Night 🚀",
@@ -210,6 +223,7 @@ async function main() {
       feedback: { create: feedback },
       votes: { create: votes },
       eventFeedback: { create: eventFeedback },
+      chapter: { connect: { name: "SF" } },
     },
   });
 }
