@@ -1,8 +1,27 @@
 import { type Feedback, PrismaClient, SubmissionStatus } from "@prisma/client";
-
+import { DEFAULT_CHAPTERS } from "~/lib/types/chapter";
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log("Start seeding ...");
+
+  // Seed default chapters
+  console.log("Seeding chapters...");
+  for (const chapter of DEFAULT_CHAPTERS) {
+    const existingChapter = await prisma.chapter.findUnique({
+      where: { slug: chapter.slug },
+    });
+
+    if (!existingChapter) {
+      await prisma.chapter.create({
+        data: chapter,
+      });
+      console.log(`✓ Created chapter: ${chapter.name}`);
+    } else {
+      console.log(`✓ Chapter already exists: ${chapter.name}`);
+    }
+  }
+
   await prisma.user.upsert({
     where: { email: "test@example.com" },
     update: {},
@@ -212,15 +231,15 @@ async function main() {
       eventFeedback: { create: eventFeedback },
     },
   });
+
+  console.log("Seeding finished.");
 }
 
 main()
-  .then(() => {
-    console.log("Seeded data");
-  })
   .catch((e) => {
     console.error(e);
+    process.exit(1);
   })
-  .finally(() => {
-    prisma.$disconnect();
+  .finally(async () => {
+    await prisma.$disconnect();
   });
