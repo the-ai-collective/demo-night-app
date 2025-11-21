@@ -117,12 +117,24 @@ export function EventFilterPanel({
             {chapters.length > 0 && (
               <div className="space-y-3">
                 <Label className="text-sm font-semibold">Chapters</Label>
-                <Input
-                  placeholder="Search chapters..."
-                  value={chapterSearch}
-                  onChange={(e) => setChapterSearch(e.target.value)}
-                  className="h-9"
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Search chapters..."
+                    value={chapterSearch}
+                    onChange={(e) => setChapterSearch(e.target.value)}
+                    className="h-9 pr-8"
+                  />
+                  {chapterSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setChapterSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 <div className="max-h-[300px] overflow-y-auto rounded-md border p-3">
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                     {filteredChapters.length > 0 ? (
