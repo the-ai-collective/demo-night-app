@@ -1,6 +1,6 @@
 "use client";
 
-import { type Chapter, type Event } from "@prisma/client";
+import { type Event } from "@prisma/client";
 import { CalendarIcon, Filter, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -37,8 +37,10 @@ function getDaysAgo(date: Date): string {
   return `${diffDays} days ago`;
 }
 
-type EventWithChapter = Event & {
-  chapter: { id: string; name: string; emoji: string } | null;
+type ChapterInfo = { id: string; name: string; emoji: string };
+
+type EventWithChapters = Event & {
+  chapters: ChapterInfo[];
 };
 
 export default function AdminHomePage() {
@@ -52,7 +54,7 @@ export default function AdminHomePage() {
   } = api.event.allAdmin.useQuery();
   const { data: chapters, refetch: refetchChapters } = api.chapter.all.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<EventWithChapter | undefined>(undefined);
+  const [eventToEdit, setEventToEdit] = useState<EventWithChapters | undefined>(undefined);
   const [chapterFilter, setChapterFilter] = useState<string>("all");
 
   const refetch = () => {
@@ -61,7 +63,7 @@ export default function AdminHomePage() {
     refetchChapters();
   };
 
-  const showUpsertEventModal = (event?: EventWithChapter) => {
+  const showUpsertEventModal = (event?: EventWithChapters) => {
     setEventToEdit(event);
     setModalOpen(true);
   };
@@ -70,8 +72,8 @@ export default function AdminHomePage() {
 
   const filteredEvents = events?.filter((event) => {
     if (chapterFilter === "all") return true;
-    if (chapterFilter === "none") return !event.chapterId;
-    return event.chapterId === chapterFilter;
+    if (chapterFilter === "none") return event.chapters.length === 0;
+    return event.chapters.some((c) => c.id === chapterFilter);
   });
 
   return (
@@ -91,7 +93,7 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
-        <ChaptersSection />
+        <ChaptersSection onChapterClick={setChapterFilter} activeChapterId={chapterFilter} />
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold">Events</h2>
@@ -156,13 +158,18 @@ export default function AdminHomePage() {
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
-                          {event.chapter && (
-                            <span
-                              className="text-lg"
-                              title={event.chapter.name}
-                            >
-                              {event.chapter.emoji}
-                            </span>
+                          {event.chapters.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              {event.chapters.map((chapter) => (
+                                <span
+                                  key={chapter.id}
+                                  className="text-lg"
+                                  title={chapter.name}
+                                >
+                                  {chapter.emoji}
+                                </span>
+                              ))}
+                            </div>
                           )}
                           <span className="line-clamp-1 text-xl">
                             {event.name}

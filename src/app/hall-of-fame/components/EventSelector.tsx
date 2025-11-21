@@ -65,9 +65,9 @@ export default function EventSelector({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-row items-center gap-2"
           >
-            {selectedEvent.chapter && (
-              <span className="text-lg">{selectedEvent.chapter.emoji}</span>
-            )}
+            {selectedEvent.chapters?.map((chapter) => (
+              <span key={chapter.id} className="text-lg">{chapter.emoji}</span>
+            ))}
             <p>{selectedEvent.name}</p>
           </motion.div>
           <Expand size={22} strokeWidth={2.25} color="black" />
@@ -115,9 +115,9 @@ export default function EventSelector({
                   >
                     <div className="flex w-full flex-col leading-6">
                       <div className="flex items-center gap-2">
-                        {event.chapter && (
-                          <span className="text-lg">{event.chapter.emoji}</span>
-                        )}
+                        {event.chapters?.map((chapter) => (
+                          <span key={chapter.id} className="text-lg">{chapter.emoji}</span>
+                        ))}
                         <p>{event.name}</p>
                       </div>
                       <p className="text-sm font-semibold italic leading-5 text-gray-700">

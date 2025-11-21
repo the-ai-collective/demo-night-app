@@ -73,13 +73,12 @@ model Chapter {
 model Event {
   id String @id @default(cuid())
 
-  name      String
-  date      DateTime
-  url       String
-  config    Json     @default("{}")
-  secret    String   @default(cuid())
-  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
-  chapterId String?
+  name     String
+  date     DateTime
+  url      String
+  config   Json      @default("{}")
+  secret   String    @default(cuid())
+  chapters Chapter[]
 
   submissions   Submission[]
   demos         Demo[]
@@ -88,8 +87,6 @@ model Event {
   feedback      Feedback[]
   votes         Vote[]
   eventFeedback EventFeedback[]
-
-  @@index([chapterId])
 }
 
 enum SubmissionStatus {

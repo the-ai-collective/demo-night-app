@@ -105,7 +105,12 @@ export function AdminSidebar({
                       className="-ml-1"
                     />
                     <div className="flex flex-col items-start">
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-1.5">
+                        {event.chapters?.map((chapter) => (
+                          <span key={chapter.id} title={chapter.name}>
+                            {chapter.emoji}
+                          </span>
+                        ))}
                         <div className="line-clamp-1 text-base font-bold leading-6">
                           {event.name}
                         </div>
@@ -143,7 +148,9 @@ export function AdminSidebar({
                     >
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-1.5 line-clamp-1 font-bold leading-6">
-                          {e.chapter && <span>{e.chapter.emoji}</span>}
+                          {e.chapters?.map((chapter) => (
+                            <span key={chapter.id}>{chapter.emoji}</span>
+                          ))}
                           <span>{e.name}</span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">

@@ -1,10 +1,11 @@
 "use client";
 
 import { type Chapter } from "@prisma/client";
-import { ChevronDown, ChevronRight, MapPin, PlusIcon, Trash2 } from "lucide-react";
+import { MapPin, PlusIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 import {
@@ -24,16 +25,21 @@ import ChapterSheet from "./ChapterSheet";
 
 type ChapterWithCount = Chapter & { _count: { events: number } };
 
-export default function ChaptersSection() {
+interface ChaptersSectionProps {
+  onChapterClick?: (chapterId: string) => void;
+  activeChapterId?: string;
+}
+
+export default function ChaptersSection({ onChapterClick, activeChapterId }: ChaptersSectionProps) {
   const { data: chapters, refetch } = api.chapter.all.useQuery();
   const deleteMutation = api.chapter.delete.useMutation();
 
-  const [isExpanded, setIsExpanded] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [chapterToEdit, setChapterToEdit] = useState<ChapterWithCount | undefined>();
   const [chapterToDelete, setChapterToDelete] = useState<ChapterWithCount | undefined>();
 
-  const handleEdit = (chapter: ChapterWithCount) => {
+  const handleEdit = (chapter: ChapterWithCount, e: React.MouseEvent) => {
+    e.stopPropagation();
     setChapterToEdit(chapter);
     setSheetOpen(true);
   };
@@ -55,67 +61,90 @@ export default function ChaptersSection() {
     setChapterToDelete(undefined);
   };
 
+  const handleCardClick = (chapterId: string) => {
+    if (onChapterClick) {
+      // Toggle: if clicking the active one, reset to "all"
+      onChapterClick(activeChapterId === chapterId ? "all" : chapterId);
+    }
+  };
+
   return (
     <div className="mb-6">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center gap-2 text-left"
-      >
-        {isExpanded ? (
-          <ChevronDown className="h-5 w-5 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="h-5 w-5 text-muted-foreground" />
-        )}
+      <div className="mb-3 flex items-center gap-2">
         <MapPin className="h-5 w-5 text-muted-foreground" />
         <h2 className="text-lg font-semibold">Chapters</h2>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
           {chapters?.length ?? 0}
         </span>
-      </button>
+      </div>
 
-      {isExpanded && (
-        <div className="mt-3 pl-7">
-          <div className="flex flex-wrap gap-2">
-            {chapters?.map((chapter) => (
-              <Card
-                key={chapter.id}
-                className="cursor-pointer transition-all hover:shadow-md active:scale-[0.98]"
-                onClick={() => handleEdit(chapter)}
-              >
-                <CardContent className="flex items-center gap-3 p-3">
-                  <span className="text-2xl">{chapter.emoji}</span>
-                  <div>
-                    <div className="font-medium">{chapter.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {chapter._count.events}{" "}
-                      {chapter._count.events === 1 ? "event" : "events"}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2 h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setChapterToDelete(chapter);
-                    }}
+      <div className="flex flex-wrap gap-3">
+        {chapters?.map((chapter) => (
+          <Card
+            key={chapter.id}
+            className={cn(
+              "cursor-pointer transition-all hover:shadow-md active:scale-[0.98]",
+              activeChapterId === chapter.id && "ring-2 ring-primary ring-offset-2",
+            )}
+            onClick={() => handleCardClick(chapter.id)}
+          >
+            <CardContent className="flex items-center gap-3 p-4">
+              <span className="text-3xl">{chapter.emoji}</span>
+              <div className="flex flex-col">
+                <div className="font-semibold">{chapter.name}</div>
+                <div className="text-sm text-muted-foreground">
+                  {chapter._count.events}{" "}
+                  {chapter._count.events === 1 ? "event" : "events"}
+                </div>
+              </div>
+              <div className="ml-2 flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={(e) => handleEdit(chapter, e)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-            <Button
-              variant="outline"
-              className="h-auto py-3"
-              onClick={handleCreate}
-            >
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add Chapter
-            </Button>
-          </div>
-        </div>
-      )}
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    <path d="m15 5 4 4" />
+                  </svg>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setChapterToDelete(chapter);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        <Card
+          className="cursor-pointer border-dashed transition-all hover:border-primary hover:shadow-md active:scale-[0.98]"
+          onClick={handleCreate}
+        >
+          <CardContent className="flex items-center gap-2 p-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+              <PlusIcon className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <span className="font-medium text-muted-foreground">Add Chapter</span>
+          </CardContent>
+        </Card>
+      </div>
 
       <ChapterSheet
         chapter={chapterToEdit}
@@ -142,7 +171,7 @@ export default function ChaptersSection() {
                 {chapterToDelete?._count.events === 1 ? "event" : "events"}
               </span>{" "}
               associated with it. Events will be kept but will no longer be
-              assigned to a chapter.
+              assigned to this chapter.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
