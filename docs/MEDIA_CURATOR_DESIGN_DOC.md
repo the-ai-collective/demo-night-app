@@ -78,7 +78,28 @@ This turns Demo Night into an **AI-powered media studio**, elevating the value o
 
 ---
 
-## 5. Technical Implementation
+## 5. Success Metrics
+
+**Adoption Metrics:**
+- % of events using AI Media Curator (target: 80% within 6 months)
+- Number of media assets uploaded per event (baseline: establish in month 1)
+
+**Quality Metrics:**
+- Organizer satisfaction score (survey: 1-5 scale, target: 4+)
+- % of jobs completing successfully without manual intervention (target: 95%)
+
+**Impact Metrics:**
+- Presenter satisfaction with demo clips (survey, target: 4+ / 5)
+- YouTube views on auto-generated recaps vs. manual edits (compare engagement)
+- Time saved vs. manual editing (target: 10+ hours per event)
+
+**Engagement Metrics:**
+- Social shares of generated content
+- YouTube watch time and retention rate (target: >50% avg view duration)
+
+---
+
+## 6. Technical Implementation
 
 ### Architecture Overview
 
@@ -404,6 +425,65 @@ export const appRouter = createTRPCRouter({
 | **Job Queue** | BullMQ (Redis) | Async processing orchestration |
 | **Distribution** | YouTube Data API v3 | Auto-publishing and metadata |
 | **Notifications** | AWS SES | Email delivery (existing integration) |
+
+---
+
+## 7. Implementation Plan
+
+**Phase 1: Foundation (2 weeks)**
+- Database schema migration (MediaAsset, MediaCurationJob, MediaOutput)
+- S3 bucket setup and presigned URL generation
+- Basic media upload UI in admin dashboard
+- tRPC media router with upload/list endpoints
+- *Milestone: Organizers can upload and view event footage*
+
+**Phase 2: AI Pipeline Core (3 weeks)**
+- LangChain agent framework setup (Coordinator, Analysis, Selection agents)
+- Gemini video analysis integration (scene detection, quality scoring)
+- Deepgram transcription integration
+- Selection agent with scoring logic (feedback data + video analysis)
+- BullMQ job queue for async processing
+- *Milestone: System can analyze footage and identify highlights*
+
+**Phase 3: Content Generation (2 weeks)**
+- Generation Agent implementation
+- Suno music generation integration
+- ElevenLabs voiceover synthesis
+- FFmpeg video composition pipeline (splicing, audio mixing, overlays)
+- Multi-format rendering (16:9, 9:16, 1:1)
+- *Milestone: End-to-end highlight reel generation from prompt*
+
+**Phase 4: Distribution & Polish (1 week)**
+- Export Agent with YouTube API integration
+- Email notification system (reuse existing SES integration)
+- Admin UI: job progress tracking, output gallery, publish controls
+- Error handling and retry logic
+- *Milestone: Complete workflow from upload to YouTube publish*
+
+**Phase 5: Live Streaming (2 weeks, optional)**
+- MediaMTX RTMP server deployment
+- Livekit WebRTC integration
+- Real-time ingestion pipeline (S3 archival)
+- Live stream monitoring UI
+- *Milestone: Capture event footage live during Demo Night*
+
+**Total estimated time: 8-10 weeks** (phases 1-4 required, phase 5 optional for enhanced capture)
+
+---
+
+## 8. Risks & Mitigation Strategies
+
+**Risk: AI-generated content quality may not meet expectations**
+- *Mitigation*: Provide style presets and preview capabilities; allow organizers to regenerate with refined prompts; include human review step before publishing
+
+**Risk: High API costs from Gemini/Suno/ElevenLabs for large events**
+- *Mitigation*: Use Gemini Flash (cheaper, faster), cache/reuse generated music and avatar templates, implement usage quotas per event tier
+
+**Risk: Video processing failures due to unsupported codecs/formats**
+- *Mitigation*: Validate uploads with FFprobe, provide clear format guidelines in UI, auto-transcode problematic formats on ingest
+
+**Risk: Live streaming latency or reliability issues during events**
+- *Mitigation*: Make Phase 5 optional; provide robust fallback upload-based workflow; use battle-tested MediaMTX for production stability
 
 ### Implementation Considerations
 
