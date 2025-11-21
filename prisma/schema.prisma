@@ -81,10 +81,10 @@ model Event {
 }
 
 model Chapter {
-  id        String @id @default(cuid())
-  name      String @unique
-  emoji     String
-  events    Event[]
+  id     String  @id @default(cuid())
+  name   String  @unique
+  emoji  String
+  events Event[]
 }
 
 enum SubmissionStatus {
