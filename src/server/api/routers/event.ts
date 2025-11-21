@@ -13,6 +13,7 @@ import { DEFAULT_DEMOS } from "~/lib/types/demo";
 import {
   DEFAULT_EVENT_CONFIG,
   eventConfigSchema,
+  type EventConfig,
 } from "~/lib/types/eventConfig";
 import {
   createTRPCRouter,
@@ -165,33 +166,212 @@ export const eventRouter = createTRPCRouter({
         throw error;
       }
     }),
-  allAdmin: protectedProcedure.query(() => {
-    return db.event.findMany({
-      orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        url: true,
-        config: true,
-        secret: true,
-        chapterId: true,
-        chapter: {
+  allAdmin: protectedProcedure
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+          chapterIds: z.array(z.string()).optional(),
+          dateFrom: z.date().optional(),
+          dateTo: z.date().optional(),
+          eventType: z.enum(["demo", "pitch", "all"]).optional(),
+          eventStatus: z.enum(["upcoming", "past", "all"]).optional(),
+          minDemos: z.number().optional(),
+          maxDemos: z.number().optional(),
+          minAttendees: z.number().optional(),
+          maxAttendees: z.number().optional(),
+          hasAttendees: z.boolean().optional(),
+          hasDemos: z.boolean().optional(),
+          hasFeedback: z.boolean().optional(),
+          hasVotes: z.boolean().optional(),
+          sortBy: z
+            .enum(["date", "name", "demos", "attendees"])
+            .optional()
+            .default("date"),
+          sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+          limit: z.number().optional(),
+          offset: z.number().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      const {
+        search,
+        chapterIds,
+        dateFrom,
+        dateTo,
+        eventType,
+        eventStatus,
+        minDemos,
+        maxDemos,
+        minAttendees,
+        maxAttendees,
+        hasAttendees,
+        hasDemos,
+        hasFeedback,
+        hasVotes,
+        sortBy = "date",
+        sortOrder = "desc",
+        limit,
+        offset,
+      } = input ?? {};
+
+      // Build where clause
+      const where: Prisma.EventWhereInput = {};
+
+      // Search filter
+      if (search && search.trim()) {
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { url: { contains: search, mode: "insensitive" } },
+          { id: { contains: search, mode: "insensitive" } },
+          {
+            chapter: {
+              name: { contains: search, mode: "insensitive" },
+            },
+          },
+        ];
+      }
+
+      // Chapter filter
+      if (chapterIds && chapterIds.length > 0) {
+        where.chapterId = { in: chapterIds };
+      }
+
+      // Date range filter
+      if (dateFrom || dateTo) {
+        const dateFilter: any = {};
+        if (dateFrom) dateFilter.gte = dateFrom;
+        if (dateTo) dateFilter.lte = dateTo;
+        where.date = dateFilter;
+      }
+
+      // Event status filter
+      if (eventStatus && eventStatus !== "all") {
+        const now = new Date();
+        if (eventStatus === "upcoming") {
+          const existingDateFilter = where.date as any;
+          where.date = existingDateFilter ? { ...existingDateFilter, gt: now } : { gt: now };
+        } else if (eventStatus === "past") {
+          const existingDateFilter = where.date as any;
+          where.date = existingDateFilter ? { ...existingDateFilter, lte: now } : { lte: now };
+        }
+      }
+
+      // Event type filter (Demo Night vs Pitch Night)
+      if (eventType && eventType !== "all") {
+        // We'll need to filter this post-query since config is JSON
+      }
+
+      // Build orderBy
+      const orderBy: Prisma.EventOrderByWithRelationInput[] = [];
+      if (sortBy === "date") {
+        orderBy.push({ date: sortOrder });
+      } else if (sortBy === "name") {
+        orderBy.push({ name: sortOrder });
+      } else if (sortBy === "demos") {
+        orderBy.push({ demos: { _count: sortOrder } });
+      } else if (sortBy === "attendees") {
+        orderBy.push({ attendees: { _count: sortOrder } });
+      }
+
+      // Execute query
+      const [events, totalCount] = await Promise.all([
+        db.event.findMany({
+          where,
+          orderBy,
           select: {
             id: true,
             name: true,
-            emoji: true,
+            date: true,
+            url: true,
+            config: true,
+            secret: true,
+            chapterId: true,
+            chapter: {
+              select: {
+                id: true,
+                name: true,
+                emoji: true,
+              },
+            },
+            _count: {
+              select: {
+                demos: true,
+                attendees: true,
+                feedback: true,
+                votes: true,
+              },
+            },
           },
-        },
-        _count: {
-          select: {
-            demos: true,
-            attendees: true,
-          },
-        },
-      },
-    });
-  }),
+          take: limit,
+          skip: offset,
+        }),
+        db.event.count({ where }),
+      ]);
+
+      // Post-query filtering
+      let filteredEvents = events;
+
+      // Filter by event type (isPitchNight in config)
+      if (eventType && eventType !== "all") {
+        filteredEvents = filteredEvents.filter((event) => {
+          const config = event.config as EventConfig | null;
+          const isPitchNight = config?.isPitchNight ?? false;
+          return eventType === "pitch" ? isPitchNight : !isPitchNight;
+        });
+      }
+
+      // Filter by demo count
+      if (minDemos !== undefined || maxDemos !== undefined) {
+        filteredEvents = filteredEvents.filter((event) => {
+          const count = event._count.demos;
+          if (minDemos !== undefined && count < minDemos) return false;
+          if (maxDemos !== undefined && count > maxDemos) return false;
+          return true;
+        });
+      }
+
+      // Filter by attendee count
+      if (minAttendees !== undefined || maxAttendees !== undefined) {
+        filteredEvents = filteredEvents.filter((event) => {
+          const count = event._count.attendees;
+          if (minAttendees !== undefined && count < minAttendees) return false;
+          if (maxAttendees !== undefined && count > maxAttendees) return false;
+          return true;
+        });
+      }
+
+      // Filter by has data
+      if (hasAttendees !== undefined) {
+        filteredEvents = filteredEvents.filter(
+          (event) =>
+            hasAttendees ? event._count.attendees > 0 : event._count.attendees === 0,
+        );
+      }
+      if (hasDemos !== undefined) {
+        filteredEvents = filteredEvents.filter(
+          (event) => (hasDemos ? event._count.demos > 0 : event._count.demos === 0),
+        );
+      }
+      if (hasFeedback !== undefined) {
+        filteredEvents = filteredEvents.filter(
+          (event) =>
+            hasFeedback ? event._count.feedback > 0 : event._count.feedback === 0,
+        );
+      }
+      if (hasVotes !== undefined) {
+        filteredEvents = filteredEvents.filter(
+          (event) => (hasVotes ? event._count.votes > 0 : event._count.votes === 0),
+        );
+      }
+
+      return {
+        events: filteredEvents,
+        totalCount,
+        hasMore: limit ? offset! + filteredEvents.length < totalCount : false,
+      };
+    }),
   getAdmin: protectedProcedure
     .input(z.string())
     .query(async ({ input }): Promise<AdminEvent | null> => {

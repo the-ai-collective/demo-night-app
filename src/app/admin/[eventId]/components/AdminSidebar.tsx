@@ -136,7 +136,7 @@ export function AdminSidebar({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  {events?.map((e) => (
+                  {events?.events?.map((e) => (
                     <DropdownMenuItem
                       key={e.id}
                       onClick={() => router.push(`/admin/${e.id}`)}
