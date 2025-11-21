@@ -1,6 +1,6 @@
 # Demo Night App 🧬
 
-**The [Demo Night App (DNA)](https://demos.aicollective.com) is an open-source, community-led project we use to maximize value for all involved at our flagship demo night events!**
+**The [Demo Night App (DNA)](https://demos.aicollective.com) is an open-source, community-led project we use to maximize value for all involved at our flagship demo night events!** 
 
 ![App Screenshots](./assets/App.png)
 
