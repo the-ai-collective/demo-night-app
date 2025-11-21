@@ -27,7 +27,12 @@
       "Bash(docker volume rm:*)",
       "Bash(docker inspect:*)",
       "Bash(docker exec:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(DATABASE_URL=\"postgres://59e5ba749401f8a7c05bb6f1aef0d9aa0a135403c626261ea2ac18931548e778:sk_o5ttk9Bp8x6166za3-v4w@db.prisma.io:5432/postgres?sslmode=require\" yarn db:migrate:deploy:*)",
+      "Bash(DATABASE_URL=\"postgres://59e5ba749401f8a7c05bb6f1aef0d9aa0a135403c626261ea2ac18931548e778:sk_o5ttk9Bp8x6166za3-v4w@db.prisma.io:5432/postgres?sslmode=require\" npx prisma migrate:*)",
+      "Bash(export DATABASE_URL=\"postgres://59e5ba749401f8a7c05bb6f1aef0d9aa0a135403c626261ea2ac18931548e778:sk_o5ttk9Bp8x6166za3-v4w@db.prisma.io:5432/postgres?sslmode=require\")",
+      "Bash(export DATABASE_URL_NON_POOLING=\"postgres://59e5ba749401f8a7c05bb6f1aef0d9aa0a135403c626261ea2ac18931548e778:sk_o5ttk9Bp8x6166za3-v4w@db.prisma.io:5432/postgres?sslmode=require\")",
+      "Bash(dotenv -e .env.development.local -- npx prisma migrate:*)"
     ],
     "deny": []
   },
