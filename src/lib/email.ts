@@ -1,11 +1,20 @@
-import { Resend } from "resend";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 import { render } from "@react-email/render";
 import { env } from "~/env";
 
 import { SubmissionConfirmationEmail } from "~/emails/SubmissionConfirmationEmail";
 import { SubmissionStatusUpdateEmail } from "~/emails/SubmissionStatusUpdateEmail";
 
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+const sesClient =
+  env.AWS_SES_REGION && env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY
+    ? new SESClient({
+        region: env.AWS_SES_REGION,
+        credentials: {
+          accessKeyId: env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+        },
+      })
+    : null;
 
 export interface SubmissionEmailData {
   submissionName: string;
@@ -28,20 +37,39 @@ export interface SubmissionStatusUpdateData extends SubmissionEmailData {
 export async function sendSubmissionConfirmationEmail(
   data: SubmissionEmailData,
 ): Promise<void> {
-  if (!resend) {
-    console.warn("⚠️  Resend API key not configured. Email not sent.");
+  if (!sesClient) {
+    console.warn("⚠️  AWS SES not configured. Email not sent.");
     return;
   }
 
   try {
-    const html = await render(SubmissionConfirmationEmail(data));
+    // Ensure eventUrl is a full URL
+    const eventUrl = data.eventUrl.startsWith("http")
+      ? data.eventUrl
+      : `${env.NEXT_PUBLIC_URL}${data.eventUrl}`;
 
-    await resend.emails.send({
-      from: "Demo Night <noreply@aicollective.com>",
-      to: data.submitterEmail,
-      subject: `Submission Received: ${data.submissionName}`,
-      html,
+    const html = await render(
+      SubmissionConfirmationEmail({ ...data, eventUrl }),
+    );
+
+    const command = new SendEmailCommand({
+      Source: "Demo Night <noreply@carnationlabs.online>",
+      Destination: {
+        ToAddresses: [data.submitterEmail],
+      },
+      Message: {
+        Subject: {
+          Data: `Submission Received: ${data.submissionName}`,
+        },
+        Body: {
+          Html: {
+            Data: html,
+          },
+        },
+      },
     });
+
+    await sesClient.send(command);
 
     console.log(`✅ Confirmation email sent to ${data.submitterEmail}`);
   } catch (error) {
@@ -56,25 +84,42 @@ export async function sendSubmissionConfirmationEmail(
 export async function sendSubmissionStatusUpdateEmail(
   data: SubmissionStatusUpdateData,
 ): Promise<void> {
-  if (!resend) {
-    console.warn("⚠️  Resend API key not configured. Email not sent.");
+  if (!sesClient) {
+    console.warn("⚠️  AWS SES not configured. Email not sent.");
     return;
   }
 
   try {
-    const html = await render(SubmissionStatusUpdateEmail(data));
+    // Ensure eventUrl is a full URL
+    const eventUrl = data.eventUrl.startsWith("http")
+      ? data.eventUrl
+      : `${env.NEXT_PUBLIC_URL}${data.eventUrl}`;
+
+    const html = await render(SubmissionStatusUpdateEmail({ ...data, eventUrl }));
 
     const subject =
       data.status === "CONFIRMED"
         ? `🎉 Your Demo Has Been Confirmed: ${data.submissionName}`
         : `Update on Your Demo Submission: ${data.submissionName}`;
 
-    await resend.emails.send({
-      from: "Demo Night <noreply@aicollective.com>",
-      to: data.submitterEmail,
-      subject,
-      html,
+    const command = new SendEmailCommand({
+      Source: "Demo Night <noreply@carnationlabs.online>",
+      Destination: {
+        ToAddresses: [data.submitterEmail],
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+        },
+        Body: {
+          Html: {
+            Data: html,
+          },
+        },
+      },
     });
+
+    await sesClient.send(command);
 
     console.log(
       `✅ Status update email sent to ${data.submitterEmail} (${data.status})`,

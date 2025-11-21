@@ -26,7 +26,8 @@
       "Bash(docker logs:*)",
       "Bash(docker volume rm:*)",
       "Bash(docker inspect:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   },

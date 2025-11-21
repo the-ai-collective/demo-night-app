@@ -767,7 +767,7 @@ export const eventRouter = createTRPCRouter({
         const id = `${words.join("-").toLowerCase()}-${eventType.toLowerCase()}-${Date.now()}-${i}`;
 
         // Random URL
-        const url = `https://example.com/events/${id}`;
+        const url = `${env.NEXT_PUBLIC_URL}/events/${id}`;
 
         // Randomly assign to a chapter (70% chance if chapters exist)
         let chapterId = null;
