@@ -5,7 +5,6 @@ import {
   Head,
   Heading,
   Html,
-  Link,
   Preview,
   Section,
   Text,
@@ -49,7 +48,7 @@ export const SubmissionConfirmationEmail = ({
           </Text>
           <Text style={text}>
             Thank you for submitting your demo to <strong>{eventName}</strong>!
-            We've received your submission and our team will review it shortly.
+            We&apos;ve received your submission and our team will review it shortly.
           </Text>
 
           <Section style={box}>
@@ -67,10 +66,10 @@ export const SubmissionConfirmationEmail = ({
           </Section>
 
           <Text style={text}>
-            <strong>What's Next?</strong>
+            <strong>What&apos;s Next?</strong>
           </Text>
           <Text style={text}>
-            Our team will review your submission and get back to you soon. You'll
+            Our team will review your submission and get back to you soon. You&apos;ll
             receive an email notification once your submission status has been
             updated.
           </Text>
@@ -82,7 +81,7 @@ export const SubmissionConfirmationEmail = ({
           </Section>
 
           <Text style={footer}>
-            If you have any questions, please don't hesitate to reach out.
+            If you have any questions, please don&apos;t hesitate to reach out.
           </Text>
           <Text style={footer}>
             Best regards,

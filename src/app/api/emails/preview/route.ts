@@ -1,5 +1,6 @@
 import { render } from "@react-email/render";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { env } from "~/env";
 
 import { SubmissionConfirmationEmail } from "~/emails/SubmissionConfirmationEmail";
@@ -12,8 +13,8 @@ export async function GET(request: NextRequest) {
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const template = searchParams.get("template") || "confirmation";
-  const status = searchParams.get("status") || "CONFIRMED";
+  const template = searchParams.get("template") ?? "confirmation";
+  const status = searchParams.get("status") ?? "CONFIRMED";
 
   // Sample data for preview
   const sampleData = {

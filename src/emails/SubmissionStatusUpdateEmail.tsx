@@ -63,7 +63,7 @@ export const SubmissionStatusUpdateEmail = ({
             <>
               <Text style={text}>
                 Great news! Your demo submission for <strong>{eventName}</strong>{" "}
-                has been <strong>confirmed</strong>. We're excited to have you
+                has been <strong>confirmed</strong>. We&apos;re excited to have you
                 present at the event!
               </Text>
 
@@ -82,10 +82,10 @@ export const SubmissionStatusUpdateEmail = ({
               </Section>
 
               <Text style={text}>
-                <strong>What's Next?</strong>
+                <strong>What&apos;s Next?</strong>
               </Text>
               <Text style={text}>
-                Please make sure you're prepared for the event. If you have any
+                Please make sure you&apos;re prepared for the event. If you have any
                 questions or need to make changes to your submission, please
                 reach out to us as soon as possible.
               </Text>
@@ -101,7 +101,7 @@ export const SubmissionStatusUpdateEmail = ({
             <>
               <Text style={text}>
                 Thank you for your interest in presenting at{" "}
-                <strong>{eventName}</strong>. After careful review, we're unable
+                <strong>{eventName}</strong>. After careful review, we&apos;re unable
                 to include your demo in this event.
               </Text>
 
@@ -121,7 +121,7 @@ export const SubmissionStatusUpdateEmail = ({
               )}
 
               <Text style={text}>
-                We encourage you to submit again for future events. We're always
+                We encourage you to submit again for future events. We&apos;re always
                 looking for innovative demos to showcase!
               </Text>
             </>
@@ -134,7 +134,7 @@ export const SubmissionStatusUpdateEmail = ({
           </Section>
 
           <Text style={footer}>
-            If you have any questions, please don't hesitate to reach out.
+            If you have any questions, please don&apos;t hesitate to reach out.
           </Text>
           <Text style={footer}>
             Best regards,
