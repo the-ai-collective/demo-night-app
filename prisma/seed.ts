@@ -198,11 +198,11 @@ async function main() {
   await prisma.chapter.upsert({
     where: { name: "SF" },
     update: {
-      emoji: "1F680", // rocket emoji unified ID
+      emoji: "1f680", // rocket emoji unified ID
     },
     create: {
       name: "SF",
-      emoji: "1F680",
+      emoji: "1f680",
     }
   })
 
