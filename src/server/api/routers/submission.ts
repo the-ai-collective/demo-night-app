@@ -10,6 +10,7 @@ import {
   sendSubmissionConfirmationEmail,
   sendSubmissionStatusUpdateEmail,
 } from "~/lib/email";
+import { env } from "~/env";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -58,7 +59,7 @@ export const submissionRouter = createTRPCRouter({
             submitterName: result.pocName,
             eventName: event.name,
             eventDate: event.date,
-            eventUrl: event.url,
+            eventUrl: `${env.NEXT_PUBLIC_URL}/events/${event.id}`,
           }).catch((error) => {
             console.error("Failed to send confirmation email:", error);
           });
@@ -143,7 +144,7 @@ export const submissionRouter = createTRPCRouter({
           submitterName: updatedSubmission.pocName,
           eventName: currentSubmission.event.name,
           eventDate: currentSubmission.event.date,
-          eventUrl: currentSubmission.event.url,
+          eventUrl: `${env.NEXT_PUBLIC_URL}/events/${currentSubmission.event.id}`,
           status: data.status,
           adminComment: updatedSubmission.comment,
         }).catch((error) => {
