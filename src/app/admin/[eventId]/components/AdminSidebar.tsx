@@ -105,10 +105,15 @@ export function AdminSidebar({
                       className="-ml-1"
                     />
                     <div className="flex flex-col items-start">
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-2">
                         <div className="line-clamp-1 text-base font-bold leading-6">
                           {event.name}
                         </div>
+                        {event.chapter && (
+                          <span className="text-xs text-muted-foreground">
+                            {event.chapter.emoji} {event.chapter.name}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <CalendarIcon className="h-3 w-3" />
@@ -142,8 +147,15 @@ export function AdminSidebar({
                       onClick={() => router.push(`/admin/${e.id}`)}
                     >
                       <div className="flex flex-col items-start">
-                        <div className="line-clamp-1 font-bold leading-6">
-                          {e.name}
+                        <div className="flex items-center gap-2">
+                          <div className="line-clamp-1 font-bold leading-6">
+                            {e.name}
+                          </div>
+                          {e.chapter && (
+                            <span className="text-xs">
+                              {e.chapter.emoji} {e.chapter.name}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <CalendarIcon className="h-3 w-3" />

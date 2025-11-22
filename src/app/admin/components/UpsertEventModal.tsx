@@ -13,9 +13,17 @@ import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
@@ -43,8 +51,12 @@ export function UpsertEventModal({
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
   const [useTestData, setUseTestData] = useState(false);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    event?.chapterId ?? null,
+  );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.all.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
@@ -62,6 +74,11 @@ export function UpsertEventModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{event ? "Edit" : "Create New"} Event</DialogTitle>
+          <DialogDescription>
+            {event
+              ? "Update the event details below."
+              : "Create a new demo night event. Fill in the details below."}
+          </DialogDescription>
         </DialogHeader>
         <form
           onSubmit={handleSubmit((data) => {
@@ -77,6 +94,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: selectedChapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -149,6 +167,30 @@ export function UpsertEventModal({
               placeholder="https://lu.ma/demo-night"
               required
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={selectedChapterId ?? "none"}
+              onValueChange={(value) =>
+                setSelectedChapterId(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="No Chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-gray-500">
+              Optional: Assign this event to a chapter
+            </p>
           </label>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
