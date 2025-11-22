@@ -1,20 +1,27 @@
 "use client";
 
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 import { type Chapter } from "@prisma/client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+
+
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+
+
+import Emoji from "~/components/Emoji";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+
+
+
 import { DeleteChapterButton } from "~/app/admin/components/DeleteChapter";
 
-import data from "@emoji-mart/data"
-import Picker from "@emoji-mart/react"
-import Emoji from "~/components/Emoji";
 
 export function UpsertChapterModal({
   chapter,
@@ -34,11 +41,11 @@ export function UpsertChapterModal({
 
   const upsertMutation = api.chapter.upsert.useMutation();
 
-  const { getValues, setValue, register, handleSubmit } = useForm({
+  const { setValue, register, handleSubmit } = useForm({
     values: {
       name: chapter?.name ?? "",
       id: chapter?.id ?? null,
-      emoji: chapter?.emoji ?? ""
+      emoji: chapter?.emoji ?? "",
     },
   });
 
