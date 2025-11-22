@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, Filter, Mail, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, Mail, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,13 +17,6 @@ import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -96,69 +89,55 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
-        <ChaptersSection onChapterClick={setChapterFilter} activeChapterId={chapterFilter} />
+        {/* Chapters Section */}
+        <div className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold text-gray-700">Chapters</h2>
+          <ChaptersSection onChapterClick={setChapterFilter} activeChapterId={chapterFilter} />
+        </div>
 
         {/* Test Email Section */}
-        <Card className="mb-6 border-dashed border-orange-300 bg-orange-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Mail className="h-5 w-5 text-orange-600" />
-              <span className="font-medium text-orange-800">Test Email</span>
-              <Input
-                type="email"
-                placeholder="Enter email address"
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                className="max-w-xs"
-              />
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (testEmail) {
-                    sendTestEmail.mutate(
-                      { email: testEmail },
-                      {
-                        onSuccess: (data) => {
-                          if (data.success) {
-                            alert("Test email sent successfully!");
-                          } else {
-                            alert("Failed to send email: " + JSON.stringify(data.error));
-                          }
-                        },
-                        onError: (error) => {
-                          alert("Error: " + error.message);
-                        },
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-dashed border-orange-300 bg-orange-50/50 px-4 py-3">
+          <Mail className="h-4 w-4 text-orange-500" />
+          <span className="text-sm font-medium text-orange-700">Test Email</span>
+          <Input
+            type="email"
+            placeholder="Enter email address"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            className="max-w-xs border-orange-200 bg-white text-sm"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-orange-300 text-orange-700 hover:bg-orange-100"
+            onClick={() => {
+              if (testEmail) {
+                sendTestEmail.mutate(
+                  { email: testEmail },
+                  {
+                    onSuccess: (data) => {
+                      if (data.success) {
+                        alert("Test email sent successfully!");
+                      } else {
+                        alert("Failed to send email: " + JSON.stringify(data.error));
                       }
-                    );
+                    },
+                    onError: (error) => {
+                      alert("Error: " + error.message);
+                    },
                   }
-                }}
-                disabled={!testEmail || sendTestEmail.isPending}
-              >
-                {sendTestEmail.isPending ? "Sending..." : "Send Test Email"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                );
+              }
+            }}
+            disabled={!testEmail || sendTestEmail.isPending}
+          >
+            {sendTestEmail.isPending ? "Sending..." : "Send"}
+          </Button>
+        </div>
 
+        {/* Events Section */}
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold">Events</h2>
-            <Select value={chapterFilter} onValueChange={setChapterFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by chapter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Chapters</SelectItem>
-                <SelectItem value="none">No Chapter</SelectItem>
-                {chapters?.map((chapter) => (
-                  <SelectItem key={chapter.id} value={chapter.id}>
-                    {chapter.emoji} {chapter.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <h2 className="text-2xl font-bold">Events</h2>
           <Button onClick={() => showUpsertEventModal()}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Create Event
