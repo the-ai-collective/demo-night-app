@@ -114,6 +114,7 @@ model Submission {
   status  SubmissionStatus @default(PENDING)
   flagged Boolean          @default(false)
   rating  Int?
+
   comment String?
 
   createdAt DateTime @default(now())
