@@ -71,6 +71,7 @@ export const eventRouter = createTRPCRouter({
     )
     .query(async () => {
       const currentEvent = await kv.getCurrentEvent();
+
       // Handle migration: add isPitchNight if missing from old data
       if (currentEvent && !("isPitchNight" in currentEvent)) {
         const oldEvent = currentEvent as Omit<kv.CurrentEvent, "isPitchNight">;
@@ -195,6 +196,7 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapter: true,
         },
       });
     }),

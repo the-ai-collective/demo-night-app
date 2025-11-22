@@ -50,6 +50,7 @@ import {
 } from "~/components/ui/sidebar";
 
 import { LiveIndicator } from "./LiveIndicator";
+import Emoji from "~/components/Emoji";
 
 export enum AdminTab {
   Submissions = "submissions",
@@ -95,7 +96,7 @@ export function AdminSidebar({
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton className="h-14">
+                <SidebarMenuButton className="h-18">
                   <div className="flex items-center gap-2">
                     <Image
                       src={branding.logoPath}
@@ -110,6 +111,16 @@ export function AdminSidebar({
                           {event.name}
                         </div>
                       </div>
+
+                      <div className="line-clamp-1 leading-6">
+                        { event.chapter && (
+                          <>
+                            <Emoji>{event.chapter.emoji}</Emoji>
+                            <span className="ml-1">{event.chapter.name}</span>
+                          </>
+                        )}
+                      </div>
+
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <CalendarIcon className="h-3 w-3" />
                         <time>
@@ -145,6 +156,7 @@ export function AdminSidebar({
                         <div className="line-clamp-1 font-bold leading-6">
                           {e.name}
                         </div>
+
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <CalendarIcon className="h-3 w-3" />
                           <time>
