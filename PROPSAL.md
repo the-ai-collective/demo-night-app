@@ -1,13 +1,13 @@
 # Proposal
 
 While integrating chapter features into the Event functionality, I identified a
-feature that could enhance both user and organizer experience - the chapter functionality.
+feature that could enhance both user and organizer experience regarding the chapter functionality.
 
 ## Background
-At this time, does not contain the geographic location of the chapter - it needs
+At this time, the app does not contain the geographic location of the chapter - it needs
 to be inferred from the name (i.e. "SF" or "NYC").
 
-This makes it difficult for users to find events outside of their chapter, but that
+This makes it difficult for users to find events outside their chapter, but that
 may be near them regardless of their affiliation.
 
 ## Proposal
