@@ -44,6 +44,9 @@ export default function AdminHomePage() {
   const branding = getBrandingClient();
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
+
+  const { data: chapters } = api.chapter.all.useQuery();
+
   const {
     data: events,
     refetch: refetchEvents,
@@ -220,6 +223,7 @@ export default function AdminHomePage() {
       </div>
       <UpsertEventModal
         event={eventToEdit}
+        chapters={chapters ?? []}
         onSubmit={() => refetch()}
         onDeleted={() => {
           setModalOpen(false);

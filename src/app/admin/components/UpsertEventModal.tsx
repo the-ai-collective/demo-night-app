@@ -1,25 +1,27 @@
 "use client";
 
-import { type Event } from "@prisma/client";
+import { type Chapter, type Event } from "@prisma/client";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+
 
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+
+
 import { Button } from "~/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import { Switch } from "~/components/ui/switch";
+
+
 
 import { DeleteEventButton } from "./DeleteEvent";
 import { env } from "~/env";
+
 
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
@@ -27,12 +29,14 @@ const generateRandomId = () => {
 
 export function UpsertEventModal({
   event,
+  chapters,
   onSubmit,
   onDeleted,
   open,
   onOpenChange,
 }: {
   event?: Event;
+  chapters: Chapter[],
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -48,12 +52,13 @@ export function UpsertEventModal({
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
-  const { register, handleSubmit } = useForm({
+  const { setValue, register, handleSubmit } = useForm({
     values: {
       name: event?.name ?? "",
       id: event?.id ?? defaultId,
       date: (event?.date ?? new Date()).toISOString().substring(0, 10),
       url: event?.url ?? "",
+      chapterId: event?.chapterId ?? null,
     },
   });
 
@@ -76,6 +81,7 @@ export function UpsertEventModal({
                 name: data.name,
                 date: new Date(data.date),
                 url: data.url,
+                chapterId: data.chapterId,
                 config,
               })
               .then(async (result) => {
@@ -150,6 +156,33 @@ export function UpsertEventModal({
               required
             />
           </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+
+            <select
+              className="rounded-md block w-full px-2 border-spacing-x-4 py-2.5 bg-neutral-secondary-medium border
+              border-default-medium text-sm focus:ring-brand focus:border-brand placeholder:text-body"
+              onChange={(event) => {
+                const targetChapter = event.target.value;
+
+                if (targetChapter) {
+                  setValue("chapterId", targetChapter);
+                } else {
+                  setValue("chapterId", null);
+                }
+              }}
+              defaultValue={event?.chapterId ?? "None"}
+            >
+              <option value={""}>None</option>
+              {chapters.map((chapter) => (
+                <option value={chapter.id} key={chapter.id}>
+                  {chapter.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"
