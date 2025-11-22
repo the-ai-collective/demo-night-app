@@ -16,6 +16,7 @@ location data to the chapter model. This would allow us to easily add the follow
 
 - Nearby event discovery by location
 - City-specific chapters, rather than metroplex-based for large areas
+- Enhanced data for organizers
 - "Event Passport" - view prior events visited
 
 ## User Stories
