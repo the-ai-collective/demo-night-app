@@ -21,12 +21,17 @@ export async function getBranding(isPitchNight?: boolean): Promise<Branding> {
     finalIsPitchNight = isPitchNight;
   } else {
     // Fallback: Check host header for pitch.* domains
-    const headersList = headers();
-    const host = headersList.get("host") ?? "";
-    finalIsPitchNight =
-      host.startsWith("pitches.") ||
-      host === "pitches.localhost:3000" ||
-      host === "pitches.localhost";
+    try {
+      const headersList = headers();
+      const host = headersList.get("host") ?? "";
+      finalIsPitchNight =
+        host.startsWith("pitches.") ||
+        host === "pitches.localhost:3000" ||
+        host === "pitches.localhost";
+    } catch (error) {
+      console.error("[getBranding] Error reading headers:", error);
+      finalIsPitchNight = false;
+    }
   }
 
   return {

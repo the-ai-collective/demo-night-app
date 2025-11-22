@@ -1,52 +1,56 @@
-import { redirect } from "next/navigation";
-import { TRPCError } from "@trpc/server";
+"use client";
 
-import { api } from "~/trpc/server";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { api } from "~/trpc/react";
 
 import { ClientEventDashboard } from "./ClientEventDashboard";
 
-function isUnauthorizedError(error: unknown): boolean {
-  if (error instanceof TRPCError && error.code === "UNAUTHORIZED") {
-    return true;
-  }
-  // Check for wrapped tRPC errors
-  if (error && typeof error === "object" && "code" in error) {
-    return (error as { code: string }).code === "UNAUTHORIZED";
-  }
-  // Check error message as fallback
-  if (error instanceof Error && error.message.includes("UNAUTHORIZED")) {
-    return true;
-  }
-  return false;
-}
-
-export default async function AdminEventPage({
+export default function AdminEventPage({
   params,
 }: {
   params: { eventId: string };
 }) {
-  let event;
-  let currentEvent;
+  const router = useRouter();
 
-  try {
-    [event, currentEvent] = await Promise.all([
-      api.event.getAdmin(params.eventId),
-      api.event.getCurrent(),
-    ]);
-  } catch (error) {
-    if (isUnauthorizedError(error)) {
-      redirect("/api/auth/signin?callbackUrl=/admin/" + params.eventId);
+  const {
+    data: event,
+    isLoading: eventLoading,
+    error: eventError,
+  } = api.event.getAdmin.useQuery(params.eventId);
+
+  const { data: currentEvent } = api.event.getCurrent.useQuery();
+
+  useEffect(() => {
+    if (!eventLoading && !event && !eventError) {
+      router.replace("/admin");
     }
-    throw error;
+  }, [event, eventLoading, eventError, router]);
+
+  if (eventError) {
+    if (eventError.data?.code === "UNAUTHORIZED") {
+      router.replace("/api/auth/signin?callbackUrl=/admin/" + params.eventId);
+      return null;
+    }
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-red-600">Error: {eventError.message}</div>
+      </div>
+    );
   }
 
-  if (!event) {
-    redirect("/admin");
+  if (eventLoading || !event) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
   }
 
   return (
     <main className="flex min-h-screen w-full">
-      <ClientEventDashboard event={event} currentEvent={currentEvent} />
+      <ClientEventDashboard event={event} currentEvent={currentEvent ?? null} />
     </main>
   );
 }
