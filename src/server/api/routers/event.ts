@@ -7,6 +7,7 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import { sendPostEventDigestEmail } from "~/lib/email";
 import { DEFAULT_AWARDS, PITCH_NIGHT_AWARDS } from "~/lib/types/award";
 import * as kv from "~/lib/types/currentEvent";
 import { DEFAULT_DEMOS } from "~/lib/types/demo";
@@ -28,6 +29,7 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapters: { id: string; name: string; emoji: string }[];
 };
 
 export type PublicDemo = Omit<
@@ -103,23 +105,32 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterIds: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ input }) => {
-      const data = {
-        id: input.id,
-        name: input.name,
-        date: input.date,
-        url: input.url,
-        config: input.config,
-      };
-
       try {
         if (input.originalId) {
+          // Update existing event
+          const updateData: Prisma.EventUpdateInput = {
+            id: input.id,
+            name: input.name,
+            date: input.date,
+            url: input.url,
+            config: input.config,
+          };
+
+          // Handle chapter connections if provided
+          if (input.chapterIds !== undefined) {
+            updateData.chapters = {
+              set: input.chapterIds.map((id) => ({ id })),
+            };
+          }
+
           return db.event
             .update({
               where: { id: input.originalId },
-              data,
+              data: updateData,
             })
             .then(async (res: Event) => {
               const currentEvent = await kv.getCurrentEvent();
@@ -133,7 +144,9 @@ export const eventRouter = createTRPCRouter({
               return res;
             });
         }
-        const eventConfig = data.config ?? DEFAULT_EVENT_CONFIG;
+
+        // Create new event
+        const eventConfig = input.config ?? DEFAULT_EVENT_CONFIG;
         const isPitchNight = eventConfig.isPitchNight ?? false;
         const awardsToCreate = isPitchNight
           ? PITCH_NIGHT_AWARDS
@@ -141,11 +154,14 @@ export const eventRouter = createTRPCRouter({
 
         const result = await db.event.create({
           data: {
-            id: data.id!,
-            name: data.name!,
-            date: data.date!,
-            url: data.url!,
+            id: input.id!,
+            name: input.name!,
+            date: input.date!,
+            url: input.url!,
             config: eventConfig,
+            chapters: input.chapterIds?.length
+              ? { connect: input.chapterIds.map((id) => ({ id })) }
+              : undefined,
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -172,6 +188,13 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapters: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+          },
+        },
         _count: {
           select: {
             demos: true,
@@ -191,6 +214,7 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapters: true,
         },
       });
     }),
@@ -485,6 +509,252 @@ export const eventRouter = createTRPCRouter({
         return { success: true };
       });
     }),
+  // Post-event analytics
+  getAnalytics: protectedProcedure
+    .input(z.string())
+    .query(async ({ input: eventId }) => {
+      const event = await db.event.findUnique({
+        where: { id: eventId },
+        include: {
+          demos: {
+            include: {
+              feedback: {
+                include: {
+                  attendee: { select: { name: true } },
+                },
+              },
+              awards: true,
+            },
+          },
+          attendees: true,
+          feedback: true,
+          awards: { include: { winner: true } },
+        },
+      });
+
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      // Calculate overall event stats
+      const totalAttendees = event.attendees.length;
+      const totalFeedback = event.feedback.length;
+      const attendeesWhoGaveFeedback = new Set(
+        event.feedback.map((f) => f.attendeeId),
+      ).size;
+      const engagementRate =
+        totalAttendees > 0
+          ? Math.round((attendeesWhoGaveFeedback / totalAttendees) * 100)
+          : 0;
+
+      // Calculate overall ratings
+      const allRatings = event.feedback
+        .filter((f) => f.rating !== null)
+        .map((f) => f.rating!);
+      const averageRating =
+        allRatings.length > 0
+          ? allRatings.reduce((sum, r) => sum + r, 0) / allRatings.length
+          : null;
+      const totalClaps = event.feedback.reduce((sum, f) => sum + f.claps, 0);
+      const totalTellMeMore = event.feedback.filter((f) => f.tellMeMore).length;
+
+      // Quick action breakdown across all demos
+      const quickActionCounts: Record<string, number> = {};
+      event.feedback.forEach((f) => {
+        f.quickActions.forEach((action) => {
+          quickActionCounts[action] = (quickActionCounts[action] ?? 0) + 1;
+        });
+      });
+
+      // Per-demo analytics
+      const demoAnalytics = event.demos.map((demo) => {
+        const demoFeedback = demo.feedback;
+        const demoRatings = demoFeedback
+          .filter((f) => f.rating !== null)
+          .map((f) => f.rating!);
+        const demoAvgRating =
+          demoRatings.length > 0
+            ? demoRatings.reduce((sum, r) => sum + r, 0) / demoRatings.length
+            : null;
+        const demoClaps = demoFeedback.reduce((sum, f) => sum + f.claps, 0);
+        const demoTellMeMore = demoFeedback.filter((f) => f.tellMeMore).length;
+
+        const demoQuickActions: Record<string, number> = {};
+        demoFeedback.forEach((f) => {
+          f.quickActions.forEach((action) => {
+            demoQuickActions[action] = (demoQuickActions[action] ?? 0) + 1;
+          });
+        });
+
+        const comments = demoFeedback
+          .filter((f) => f.comment?.trim())
+          .map((f) => ({
+            text: f.comment!,
+            attendeeName: f.attendee?.name ?? undefined,
+          }));
+
+        const awardsWon = demo.awards.map((a) => ({ name: a.name }));
+
+        return {
+          id: demo.id,
+          name: demo.name,
+          email: demo.email,
+          digestSentAt: demo.digestSentAt,
+          stats: {
+            averageRating: demoAvgRating,
+            totalClaps: demoClaps,
+            feedbackCount: demoFeedback.length,
+            tellMeMoreCount: demoTellMeMore,
+            quickActionCounts: demoQuickActions,
+          },
+          comments,
+          awardsWon,
+        };
+      });
+
+      // Sort demos by average rating (highest first)
+      const rankedDemos = [...demoAnalytics].sort((a, b) => {
+        if (a.stats.averageRating === null) return 1;
+        if (b.stats.averageRating === null) return -1;
+        return b.stats.averageRating - a.stats.averageRating;
+      });
+
+      return {
+        eventId,
+        eventName: event.name,
+        eventDate: event.date,
+        overview: {
+          totalAttendees,
+          totalFeedback,
+          engagementRate,
+          averageRating,
+          totalClaps,
+          totalTellMeMore,
+        },
+        quickActionBreakdown: quickActionCounts,
+        demoAnalytics,
+        rankedDemos: rankedDemos.slice(0, 10),
+        awards: event.awards.map((a) => ({
+          id: a.id,
+          name: a.name,
+          winnerId: a.winnerId,
+          winnerName: a.winner?.name ?? null,
+        })),
+      };
+    }),
+  // Send post-event digest emails to demoists
+  sendDigestEmails: protectedProcedure
+    .input(
+      z.object({
+        eventId: z.string(),
+        demoIds: z.array(z.string()).optional(), // If not provided, send to all demos with emails
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { eventId, demoIds } = input;
+
+      const event = await db.event.findUnique({
+        where: { id: eventId },
+        include: {
+          demos: {
+            where: demoIds ? { id: { in: demoIds } } : undefined,
+            include: {
+              feedback: {
+                include: {
+                  attendee: { select: { name: true } },
+                },
+              },
+              awards: true,
+            },
+          },
+        },
+      });
+
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      const results: { demoId: string; success: boolean; error?: string }[] = [];
+
+      for (const demo of event.demos) {
+        if (!demo.email) {
+          results.push({
+            demoId: demo.id,
+            success: false,
+            error: "No email address for demo",
+          });
+          continue;
+        }
+
+        // Calculate stats
+        const demoFeedback = demo.feedback;
+        const demoRatings = demoFeedback
+          .filter((f) => f.rating !== null)
+          .map((f) => f.rating!);
+        const demoAvgRating =
+          demoRatings.length > 0
+            ? demoRatings.reduce((sum, r) => sum + r, 0) / demoRatings.length
+            : null;
+        const demoClaps = demoFeedback.reduce((sum, f) => sum + f.claps, 0);
+        const demoTellMeMore = demoFeedback.filter((f) => f.tellMeMore).length;
+
+        const demoQuickActions: Record<string, number> = {};
+        demoFeedback.forEach((f) => {
+          f.quickActions.forEach((action) => {
+            demoQuickActions[action] = (demoQuickActions[action] ?? 0) + 1;
+          });
+        });
+
+        const comments = demoFeedback
+          .filter((f) => f.comment?.trim())
+          .map((f) => ({
+            text: f.comment!,
+            attendeeName: f.attendee?.name ?? undefined,
+          }));
+
+        const awardsWon = demo.awards.map((a) => ({ name: a.name }));
+
+        // Extract POC name from email (fallback to demo name)
+        const pocName = demo.email.split("@")[0] ?? demo.name;
+
+        const result = await sendPostEventDigestEmail({
+          eventName: event.name,
+          demoName: demo.name,
+          pocName,
+          email: demo.email,
+          stats: {
+            averageRating: demoAvgRating,
+            totalClaps: demoClaps,
+            feedbackCount: demoFeedback.length,
+            tellMeMoreCount: demoTellMeMore,
+            quickActionCounts: demoQuickActions,
+          },
+          comments,
+          awardsWon,
+        });
+
+        if (result.success) {
+          // Update digestSentAt timestamp
+          await db.demo.update({
+            where: { id: demo.id },
+            data: { digestSentAt: new Date() },
+          });
+        }
+
+        results.push({
+          demoId: demo.id,
+          success: result.success,
+          error: result.error ? String(result.error) : undefined,
+        });
+      }
+
+      const successCount = results.filter((r) => r.success).length;
+      return {
+        totalSent: successCount,
+        totalFailed: results.length - successCount,
+        results,
+      };
+    }),
   delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.event
       .delete({
@@ -505,6 +775,13 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapters: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
   demos: {
     orderBy: { index: "asc" },
     select: {
@@ -518,4 +795,5 @@ const completeEventSelect: Prisma.EventSelect = {
     },
   },
   awards: { orderBy: { index: "asc" } },
+  eventFeedback: true,
 };

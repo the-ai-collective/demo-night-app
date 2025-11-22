@@ -3,6 +3,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 import { attendeeRouter } from "./routers/attendee";
 import { awardRouter } from "./routers/award";
+import { chapterRouter } from "./routers/chapter";
 import { demoRouter } from "./routers/demo";
 import { eventFeedbackRouter } from "./routers/eventFeedback";
 import { feedbackRouter } from "./routers/feedback";
@@ -23,6 +24,7 @@ export const appRouter = createTRPCRouter({
   feedback: feedbackRouter,
   vote: voteRouter,
   eventFeedback: eventFeedbackRouter,
+  chapter: chapterRouter,
 });
 
 // export type definition of API

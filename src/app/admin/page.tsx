@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, Mail, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,10 +11,12 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import ChaptersSection from "./components/ChaptersSection";
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -29,6 +31,12 @@ function getDaysAgo(date: Date): string {
   return `${diffDays} days ago`;
 }
 
+type ChapterInfo = { id: string; name: string; emoji: string };
+
+type EventWithChapters = Event & {
+  chapters: ChapterInfo[];
+};
+
 export default function AdminHomePage() {
   const branding = getBrandingClient();
   const { data: currentEvent, refetch: refetchCurrentEvent } =
@@ -38,20 +46,31 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
+  const { data: chapters, refetch: refetchChapters } = api.chapter.all.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [eventToEdit, setEventToEdit] = useState<EventWithChapters | undefined>(undefined);
+  const [chapterFilter, setChapterFilter] = useState<string>("all");
+  const [testEmail, setTestEmail] = useState("");
+  const sendTestEmail = api.submission.sendTestEmail.useMutation();
 
   const refetch = () => {
     refetchCurrentEvent();
     refetchEvents();
+    refetchChapters();
   };
 
-  const showUpsertEventModal = (event?: Event) => {
+  const showUpsertEventModal = (event?: EventWithChapters) => {
     setEventToEdit(event);
     setModalOpen(true);
   };
 
   const router = useRouter();
+
+  const filteredEvents = events?.filter((event) => {
+    if (chapterFilter === "all") return true;
+    if (chapterFilter === "none") return event.chapters.length === 0;
+    return event.chapters.some((c) => c.id === chapterFilter);
+  });
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -70,6 +89,53 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
+        {/* Chapters Section */}
+        <div className="mb-6">
+          <h2 className="mb-3 text-lg font-semibold text-gray-700">Chapters</h2>
+          <ChaptersSection onChapterClick={setChapterFilter} activeChapterId={chapterFilter} />
+        </div>
+
+        {/* Test Email Section */}
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-dashed border-orange-300 bg-orange-50/50 px-4 py-3">
+          <Mail className="h-4 w-4 text-orange-500" />
+          <span className="text-sm font-medium text-orange-700">Test Email</span>
+          <Input
+            type="email"
+            placeholder="Enter email address"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            className="max-w-xs border-orange-200 bg-white text-sm"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-orange-300 text-orange-700 hover:bg-orange-100"
+            onClick={() => {
+              if (testEmail) {
+                sendTestEmail.mutate(
+                  { email: testEmail },
+                  {
+                    onSuccess: (data) => {
+                      if (data.success) {
+                        alert("Test email sent successfully!");
+                      } else {
+                        alert("Failed to send email: " + JSON.stringify(data.error));
+                      }
+                    },
+                    onError: (error) => {
+                      alert("Error: " + error.message);
+                    },
+                  }
+                );
+              }
+            }}
+            disabled={!testEmail || sendTestEmail.isPending}
+          >
+            {sendTestEmail.isPending ? "Sending..." : "Send"}
+          </Button>
+        </div>
+
+        {/* Events Section */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Events</h2>
           <Button onClick={() => showUpsertEventModal()}>
@@ -85,7 +151,7 @@ export default function AdminHomePage() {
               <EventSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            filteredEvents?.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -117,6 +183,19 @@ export default function AdminHomePage() {
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
+                          {event.chapters.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              {event.chapters.map((chapter) => (
+                                <span
+                                  key={chapter.id}
+                                  className="text-lg"
+                                  title={chapter.name}
+                                >
+                                  {chapter.emoji}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <span className="line-clamp-1 text-xl">
                             {event.name}
                           </span>
@@ -203,6 +282,7 @@ export default function AdminHomePage() {
       </div>
       <UpsertEventModal
         event={eventToEdit}
+        chapters={chapters ?? []}
         onSubmit={() => refetch()}
         onDeleted={() => {
           setModalOpen(false);

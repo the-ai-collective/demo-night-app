@@ -96,7 +96,7 @@ export const viewport: Viewport = {
   themeColor: "#fff",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import {
+  sendStatusUpdateEmail,
+  sendSubmissionConfirmationEmail,
+} from "~/lib/email";
+import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -32,9 +36,25 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        const event = await db.event.findUnique({
+          where: { id: input.eventId },
+          select: { name: true },
+        });
+
         const result = await db.submission.create({
           data: input,
         });
+
+        // Send confirmation email
+        console.log("Attempting to send confirmation email to:", input.email);
+        const emailResult = await sendSubmissionConfirmationEmail({
+          eventName: event?.name ?? "Demo Night",
+          demoName: input.name,
+          pocName: input.pocName,
+          email: input.email,
+        });
+        console.log("Email result:", emailResult);
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,10 +105,36 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Get current submission to check for status change
+      const currentSubmission = await db.submission.findUnique({
+        where: { id },
+        include: { event: { select: { name: true } } },
+      });
+
+      const result = await db.submission.update({
         where: { id },
         data,
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        input.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED") &&
+        currentSubmission?.status !== input.status
+      ) {
+        sendStatusUpdateEmail({
+          eventName: currentSubmission?.event.name ?? "Demo Night",
+          demoName: currentSubmission?.name ?? result.name,
+          pocName: currentSubmission?.pocName ?? result.pocName,
+          email: currentSubmission?.email ?? result.email,
+          status: input.status,
+        }).catch((err) => {
+          console.error("Failed to send status update email:", err);
+        });
+      }
+
+      return result;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())
@@ -133,7 +179,13 @@ export const submissionRouter = createTRPCRouter({
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
-      return db.submission.update({
+
+      // Get current submission to check for status change
+      const currentSubmission = await db.submission.findUnique({
+        where: { id: input.id },
+      });
+
+      const result = await db.submission.update({
         where: { id: input.id },
         data: {
           status: input.status,
@@ -142,6 +194,25 @@ export const submissionRouter = createTRPCRouter({
           comment: input.comment,
         },
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        input.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED") &&
+        currentSubmission?.status !== input.status
+      ) {
+        sendStatusUpdateEmail({
+          eventName: event?.name ?? "Demo Night",
+          demoName: result.name,
+          pocName: result.pocName,
+          email: result.email,
+          status: input.status,
+        }).catch((err) => {
+          console.error("Failed to send status update email:", err);
+        });
+      }
+
+      return result;
     }),
   setSubmissions: protectedProcedure
     .input(
@@ -179,4 +250,15 @@ export const submissionRouter = createTRPCRouter({
       where: { id: input },
     });
   }),
+  sendTestEmail: protectedProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ input }) => {
+      const result = await sendSubmissionConfirmationEmail({
+        eventName: "Test Event",
+        demoName: "Test Demo",
+        pocName: "Test User",
+        email: input.email,
+      });
+      return result;
+    }),
 });

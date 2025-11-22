@@ -1,7 +1,8 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { useState } from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -9,30 +10,52 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "~/components/ui/command";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
 import { env } from "~/env";
 
+type ChapterOption = { id: string; name: string; emoji: string };
+
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
 };
 
+type EventWithChapters = Event & {
+  chapters?: ChapterOption[];
+};
+
 export function UpsertEventModal({
   event,
+  chapters,
   onSubmit,
   onDeleted,
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventWithChapters;
+  chapters: ChapterOption[];
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -42,11 +65,22 @@ export function UpsertEventModal({
   const [isPitchNight, setIsPitchNight] = useState(
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
+  const [selectedChapterIds, setSelectedChapterIds] = useState<string[]>(
+    event?.chapters?.map((c) => c.id) ?? [],
+  );
+  const [chapterPopoverOpen, setChapterPopoverOpen] = useState(false);
   const [useTestData, setUseTestData] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
+
+  // Reset state when event changes
+  useEffect(() => {
+    setIsPitchNight((event?.config as EventConfig)?.isPitchNight ?? false);
+    setSelectedChapterIds(event?.chapters?.map((c) => c.id) ?? []);
+    setUseTestData(false);
+  }, [event]);
 
   const { register, handleSubmit } = useForm({
     values: {
@@ -57,9 +91,21 @@ export function UpsertEventModal({
     },
   });
 
+  const toggleChapter = (chapterId: string) => {
+    setSelectedChapterIds((prev) =>
+      prev.includes(chapterId)
+        ? prev.filter((id) => id !== chapterId)
+        : [...prev, chapterId],
+    );
+  };
+
+  const selectedChapters = chapters.filter((c) =>
+    selectedChapterIds.includes(c.id),
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{event ? "Edit" : "Create New"} Event</DialogTitle>
         </DialogHeader>
@@ -77,6 +123,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterIds: selectedChapterIds,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -115,7 +162,7 @@ export function UpsertEventModal({
               type="text"
               {...register("name", { required: true })}
               className="rounded-md border border-gray-200 p-2"
-              placeholder="SF Demo Night 🚀"
+              placeholder="SF Demo Night"
               autoComplete="off"
               autoFocus
             />
@@ -150,6 +197,69 @@ export function UpsertEventModal({
               required
             />
           </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">Chapters</span>
+            <Popover open={chapterPopoverOpen} onOpenChange={setChapterPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={chapterPopoverOpen}
+                  className="h-auto min-h-[40px] w-full justify-between"
+                >
+                  <div className="flex flex-wrap gap-1">
+                    {selectedChapters.length > 0 ? (
+                      selectedChapters.map((chapter) => (
+                        <Badge
+                          key={chapter.id}
+                          variant="secondary"
+                          className="mr-1"
+                        >
+                          {chapter.emoji} {chapter.name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Select chapters...
+                      </span>
+                    )}
+                  </div>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search chapters..." />
+                  <CommandList>
+                    <CommandEmpty>No chapters found.</CommandEmpty>
+                    <CommandGroup>
+                      {chapters.map((chapter) => (
+                        <CommandItem
+                          key={chapter.id}
+                          value={chapter.name}
+                          onSelect={() => toggleChapter(chapter.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedChapterIds.includes(chapter.id)
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          <span className="mr-2 text-lg">{chapter.emoji}</span>
+                          {chapter.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="text-sm text-muted-foreground">
+              Events can belong to multiple chapters
+            </p>
+          </div>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"
