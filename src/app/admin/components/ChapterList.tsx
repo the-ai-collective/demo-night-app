@@ -4,9 +4,10 @@ import { useState } from "react";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import { UpsertChapterModal } from "./UpsertChapterModal";
 import { ChapterDetailsModal } from "./ChapterDetailsModal";
-import { MoreVertical, Trash2, Eye, Pencil } from "lucide-react";
+import { MoreVertical, Trash2, Eye, Pencil, Search, X } from "lucide-react";
 import type { Chapter } from "~/lib/types/chapter";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ export function ChapterList() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<Chapter | undefined>(undefined);
   const [editOpen, setEditOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { mutate: deleteChapter } = api.chapter.delete.useMutation({
     onSuccess: () => {
@@ -51,17 +53,43 @@ export function ChapterList() {
     }
   };
 
+  // Filter chapters based on search query
+  const filteredChapters = chapters?.filter((chapter: Chapter) =>
+    chapter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chapter.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chapter.country.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   if (isLoading) return <div className="text-center py-4">Loading chapters...</div>;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-xl font-bold">Chapters</h2>
-        <UpsertChapterModal />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 md:w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search chapters..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-9"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <UpsertChapterModal />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {chapters?.map((chapter: Chapter) => (
+        {filteredChapters.map((chapter: Chapter) => (
           <Card
             key={chapter.id}
             className="p-4 relative overflow-hidden hover:shadow-md transition-shadow"
@@ -131,6 +159,12 @@ export function ChapterList() {
           </Card>
         ))}
       </div>
+
+      {filteredChapters.length === 0 && searchQuery && (
+        <div className="text-center py-8 text-gray-500">
+          No chapters found matching "{searchQuery}"
+        </div>
+      )}
 
       {chapters?.length === 0 && (
         <div className="text-center py-8 text-gray-500">

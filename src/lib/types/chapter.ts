@@ -38,11 +38,20 @@ export const createChapterSchema = chapterSchema.pick({
   leadLinkedin: true,
   description: true,
   imageUrl: true,
-});
+}).strict();
 
-export const updateChapterSchema = createChapterSchema.partial();
+export const updateChapterSchema = createChapterSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  {
+    message: "At least one field must be provided for update",
+  }
+);
 
-export type Chapter = z.infer<typeof chapterSchema>;
+export type Chapter = z.infer<typeof chapterSchema> & {
+  _count?: {
+    events: number;
+  };
+};
 export type CreateChapter = z.infer<typeof createChapterSchema>;
 export type UpdateChapter = z.infer<typeof updateChapterSchema>;
 

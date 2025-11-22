@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 import {
   Dialog,
@@ -9,8 +10,9 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Card } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 import type { Chapter } from "~/lib/types/chapter";
-import { CalendarIcon, Mail } from "lucide-react";
+import { CalendarIcon, Mail, ArrowRight } from "lucide-react";
 
 interface ChapterDetailsModalProps {
   chapter: Chapter;
@@ -23,12 +25,18 @@ export function ChapterDetailsModal({
   open,
   onOpenChange,
 }: ChapterDetailsModalProps) {
+  const router = useRouter();
   const { data: chapterWithEvents, isLoading } = api.chapter.get.useQuery(
     { id: chapter.id },
     { enabled: open }
   );
 
   const events = chapterWithEvents?.events ?? [];
+
+  const handleEventClick = (eventId: string) => {
+    onOpenChange(false);
+    router.push(`/admin/${eventId}`);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,10 +108,16 @@ export function ChapterDetailsModal({
             ) : events.length > 0 ? (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {events.map((event) => (
-                  <Card key={event.id} className="p-3 hover:bg-gray-50">
+                  <Card
+                    key={event.id}
+                    className="p-3 hover:bg-gray-50 cursor-pointer transition-colors group"
+                    onClick={() => handleEventClick(event.id)}
+                  >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-sm">{event.name}</p>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm group-hover:text-blue-600 transition-colors">
+                          {event.name}
+                        </p>
                         <p className="text-xs text-gray-600">
                           {event.date.toLocaleDateString("en-US", {
                             timeZone: "UTC",
@@ -117,6 +131,7 @@ export function ChapterDetailsModal({
                       <div className="flex items-center gap-4 text-xs text-gray-600">
                         <span>Demos: {event._count?.demos ?? 0}</span>
                         <span>Attendees: {event._count?.attendees ?? 0}</span>
+                        <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
                       </div>
                     </div>
                   </Card>
