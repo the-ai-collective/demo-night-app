@@ -18,10 +18,14 @@
       "Bash(rg:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["context7"]
+  "enabledMcpjsonServers": [
+    "context7"
+  ]
 }

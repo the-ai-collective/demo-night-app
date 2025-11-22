@@ -34,6 +34,7 @@ export default async function AdminEventPage({
       api.event.getCurrent(),
     ]);
   } catch (error) {
+    console.error("[AdminEventPage] Error loading event:", error);
     if (isUnauthorizedError(error)) {
       redirect("/api/auth/signin?callbackUrl=/admin/" + params.eventId);
     }
