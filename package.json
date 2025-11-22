@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.4.0",
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@hookform/resolvers": "^3.10.0",
     "@prisma/client": "^5.14.0",
     "@radix-ui/react-alert-dialog": "^1.1.5",
@@ -45,6 +47,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-parse": "^5.5.6",
+    "emoji-mart": "^5.6.0",
     "focus-trap-react": "^10.2.3",
     "framer-motion": "^11.1.7",
     "lucide-react": "^0.474.0",

@@ -1,68 +1,41 @@
 "use client";
 
-import { type Event } from "@prisma/client";
-import {
-  CalendarIcon,
-  EyeIcon,
-  PlusIcon,
-  Presentation,
-  Users,
-} from "lucide-react";
-import Image from "next/image";
+import { type Chapter } from "@prisma/client";
+import { EyeIcon, PlusIcon, Presentation } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-
-
 import { getBrandingClient } from "~/lib/branding";
-import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
-
-
-import { UpsertEventModal } from "./components/UpsertEventModal";
+import Emoji from "~/components/Emoji";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 
+import { UpsertChapterModal } from "~/app/admin/components/UpsertChapterModal";
 
-function getDaysAgo(date: Date): string {
-  const now = new Date();
-  const eventDate = new Date(date);
-  const diffTime = now.getTime() - eventDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "1 day ago";
-  if (diffDays === -1) return "in 1 day";
-  if (diffDays < 0) return `in ${Math.abs(diffDays)} days`;
-  return `${diffDays} days ago`;
-}
-
-export default function AdminHomePage() {
+export default function ChaptersPage() {
   const branding = getBrandingClient();
-  const { data: currentEvent, refetch: refetchCurrentEvent } =
-    api.event.getCurrent.useQuery();
+
   const {
-    data: events,
-    refetch: refetchEvents,
+    data: chapters,
+    refetch: refetchChapters,
     isLoading,
-  } = api.event.allAdmin.useQuery();
+  } = api.chapter.all.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
-
-  const refetch = () => {
-    refetchCurrentEvent();
-    refetchEvents();
-  };
-
-  const showUpsertEventModal = (event?: Event) => {
-    setEventToEdit(event);
-    setModalOpen(true);
-  };
+  const [chapterToEdit, setChapterToEdit] = useState<Chapter | undefined>(undefined);
 
   const router = useRouter();
+  const refetch = () => {
+    refetchChapters();
+  };
+
+  const showUpsertChapterModal = (chapter?: Chapter) => {
+    setChapterToEdit(chapter);
+    setModalOpen(true);
+  };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -82,107 +55,57 @@ export default function AdminHomePage() {
       </header>
       <div className="container mx-auto p-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Events</h2>
+          <h2 className="text-2xl font-bold">Chapters</h2>
           <div className="flex gap-x-2">
-            <Button onClick={() => router.push("/admin/chapters")}>
+            <Button onClick={() => router.push("/admin")}>
               <EyeIcon className="mr-2 h-4 w-4" />
-              View Chapters
+              View Events
             </Button>
-              <Button onClick={() => showUpsertEventModal()}>
+            <Button onClick={() => showUpsertChapterModal()}>
               <PlusIcon className="mr-2 h-4 w-4" />
-              Create Event
-            </Button>
+              Create Chapter
+          </Button>
           </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
             <>
-              <EventSkeleton />
-              <EventSkeleton />
-              <EventSkeleton />
+              <ChapterSkeleton />
+              <ChapterSkeleton />
+              <ChapterSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            chapters?.map((chapter) => (
               <Card
-                key={event.id}
+                key={chapter.id}
                 className={cn(
                   "cursor-pointer transition-all hover:shadow-md",
                   "border-border",
                   "active:scale-[0.99]",
                 )}
-                onClick={() => {
-                  router.push(`/admin/${event.id}`);
-                }}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-4">
-                    <Image
-                      src={
-                        (event.config as EventConfig | null)?.isPitchNight
-                          ? "/images/pitch.png"
-                          : "/images/logo.png"
-                      }
-                      alt={
-                        (event.config as EventConfig | null)?.isPitchNight
-                          ? "Pitch Night"
-                          : "Demo Night"
-                      }
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 rounded-lg object-contain"
-                    />
+                    <span className="text-xl">
+                      <Emoji>{chapter.emoji}</Emoji>
+                    </span>
+
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
                           <span className="line-clamp-1 text-xl">
-                            {event.name}
+                            {chapter.name}
                           </span>
-                          {event.id === currentEvent?.id && (
-                            <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
-                              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
-                              <span className="text-xs font-semibold text-green-600">
-                                LIVE
-                              </span>
-                            </div>
-                          )}
                         </CardTitle>
-                        <div className="mt-1 flex items-center gap-1 text-sm font-medium">
-                          <CalendarIcon className="h-4 w-4" />
-                          <span className="first-letter:capitalize">
-                            {getDaysAgo(event.date)}
-                          </span>
-                          <span className="text-muted-foreground">
-                            (
-                            {event.date.toLocaleDateString("en-US", {
-                              timeZone: "UTC",
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                            )
-                          </span>
-                        </div>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-sm">
                           <Presentation className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">
-                            {event._count.demos}
+                            {chapter._count.events}
                           </span>
                           <span className="text-muted-foreground">
-                            {event._count.demos === 1 ? "demo" : "demos"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {event._count.attendees}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {event._count.attendees === 1
-                              ? "attendee"
-                              : "attendees"}
+                            {chapter._count.events === 1 ? "event" : "events"}
                           </span>
                         </div>
                       </div>
@@ -193,7 +116,7 @@ export default function AdminHomePage() {
                       className="h-8 w-8 p-0"
                       onClick={(e) => {
                         e.stopPropagation();
-                        showUpsertEventModal(event);
+                        showUpsertChapterModal(chapter);
                       }}
                     >
                       <span className="sr-only">Edit</span>
@@ -218,8 +141,8 @@ export default function AdminHomePage() {
           )}
         </div>
       </div>
-      <UpsertEventModal
-        event={eventToEdit}
+      <UpsertChapterModal
+        chapter={chapterToEdit}
         onSubmit={() => refetch()}
         onDeleted={() => {
           setModalOpen(false);
@@ -232,7 +155,7 @@ export default function AdminHomePage() {
   );
 }
 
-function EventSkeleton() {
+function ChapterSkeleton() {
   return (
     <Card className="animate-pulse">
       <CardContent className="p-4">
