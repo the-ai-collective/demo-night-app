@@ -176,6 +176,7 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapter: true,
         chapterId: true,
         _count: {
           select: {

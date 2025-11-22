@@ -164,13 +164,9 @@ export function UpsertEventModal({
               className="rounded-md block w-full px-2 border-spacing-x-4 py-2.5 bg-neutral-secondary-medium border
               border-default-medium text-sm focus:ring-brand focus:border-brand placeholder:text-body"
               onChange={(event) => {
-                const targetChapter = event.target.value;
+                const targetChapter = event.target.value || null;
 
-                if (targetChapter) {
-                  setValue("chapterId", targetChapter);
-                } else {
-                  setValue("chapterId", null);
-                }
+                setValue("chapterId", targetChapter);
               }}
               defaultValue={event?.chapterId ?? "None"}
             >
