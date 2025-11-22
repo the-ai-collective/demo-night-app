@@ -45,6 +45,11 @@ export default function EventDisplay({ events }: EventDisplayProps) {
         <div className="mt-8 flex w-full max-w-2xl flex-col items-center">
           <h1 className="flex items-center gap-2 text-center font-kallisto text-4xl font-extrabold text-black">
             {selectedEvent.name}
+            {selectedEvent.chapter && (
+              <span className="text-2xl">
+                {selectedEvent.chapter.emoji} {selectedEvent.chapter.name}
+              </span>
+            )}
           </h1>
           <p className="mt-1 text-lg font-bold text-gray-500">
             {new Date(selectedEvent.date).toLocaleDateString(undefined, {

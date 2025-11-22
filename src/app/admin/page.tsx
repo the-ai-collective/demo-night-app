@@ -3,6 +3,7 @@
 import { type Event } from "@prisma/client";
 import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,6 +16,13 @@ import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -38,8 +46,12 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
+  const { data: chapters } = api.chapter.all.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    null,
+  );
 
   const refetch = () => {
     refetchCurrentEvent();
@@ -52,6 +64,10 @@ export default function AdminHomePage() {
   };
 
   const router = useRouter();
+
+  const filteredEvents = selectedChapterId
+    ? events?.filter((event) => event.chapter?.id === selectedChapterId)
+    : events;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -72,10 +88,38 @@ export default function AdminHomePage() {
       <div className="container mx-auto p-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/admin/chapters">Manage Chapters</Link>
+            </Button>
+            <Button onClick={() => showUpsertEventModal()}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </div>
+        </div>
+        <div className="mb-4 flex items-center gap-4">
+          <label className="flex items-center gap-2">
+            <span className="text-sm font-medium">Filter by Chapter:</span>
+            <Select
+              value={selectedChapterId ?? "all"}
+              onValueChange={(value) =>
+                setSelectedChapterId(value === "all" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="All Chapters" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Chapters</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -84,8 +128,8 @@ export default function AdminHomePage() {
               <EventSkeleton />
               <EventSkeleton />
             </>
-          ) : (
-            events?.map((event) => (
+          ) : filteredEvents && filteredEvents.length > 0 ? (
+            filteredEvents.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -120,6 +164,12 @@ export default function AdminHomePage() {
                           <span className="line-clamp-1 text-xl">
                             {event.name}
                           </span>
+                          {event.chapter && (
+                            <span className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+                              <span>{event.chapter.emoji}</span>
+                              <span>{event.chapter.name}</span>
+                            </span>
+                          )}
                           {event.id === currentEvent?.id && (
                             <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
                               <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
@@ -198,6 +248,16 @@ export default function AdminHomePage() {
                 </CardContent>
               </Card>
             ))
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  {selectedChapterId
+                    ? "No events found for the selected chapter."
+                    : "No events yet. Create your first event to get started!"}
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
