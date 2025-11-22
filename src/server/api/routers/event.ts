@@ -195,6 +195,7 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapter: true,
         },
       });
     }),

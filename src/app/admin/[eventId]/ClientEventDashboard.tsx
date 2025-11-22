@@ -32,6 +32,7 @@ export function ClientEventDashboard({
     initialEvent,
     initialCurrentEvent,
   });
+
   const [config, setConfig] = useState<EventConfig>(
     eventConfigSchema.parse(event?.config),
   );

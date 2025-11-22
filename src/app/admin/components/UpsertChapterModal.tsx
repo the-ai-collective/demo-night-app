@@ -37,7 +37,6 @@ export function UpsertChapterModal({
   onOpenChange: (open: boolean) => void;
 }) {
   const [displayEmoji, setDisplayEmoji] = useState(chapter?.emoji ?? "1f680"); // Rocket emoji as default
-  console.log(displayEmoji);
 
   const upsertMutation = api.chapter.upsert.useMutation();
 
