@@ -75,6 +75,9 @@ model Event {
   feedback      Feedback[]
   votes         Vote[]
   eventFeedback EventFeedback[]
+
+  chapterId String?
+  chapter   Chapter? @relation("ChapterEvents", fields: [chapterId], references: [id], onDelete: SetNull)
 }
 
 enum SubmissionStatus {
@@ -218,4 +221,13 @@ model EventFeedback {
   updatedAt DateTime @updatedAt
 
   @@unique([eventId, attendeeId])
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  emoji     String
+  events    Event[]  @relation("ChapterEvents")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
