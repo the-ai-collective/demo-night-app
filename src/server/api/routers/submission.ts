@@ -6,6 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { sendEmail } from "~/lib/email";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -35,6 +36,19 @@ export const submissionRouter = createTRPCRouter({
         const result = await db.submission.create({
           data: input,
         });
+
+        const emailSendResult = await sendEmail({
+          to: input.email,
+          template: "demo-submission-received",
+        }, {
+          personName: input.pocName,
+          startupName: input.name,
+        });
+
+        if (emailSendResult.error) {
+          console.log(`Failed to send submission confirmation email to ${input.email} | ${emailSendResult.error}`)
+        }
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,6 +99,7 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
+
       return db.submission.update({
         where: { id },
         data,
@@ -130,9 +145,29 @@ export const submissionRouter = createTRPCRouter({
       const event = await db.event.findUnique({
         where: { id: input.eventId },
       });
+
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
+
+      if (input.status === "CONFIRMED" || input.status === "REJECTED") {
+        const submission = await db.submission.findUnique({
+          where: { id: input.id }
+        });
+        
+        const emailSendResult = await sendEmail({
+          to: submission!.email,
+          template: input.status === "CONFIRMED" ? "demo-submission-accepted" : "demo-submission-rejected",
+        }, {
+          personName: submission!.pocName,
+          startupName: submission!.name!,
+        });
+
+        if (emailSendResult.error) {
+          console.log(`Failed to send submission confirmation / rejection email to ${submission!.email} | ${emailSendResult.error}`)
+        }
+      }
+
       return db.submission.update({
         where: { id: input.id },
         data: {

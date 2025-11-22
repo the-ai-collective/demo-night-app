@@ -29,6 +29,7 @@ export const SubmissionReceivedTemplate = ({ personName, startupName }: {
 
   const headerTitleStyle: React.CSSProperties = {
     textAlign: "center",
+
     fontSize: "24px",
     fontWeight: "600",
     color: "#2a2925",
@@ -54,21 +55,6 @@ export const SubmissionReceivedTemplate = ({ personName, startupName }: {
     lineHeight: "1.6",
     margin: "0 0 20px 0",
   }
-
-  const buttonStyle: React.CSSProperties = {
-    display: "inline-block",
-    backgroundColor: "#f97316",
-    color: "white",
-    padding: "12px 28px",
-    borderRadius: "24px",
-    textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: "600",
-    border: "none",
-    cursor: "pointer",
-    transition: "background-color 0.2s",
-  }
-
   const dividerStyle: React.CSSProperties = {
     height: "1px",
     backgroundColor: "#e5e0da",
