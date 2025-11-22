@@ -12,6 +12,18 @@ async function main() {
     },
   });
 
+  // Seed chapters
+  await prisma.chapter.upsert({
+    where: { id: "sf" },
+    update: {},
+    create: { id: "sf", name: "San Francisco", emoji: "🚀" },
+  });
+  await prisma.chapter.upsert({
+    where: { id: "nyc" },
+    update: {},
+    create: { id: "nyc", name: "New York", emoji: "🗽" },
+  });
+
   const demosInfo = [
     {
       name: "Cofactory",
@@ -203,6 +215,7 @@ async function main() {
       name: "SF Demo Night 🚀",
       date: new Date(Date.now() + 14 * 86_400_000).toISOString(),
       url: "https://lu.ma/demo-night",
+      chapter: { connect: { id: 'sf' } },
       submissions: { create: submissions },
       demos: { create: demos },
       awards: { create: awards },

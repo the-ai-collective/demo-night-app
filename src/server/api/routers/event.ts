@@ -28,6 +28,7 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapterId?: string | null;
 };
 
 export type PublicDemo = Omit<
@@ -97,25 +98,30 @@ export const eventRouter = createTRPCRouter({
   upsert: protectedProcedure
     .input(
       z.object({
-        originalId: z.string().optional(),
-        id: z.string().optional(),
-        name: z.string().optional(),
-        date: z.date().optional(),
-        url: z.string().url().optional(),
-        config: eventConfigSchema.optional(),
-      }),
+          originalId: z.string().optional(),
+          id: z.string().optional(),
+          name: z.string().optional(),
+          date: z.date().optional(),
+          url: z.string().url().optional(),
+          config: eventConfigSchema.optional(),
+          chapterId: z.string().nullable().optional(),
+        }),
     )
     .mutation(async ({ input }) => {
-      const data = {
+      const data: any = {
         id: input.id,
         name: input.name,
         date: input.date,
         url: input.url,
         config: input.config,
       };
+      if (Object.prototype.hasOwnProperty.call(input, "chapterId")) {
+        // include chapterId on update/create if provided (null allowed to disassociate)
+        data.chapterId = input.chapterId;
+      }
 
       try {
-        if (input.originalId) {
+            if (input.originalId) {
           return db.event
             .update({
               where: { id: input.originalId },
@@ -146,6 +152,7 @@ export const eventRouter = createTRPCRouter({
             date: data.date!,
             url: data.url!,
             config: eventConfig,
+            chapterId: data.chapterId,
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -155,23 +162,18 @@ export const eventRouter = createTRPCRouter({
           },
         });
         return result;
-      } catch (error: any) {
-        if (error.code === "P2002") {
+      } catch (error: unknown) {
+        if (error && typeof error === "object" && (error as any).code === "P2002") {
           throw new Error("An event with this ID already exists");
         }
-        throw error;
+        if (error instanceof Error) throw error;
+        throw new Error("Unknown error when upserting event");
       }
     }),
   allAdmin: protectedProcedure.query(() => {
     return db.event.findMany({
       orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        url: true,
-        config: true,
-        secret: true,
+      include: {
         _count: {
           select: {
             demos: true,
@@ -505,6 +507,7 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapterId: true,
   demos: {
     orderBy: { index: "asc" },
     select: {

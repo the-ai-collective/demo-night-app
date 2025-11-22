@@ -8,6 +8,7 @@ import { eventFeedbackRouter } from "./routers/eventFeedback";
 import { feedbackRouter } from "./routers/feedback";
 import { submissionRouter } from "./routers/submission";
 import { voteRouter } from "./routers/vote";
+import { chapterRouter } from "./routers/chapter";
 
 /**
  * This is the primary router for your server.
@@ -23,6 +24,7 @@ export const appRouter = createTRPCRouter({
   feedback: feedbackRouter,
   vote: voteRouter,
   eventFeedback: eventFeedbackRouter,
+  chapter: chapterRouter,
 });
 
 // export type definition of API

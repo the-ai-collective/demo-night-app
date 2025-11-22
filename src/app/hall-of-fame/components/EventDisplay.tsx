@@ -6,6 +6,8 @@ import { useState } from "react";
 
 import { eventConfigSchema } from "~/lib/types/eventConfig";
 import type { CompleteEvent } from "~/server/api/routers/event";
+import { api } from "~/trpc/react";
+import type { Chapter } from "~/lib/types/chapter";
 
 import AwardWinnerItem from "./AwardWinnerItem";
 import EventSelector from "./EventSelector";
@@ -17,6 +19,9 @@ interface EventDisplayProps {
 export default function EventDisplay({ events }: EventDisplayProps) {
   const [selectedEvent, setSelectedEvent] = useState(events[0]!);
   const [showSelector, setShowSelector] = useState(false);
+    const { data: chapters } = api.chapter.all.useQuery();
+    const chaptersTyped = chapters as Chapter[] | undefined;
+  
   const config = eventConfigSchema.parse(selectedEvent.config);
 
   return (
@@ -44,6 +49,7 @@ export default function EventDisplay({ events }: EventDisplayProps) {
         />
         <div className="mt-8 flex w-full max-w-2xl flex-col items-center">
           <h1 className="flex items-center gap-2 text-center font-kallisto text-4xl font-extrabold text-black">
+              {selectedEvent.chapterId && chaptersTyped?.find((c) => c.id === selectedEvent.chapterId)?.emoji ? `${chaptersTyped?.find((c) => c.id === selectedEvent.chapterId)?.emoji} ` : ""}
             {selectedEvent.name}
           </h1>
           <p className="mt-1 text-lg font-bold text-gray-500">

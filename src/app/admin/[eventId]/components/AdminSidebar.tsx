@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { EventPhase } from "~/lib/types/currentEvent";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { api } from "~/trpc/react";
+import type { Chapter } from "~/lib/types/chapter";
 import { getBrandingClient } from "~/lib/branding";
 
 import { Button } from "~/components/ui/button";
@@ -78,6 +79,8 @@ export function AdminSidebar({
   const branding = getBrandingClient(config?.isPitchNight);
   const router = useRouter();
   const { data: events } = api.event.allAdmin.useQuery();
+  const { data: chapters } = api.chapter.all.useQuery();
+  const chaptersTyped = chapters as Chapter[] | undefined;
   const { data: currentEvent, refetch: refetchEvent } =
     api.event.getCurrent.useQuery();
   const currentPhase =
@@ -106,7 +109,8 @@ export function AdminSidebar({
                     />
                     <div className="flex flex-col items-start">
                       <div className="flex items-center">
-                        <div className="line-clamp-1 text-base font-bold leading-6">
+                          <div className="line-clamp-1 text-base font-bold leading-6">
+                          {event.chapterId && chaptersTyped?.find((c) => c.id === event.chapterId)?.emoji ? `${chaptersTyped.find((c) => c.id === event.chapterId)?.emoji} ` : ""}
                           {event.name}
                         </div>
                       </div>
