@@ -59,14 +59,26 @@ model VerificationToken {
 
 // ############# Business logic #############
 
+model Chapter {
+  id    String @id @default(cuid())
+  name  String
+  emoji String
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Event {
   id String @id @default(cuid())
 
-  name   String
-  date   DateTime
-  url    String
-  config Json     @default("{}")
-  secret String   @default(cuid())
+  name     String
+  date     DateTime
+  url      String
+  config   Json      @default("{}")
+  secret   String    @default(cuid())
+  chapters Chapter[]
 
   submissions   Submission[]
   demos         Demo[]

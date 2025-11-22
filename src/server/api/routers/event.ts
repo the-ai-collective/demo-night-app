@@ -28,6 +28,7 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapters: { id: string; name: string; emoji: string }[];
 };
 
 export type PublicDemo = Omit<
@@ -103,23 +104,32 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterIds: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ input }) => {
-      const data = {
-        id: input.id,
-        name: input.name,
-        date: input.date,
-        url: input.url,
-        config: input.config,
-      };
-
       try {
         if (input.originalId) {
+          // Update existing event
+          const updateData: Prisma.EventUpdateInput = {
+            id: input.id,
+            name: input.name,
+            date: input.date,
+            url: input.url,
+            config: input.config,
+          };
+
+          // Handle chapter connections if provided
+          if (input.chapterIds !== undefined) {
+            updateData.chapters = {
+              set: input.chapterIds.map((id) => ({ id })),
+            };
+          }
+
           return db.event
             .update({
               where: { id: input.originalId },
-              data,
+              data: updateData,
             })
             .then(async (res: Event) => {
               const currentEvent = await kv.getCurrentEvent();
@@ -133,7 +143,9 @@ export const eventRouter = createTRPCRouter({
               return res;
             });
         }
-        const eventConfig = data.config ?? DEFAULT_EVENT_CONFIG;
+
+        // Create new event
+        const eventConfig = input.config ?? DEFAULT_EVENT_CONFIG;
         const isPitchNight = eventConfig.isPitchNight ?? false;
         const awardsToCreate = isPitchNight
           ? PITCH_NIGHT_AWARDS
@@ -141,11 +153,14 @@ export const eventRouter = createTRPCRouter({
 
         const result = await db.event.create({
           data: {
-            id: data.id!,
-            name: data.name!,
-            date: data.date!,
-            url: data.url!,
+            id: input.id!,
+            name: input.name!,
+            date: input.date!,
+            url: input.url!,
             config: eventConfig,
+            chapters: input.chapterIds?.length
+              ? { connect: input.chapterIds.map((id) => ({ id })) }
+              : undefined,
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -172,6 +187,13 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapters: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+          },
+        },
         _count: {
           select: {
             demos: true,
@@ -191,6 +213,7 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapters: true,
         },
       });
     }),
@@ -505,6 +528,13 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapters: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
   demos: {
     orderBy: { index: "asc" },
     select: {
@@ -518,4 +548,5 @@ const completeEventSelect: Prisma.EventSelect = {
     },
   },
   awards: { orderBy: { index: "asc" } },
+  eventFeedback: true,
 };
