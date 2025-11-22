@@ -54,11 +54,14 @@ export const chapterRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Normalize slug to lowercase to prevent case-sensitive collisions
+      const normalizedSlug = input.data.slug.toLowerCase();
+      
       // Check if slug already exists (for other chapters)
       if (input.id) {
         const existingSlug = await ctx.db.chapter.findFirst({
           where: {
-            slug: input.data.slug,
+            slug: normalizedSlug,
             NOT: { id: input.id },
           },
         });
@@ -71,7 +74,7 @@ export const chapterRouter = createTRPCRouter({
         }
       } else {
         const existingSlug = await ctx.db.chapter.findUnique({
-          where: { slug: input.data.slug },
+          where: { slug: normalizedSlug },
         });
 
         if (existingSlug) {
@@ -85,12 +88,18 @@ export const chapterRouter = createTRPCRouter({
       if (input.id) {
         return await ctx.db.chapter.update({
           where: { id: input.id },
-          data: input.data,
+          data: {
+            ...input.data,
+            slug: normalizedSlug,
+          },
         });
       }
 
       return await ctx.db.chapter.create({
-        data: input.data,
+        data: {
+          ...input.data,
+          slug: normalizedSlug,
+        },
       });
     }),
 
