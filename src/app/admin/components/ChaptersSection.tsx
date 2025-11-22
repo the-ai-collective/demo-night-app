@@ -1,11 +1,10 @@
 "use client";
 
 import { type Chapter } from "@prisma/client";
-import { MapPin, PlusIcon, Trash2 } from "lucide-react";
+import { MapPin, MoreHorizontal, Pencil, PlusIcon, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 import {
@@ -19,7 +18,14 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Input } from "~/components/ui/input";
 
 import ChapterSheet from "./ChapterSheet";
 
@@ -37,9 +43,9 @@ export default function ChaptersSection({ onChapterClick, activeChapterId }: Cha
   const [sheetOpen, setSheetOpen] = useState(false);
   const [chapterToEdit, setChapterToEdit] = useState<ChapterWithCount | undefined>();
   const [chapterToDelete, setChapterToDelete] = useState<ChapterWithCount | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleEdit = (chapter: ChapterWithCount, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleEdit = (chapter: ChapterWithCount) => {
     setChapterToEdit(chapter);
     setSheetOpen(true);
   };
@@ -61,90 +67,106 @@ export default function ChaptersSection({ onChapterClick, activeChapterId }: Cha
     setChapterToDelete(undefined);
   };
 
-  const handleCardClick = (chapterId: string) => {
-    if (onChapterClick) {
-      // Toggle: if clicking the active one, reset to "all"
-      onChapterClick(activeChapterId === chapterId ? "all" : chapterId);
-    }
-  };
+  const activeChapter = chapters?.find((c) => c.id === activeChapterId);
+
+  const filteredChapters = chapters?.filter((chapter) =>
+    chapter.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="mb-6">
-      <div className="mb-3 flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-muted-foreground" />
-        <h2 className="text-lg font-semibold">Chapters</h2>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {chapters?.length ?? 0}
-        </span>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        {chapters?.map((chapter) => (
-          <Card
-            key={chapter.id}
-            className={cn(
-              "cursor-pointer transition-all hover:shadow-md active:scale-[0.98]",
-              activeChapterId === chapter.id && "ring-2 ring-primary ring-offset-2",
+    <div className="flex items-center gap-2">
+      <MapPin className="h-4 w-4 text-muted-foreground" />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="min-w-[280px] justify-between">
+            {activeChapter ? (
+              <span className="flex items-center gap-2">
+                <span>{activeChapter.emoji}</span>
+                <span>{activeChapter.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  ({activeChapter._count.events} events)
+                </span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">All Chapters</span>
             )}
-            onClick={() => handleCardClick(chapter.id)}
-          >
-            <CardContent className="flex items-center gap-3 p-4">
-              <span className="text-3xl">{chapter.emoji}</span>
-              <div className="flex flex-col">
-                <div className="font-semibold">{chapter.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {chapter._count.events}{" "}
-                  {chapter._count.events === 1 ? "event" : "events"}
-                </div>
-              </div>
-              <div className="ml-2 flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={(e) => handleEdit(chapter, e)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
-                  >
-                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                    <path d="m15 5 4 4" />
-                  </svg>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setChapterToDelete(chapter);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        <Card
-          className="cursor-pointer border-dashed transition-all hover:border-primary hover:shadow-md active:scale-[0.98]"
-          onClick={handleCreate}
-        >
-          <CardContent className="flex items-center gap-2 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-              <PlusIcon className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[320px]">
+          {/* Search Input */}
+          <div className="p-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search chapters..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 text-sm"
+              />
             </div>
-            <span className="font-medium text-muted-foreground">Add Chapter</span>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => onChapterClick?.("all")}
+            className="font-medium"
+          >
+            All Chapters
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <div className="max-h-[300px] overflow-y-auto">
+            {filteredChapters?.length === 0 ? (
+              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                No chapters found
+              </div>
+            ) : (
+              filteredChapters?.map((chapter) => (
+                <div key={chapter.id} className="flex items-center">
+                  <DropdownMenuItem
+                    onClick={() => onChapterClick?.(chapter.id)}
+                    className="flex-1"
+                  >
+                    <span className="mr-2 text-lg">{chapter.emoji}</span>
+                    <span className="flex-1 font-medium">{chapter.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {chapter._count.events} events
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleEdit(chapter)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setChapterToDelete(chapter)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ))
+            )}
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleCreate}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Add Chapter
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <ChapterSheet
         chapter={chapterToEdit}

@@ -2,6 +2,7 @@
 
 import { type AdminEvent } from "../contexts/DashboardContext";
 import {
+  BarChart3Icon,
   CalendarIcon,
   ChevronDown,
   ChevronsUpDown,
@@ -60,6 +61,7 @@ export enum AdminTab {
   AwardsAndVoting = "awards-and-voting",
   Attendees = "attendees",
   EventFeedback = "event-feedback",
+  Analytics = "analytics",
 }
 
 interface AdminSidebarProps {
@@ -361,6 +363,19 @@ export function AdminSidebar({
                 <SidebarMenuBadge>
                   {event.eventFeedback.length}
                 </SidebarMenuBadge>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setSelectedTab(AdminTab.Analytics)}
+                  className={
+                    selectedTab === AdminTab.Analytics ? "bg-accent" : ""
+                  }
+                >
+                  <div className="flex items-center gap-2">
+                    <BarChart3Icon className="h-4 w-4" />
+                    <span>Analytics</span>
+                  </div>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

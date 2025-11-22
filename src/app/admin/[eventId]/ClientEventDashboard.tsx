@@ -9,6 +9,7 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { eventConfigSchema } from "~/lib/types/eventConfig";
 
 import { AdminSidebar, AdminTab } from "./components/AdminSidebar";
+import AnalyticsTab from "./components/Analytics/AnalyticsTab";
 import AttendeesTab from "./components/Attendees/AttendeesTab";
 import { AwardsTab } from "./components/Awards/AwardsTab";
 import { ConfigurationTab } from "./components/Configuration/ConfigurationTab";
@@ -69,6 +70,8 @@ export function ClientEventDashboard({
         return <AttendeesTab />;
       case AdminTab.EventFeedback:
         return <EventFeedbackTab />;
+      case AdminTab.Analytics:
+        return <AnalyticsTab />;
     }
   }
 

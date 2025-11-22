@@ -135,6 +135,9 @@ model Demo {
   url         String?
   votable     Boolean @default(true)
 
+  // Post-event digest tracking
+  digestSentAt DateTime?
+
   feedback Feedback[]
   votes    Vote[]
   awards   Award[]
