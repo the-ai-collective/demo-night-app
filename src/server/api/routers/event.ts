@@ -153,6 +153,7 @@ export const eventRouter = createTRPCRouter({
             date: data.date!,
             url: data.url!,
             config: eventConfig,
+            chapterId: data.chapterId,
             demos: {
               create: DEFAULT_DEMOS,
             },

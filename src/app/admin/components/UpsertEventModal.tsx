@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { type RouterOutputs } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -33,6 +34,9 @@ const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
 };
 
+type AdminEventListItem = RouterOutputs["event"]["allAdmin"][number];
+type EventInput = Event | AdminEventListItem;
+
 export function UpsertEventModal({
   event,
   onSubmit,
@@ -40,7 +44,7 @@ export function UpsertEventModal({
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventInput;
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -51,8 +55,19 @@ export function UpsertEventModal({
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
   const [useTestData, setUseTestData] = useState(false);
+  // Extract chapterId from either event.chapterId (Prisma Event) or event.chapter?.id (allAdmin result)
+  const getChapterId = (evt?: EventInput): string | null => {
+    if (!evt) return null;
+    if ("chapterId" in evt && evt.chapterId !== undefined) {
+      return evt.chapterId;
+    }
+    if ("chapter" in evt && evt.chapter) {
+      return evt.chapter.id;
+    }
+    return null;
+  };
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
-    event?.chapterId ?? null,
+    getChapterId(event),
   );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();

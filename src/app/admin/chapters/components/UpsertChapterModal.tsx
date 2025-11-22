@@ -202,7 +202,7 @@ function DeleteChapterDialog({
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
           <p className="w-[300px] text-wrap text-center">
-            Are you sure you want to delete <strong>"{chapter.name}"</strong>?
+            Are you sure you want to delete <strong>&ldquo;{chapter.name}&rdquo;</strong>?
             Events assigned to this chapter will have their chapter removed.
           </p>
           <div className="flex gap-2">

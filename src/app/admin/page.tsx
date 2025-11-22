@@ -1,6 +1,5 @@
 "use client";
 
-import { type Event } from "@prisma/client";
 import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +10,7 @@ import { getBrandingClient } from "~/lib/branding";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { type RouterOutputs } from "~/trpc/react";
 
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
@@ -48,7 +48,10 @@ export default function AdminHomePage() {
   } = api.event.allAdmin.useQuery();
   const { data: chapters } = api.chapter.all.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  type AdminEventListItem = RouterOutputs["event"]["allAdmin"][number];
+  const [eventToEdit, setEventToEdit] = useState<
+    AdminEventListItem | undefined
+  >(undefined);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
     null,
   );
@@ -58,7 +61,7 @@ export default function AdminHomePage() {
     refetchEvents();
   };
 
-  const showUpsertEventModal = (event?: Event) => {
+  const showUpsertEventModal = (event?: AdminEventListItem) => {
     setEventToEdit(event);
     setModalOpen(true);
   };

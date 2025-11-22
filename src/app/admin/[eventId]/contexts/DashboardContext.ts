@@ -1,7 +1,6 @@
 import {
   type Attendee,
   type Award,
-  type Chapter,
   type Demo,
   type Event,
   type EventFeedback,
