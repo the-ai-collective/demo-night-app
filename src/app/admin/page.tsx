@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, Filter, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, Filter, Mail, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,6 +16,7 @@ import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -56,6 +57,8 @@ export default function AdminHomePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<EventWithChapters | undefined>(undefined);
   const [chapterFilter, setChapterFilter] = useState<string>("all");
+  const [testEmail, setTestEmail] = useState("");
+  const sendTestEmail = api.submission.sendTestEmail.useMutation();
 
   const refetch = () => {
     refetchCurrentEvent();
@@ -94,6 +97,49 @@ export default function AdminHomePage() {
       </header>
       <div className="container mx-auto p-8">
         <ChaptersSection onChapterClick={setChapterFilter} activeChapterId={chapterFilter} />
+
+        {/* Test Email Section */}
+        <Card className="mb-6 border-dashed border-orange-300 bg-orange-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <Mail className="h-5 w-5 text-orange-600" />
+              <span className="font-medium text-orange-800">Test Email</span>
+              <Input
+                type="email"
+                placeholder="Enter email address"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+                className="max-w-xs"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (testEmail) {
+                    sendTestEmail.mutate(
+                      { email: testEmail },
+                      {
+                        onSuccess: (data) => {
+                          if (data.success) {
+                            alert("Test email sent successfully!");
+                          } else {
+                            alert("Failed to send email: " + JSON.stringify(data.error));
+                          }
+                        },
+                        onError: (error) => {
+                          alert("Error: " + error.message);
+                        },
+                      }
+                    );
+                  }
+                }}
+                disabled={!testEmail || sendTestEmail.isPending}
+              >
+                {sendTestEmail.isPending ? "Sending..." : "Send Test Email"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-bold">Events</h2>
