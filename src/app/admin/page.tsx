@@ -1,13 +1,7 @@
 "use client";
 
-import { type Event } from "@prisma/client";
-import {
-  CalendarIcon,
-  EyeIcon,
-  PlusIcon,
-  Presentation,
-  Users,
-} from "lucide-react";
+import { type Chapter, type Event } from "@prisma/client";
+import { CalendarIcon, EyeIcon, ListFilterIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,9 +16,14 @@ import { api } from "~/trpc/react";
 
 
 import { UpsertEventModal } from "./components/UpsertEventModal";
+import Emoji from "~/components/Emoji";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+
+
+
+import { FilterModal } from "~/app/admin/components/FilterModal";
 
 
 function getDaysAgo(date: Date): string {
@@ -42,6 +41,10 @@ function getDaysAgo(date: Date): string {
 
 export default function AdminHomePage() {
   const branding = getBrandingClient();
+
+  const [showingFilters, setShowingFilters] = useState(false);
+  const [filter, setFilter] = useState<string | null>(null);
+
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
 
@@ -52,7 +55,9 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
-  const [modalOpen, setModalOpen] = useState(false);
+  const [upsertModalOpen, setUpsertModalOpen] = useState(false);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
 
   const refetch = () => {
@@ -62,7 +67,7 @@ export default function AdminHomePage() {
 
   const showUpsertEventModal = (event?: Event) => {
     setEventToEdit(event);
-    setModalOpen(true);
+    setUpsertModalOpen(true);
   };
 
   const router = useRouter();
@@ -85,7 +90,14 @@ export default function AdminHomePage() {
       </header>
       <div className="container mx-auto p-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Events</h2>
+          <div className="flex ml-2">
+            <h2 className="text-2xl font-bold">Events</h2>
+            <div className="flex ml-2 rounded-xl">
+              <Button className="bg-inherit text-black" onClick={() => setFilterModalOpen(true)}>
+                <ListFilterIcon />
+              </Button>
+            </div>
+          </div>
           <div className="flex gap-x-2">
             <Button onClick={() => router.push("/admin/chapters")}>
               <EyeIcon className="mr-2 h-4 w-4" />
@@ -105,7 +117,9 @@ export default function AdminHomePage() {
               <EventSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            events?.filter((event) =>
+              filter === null || event.chapterId === filter
+            ).map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -149,6 +163,14 @@ export default function AdminHomePage() {
                             </div>
                           )}
                         </CardTitle>
+
+                        { event.chapter && (
+                          <div className="mt-1 flex items-center gap-1 text-sm font-medium">
+                            <Emoji>{event.chapter.emoji}</Emoji>
+                            <span className="mr-1">{event.chapter.name}</span>
+                          </div>
+                        )}
+
                         <div className="mt-1 flex items-center gap-1 text-sm font-medium">
                           <CalendarIcon className="h-4 w-4" />
                           <span className="first-letter:capitalize">
@@ -221,16 +243,25 @@ export default function AdminHomePage() {
           )}
         </div>
       </div>
+
       <UpsertEventModal
         event={eventToEdit}
         chapters={chapters ?? []}
         onSubmit={() => refetch()}
         onDeleted={() => {
-          setModalOpen(false);
+          setUpsertModalOpen(false);
           refetch();
         }}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
+        open={upsertModalOpen}
+        onOpenChange={setUpsertModalOpen}
+      />
+
+      <FilterModal
+        currentValue={filter}
+        chapters={chapters ?? []}
+        onUpdate={setFilter}
+        open={filterModalOpen}
+        onOpenChange={setFilterModalOpen}
       />
     </main>
   );
