@@ -20,7 +20,10 @@
       "Bash(mkdir:*)",
       "Bash(cp:*)",
       "Bash(git stash:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nConvert admin/[eventId] to client component and add error boundaries\n\n- Convert admin/[eventId]/page.tsx to client component to avoid SSR auth issues\n- Add admin/error.tsx for admin-specific error handling\n- Add global-error.tsx for root-level errors\n- Add error logging for debugging production issues\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": []
   },
