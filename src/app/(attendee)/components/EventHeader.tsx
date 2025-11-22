@@ -1,7 +1,7 @@
 import { useWorkspaceContext } from "../contexts/WorkspaceContext";
 
 import { getBrandingClient } from "~/lib/branding";
-import { EventPhase, allPhases, displayName } from "~/lib/types/currentEvent";
+import { EventPhase, allPhases } from "~/lib/types/currentEvent";
 
 import Logos from "~/components/Logos";
 
@@ -21,7 +21,7 @@ export default function EventHeader() {
           <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
             {currentEvent?.name ?? ""}
           </h1>
-          <div className="flex w-[72px] shrink-0 items-center justify-end">
+          <div className="flex shrink-0 items-center justify-end gap-1">
             <div className="flex aspect-square w-9 items-center justify-center">
               {currentEvent?.phase !== EventPhase.Pre && (
                 <UpdateAttendeeButton
@@ -40,6 +40,22 @@ export default function EventHeader() {
 function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
   const { currentEvent } = useWorkspaceContext();
   const { isPitchNight } = getBrandingClient(currentEvent?.isPitchNight);
+
+  const getPhaseLabel = (phase: EventPhase): string => {
+    switch (phase) {
+      case EventPhase.Pre:
+        return "Pre";
+      case EventPhase.Demos:
+        return isPitchNight ? "Pitches" : "Demos";
+      case EventPhase.Voting:
+        return isPitchNight ? "Investing" : "Voting";
+      case EventPhase.Results:
+        return "Results";
+      case EventPhase.Recap:
+        return "Recap";
+    }
+  };
+
   return (
     <div className="flex w-full flex-row items-center justify-between gap-1 px-4 pt-1">
       {allPhases.map((phase) => (
@@ -53,7 +69,7 @@ function PhasePills({ currentPhase }: { currentPhase: EventPhase }) {
               : "bg-black/5 text-gray-500"
           }`}
         >
-          <p>{displayName(phase, isPitchNight)}</p>
+          <p>{getPhaseLabel(phase)}</p>
         </div>
       ))}
     </div>
