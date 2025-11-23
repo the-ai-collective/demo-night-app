@@ -1,13 +1,13 @@
+import { createTRPCRouter } from "~/server/api/trpc";
 import { eventRouter } from "~/server/api/routers/event";
-import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
-
-import { attendeeRouter } from "./routers/attendee";
-import { awardRouter } from "./routers/award";
-import { demoRouter } from "./routers/demo";
-import { eventFeedbackRouter } from "./routers/eventFeedback";
-import { feedbackRouter } from "./routers/feedback";
-import { submissionRouter } from "./routers/submission";
-import { voteRouter } from "./routers/vote";
+import { demoRouter } from "~/server/api/routers/demo";
+import { submissionRouter } from "~/server/api/routers/submission";
+import { attendeeRouter } from "~/server/api/routers/attendee";
+import { feedbackRouter } from "~/server/api/routers/feedback";
+import { voteRouter } from "~/server/api/routers/vote";
+import { awardRouter } from "~/server/api/routers/award";
+import { eventFeedbackRouter } from "~/server/api/routers/eventFeedback";
+import { chapterRouter } from "~/server/api/routers/chapter";
 
 /**
  * This is the primary router for your server.
@@ -16,23 +16,18 @@ import { voteRouter } from "./routers/vote";
  */
 export const appRouter = createTRPCRouter({
   event: eventRouter,
-  submission: submissionRouter,
   demo: demoRouter,
+  submission: submissionRouter,
   attendee: attendeeRouter,
-  award: awardRouter,
   feedback: feedbackRouter,
   vote: voteRouter,
+  award: awardRouter,
   eventFeedback: eventFeedbackRouter,
+  chapter: chapterRouter,
 });
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
 
-/**
- * Create a server-side caller for the tRPC API.
- * @example
- * const trpc = createCaller(createContext);
- * const res = await trpc.post.all();
- *       ^? Post[]
- */
-export const createCaller = createCallerFactory(appRouter);
+// export caller for server-side calls
+export const createCaller = appRouter.createCaller;

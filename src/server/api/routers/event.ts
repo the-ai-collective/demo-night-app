@@ -103,6 +103,7 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterId: z.string().cuid().optional().nullable(), // ADD THIS LINE
       }),
     )
     .mutation(async ({ input }) => {
@@ -112,6 +113,7 @@ export const eventRouter = createTRPCRouter({
         date: input.date,
         url: input.url,
         config: input.config,
+        chapterId: input.chapterId, // ADD THIS LINE
       };
 
       try {
@@ -120,8 +122,9 @@ export const eventRouter = createTRPCRouter({
             .update({
               where: { id: input.originalId },
               data,
+              include: { chapter: true }, // ADD THIS LINE
             })
-            .then(async (res: Event) => {
+            .then(async (res: Event & { chapter: any }) => {
               const currentEvent = await kv.getCurrentEvent();
               if (currentEvent?.id === input.originalId) {
                 kv.updateCurrentEvent({
@@ -146,6 +149,7 @@ export const eventRouter = createTRPCRouter({
             date: data.date!,
             url: data.url!,
             config: eventConfig,
+            chapterId: data.chapterId, // ADD THIS LINE
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -153,6 +157,7 @@ export const eventRouter = createTRPCRouter({
               create: awardsToCreate,
             },
           },
+          include: { chapter: true }, // ADD THIS LINE
         });
         return result;
       } catch (error: any) {
@@ -172,6 +177,8 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapterId: true,
+        chapter: true,
         _count: {
           select: {
             demos: true,
@@ -187,6 +194,7 @@ export const eventRouter = createTRPCRouter({
       return db.event.findUnique({
         where: { id: input },
         include: {
+          chapter: true, // ADD THIS LINE
           demos: { orderBy: { index: "asc" } },
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
@@ -505,6 +513,7 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapter: true, // ADD THIS LINE
   demos: {
     orderBy: { index: "asc" },
     select: {

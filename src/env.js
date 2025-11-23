@@ -29,6 +29,7 @@ export const env = createEnv({
     KV_REST_API_URL: z.string().url(),
     KV_REST_API_TOKEN: z.string(),
     KV_REST_API_READ_ONLY_TOKEN: z.string(),
+    RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
   },
 
   /**
@@ -37,7 +38,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_NODE_ENV: z.string().optional(), // Copy NODE_ENV to the client
+    NEXT_PUBLIC_NODE_ENV: z.string().optional(),
     NEXT_PUBLIC_URL: z.string().url(),
     NEXT_PUBLIC_BASE_URL: z.string().url().default("https://aicollective.com"),
   },
@@ -61,6 +62,7 @@ export const env = createEnv({
     KV_REST_API_URL: process.env.KV_REST_API_URL,
     KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     KV_REST_API_READ_ONLY_TOKEN: process.env.KV_REST_API_READ_ONLY_TOKEN,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

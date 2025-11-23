@@ -59,14 +59,42 @@ model VerificationToken {
 
 // ############# Business logic #############
 
+model Chapter {
+  id String @id @default(cuid())
+
+  name         String  @unique
+  slug         String  @unique
+  emoji        String
+  city         String
+  country      String
+  timezone     String?
+  email        String?
+  slackUrl     String?
+  linkedinUrl  String?
+  twitterUrl   String?
+  leadName     String?
+  leadEmail    String?
+  leadLinkedin String?
+  description  String?
+  imageUrl     String?
+  isActive     Boolean @default(true)
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Event {
   id String @id @default(cuid())
 
-  name   String
-  date   DateTime
-  url    String
-  config Json     @default("{}")
-  secret String   @default(cuid())
+  name      String
+  date      DateTime
+  url       String
+  config    Json     @default("{}")
+  secret    String   @default(cuid())
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  chapterId String?
 
   submissions   Submission[]
   demos         Demo[]
@@ -75,6 +103,8 @@ model Event {
   feedback      Feedback[]
   votes         Vote[]
   eventFeedback EventFeedback[]
+
+  @@index([chapterId])
 }
 
 enum SubmissionStatus {

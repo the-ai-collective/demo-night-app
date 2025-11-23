@@ -84,6 +84,8 @@ function SubmissionReview({
   onUpdate: () => void;
 }) {
   const updateMutation = api.submission.update.useMutation();
+  const sendStatusEmailMutation = api.submission.sendStatusEmail.useMutation();
+  const [sendingEmail, setSendingEmail] = useState(false);
   const { register, setValue, watch } = useForm({
     values: {
       id: submission.id,
@@ -94,17 +96,50 @@ function SubmissionReview({
     },
   });
   const status = watch("status");
+  const flagged = watch("flagged");
+  const rating = watch("rating");
+  const comment = watch("comment");
 
-  const debouncedUpdate = debounce((data: any) => {
+  const handleSendEmail = async () => {
+    try {
+      setSendingEmail(true);
+      // Update DB with status, flag, rating, and comment
+      await updateMutation.mutateAsync({
+        eventId: event.id,
+        secret: event.secret,
+        id: submission.id,
+        status: status,
+        flagged: flagged,
+        rating: rating ? (rating as number) : null,
+        comment: comment,
+      });
+      
+      // Then send the email
+      await sendStatusEmailMutation.mutateAsync({
+        submissionId: submission.id,
+        status: status as SubmissionStatus,
+        message: comment || undefined,
+      });
+      toast.success("Email sent successfully!");
+      onUpdate();
+    } catch (error) {
+      toast.error(`Failed: ${(error as Error).message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  // Debounced update - only for status, flag, rating (NOT comment)
+  const debouncedUpdate = debounce(() => {
     updateMutation
       .mutateAsync({
         eventId: event.id,
         secret: event.secret,
         id: submission.id,
-        status: data.status,
-        flagged: data.flagged,
-        rating: data.rating ? (data.rating as number) : null,
-        comment: data.comment,
+        status: status,
+        flagged: flagged,
+        rating: rating ? (rating as number) : null,
+        comment: submission.comment, // Keep the original comment, don't update
       })
       .then(onUpdate)
       .catch((error) => {
@@ -113,9 +148,8 @@ function SubmissionReview({
   }, 1000);
 
   useEffect(() => {
-    const subscription = watch(debouncedUpdate);
-    return () => subscription.unsubscribe();
-  }, [watch, debouncedUpdate]);
+    debouncedUpdate();
+  }, [status, flagged, rating]);
 
   return (
     <Card className="flex flex-col gap-4 bg-muted/50 p-4">
@@ -213,6 +247,13 @@ function SubmissionReview({
             rows={1}
           />
         </div>
+        <Button
+          onClick={handleSendEmail}
+          disabled={sendingEmail}
+          className="w-full bg-green-600 hover:bg-green-700"
+        >
+          {sendingEmail ? "Sending..." : "✉️ Confirm & Send Email"}
+        </Button>
       </div>
     </Card>
   );
