@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, FilterIcon, PlusIcon, Presentation, Users, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import { ChapterManagement } from "./components/ChapterManagement";
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
@@ -38,8 +39,10 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
+  const { data: chapters } = api.chapter.getAll.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
 
   const refetch = () => {
     refetchCurrentEvent();
@@ -52,6 +55,13 @@ export default function AdminHomePage() {
   };
 
   const router = useRouter();
+
+  const filteredEvents = events?.filter((event) => {
+    if (!selectedChapterId) return true;
+    return event.chapterId === selectedChapterId;
+  });
+
+  const selectedChapter = chapters?.find((c) => c.id === selectedChapterId);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -70,12 +80,50 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
+        <div className="mb-6">
+          <ChapterManagement />
+        </div>
         <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold">Events</h2>
+            {selectedChapter && (
+              <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium">
+                <span>{selectedChapter.emoji}</span>
+                <span>{selectedChapter.name}</span>
+                <button
+                  onClick={() => setSelectedChapterId(null)}
+                  className="ml-1 hover:text-destructive"
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {chapters && chapters.length > 0 && (
+              <div className="flex items-center gap-2">
+                <FilterIcon className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={selectedChapterId ?? ""}
+                  onChange={(e) =>
+                    setSelectedChapterId(e.target.value || null)
+                  }
+                  className="rounded-md border border-gray-200 px-3 py-2 text-sm"
+                >
+                  <option value="">All Chapters</option>
+                  {chapters.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.emoji} {chapter.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           <Button onClick={() => showUpsertEventModal()}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Create Event
           </Button>
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -85,7 +133,7 @@ export default function AdminHomePage() {
               <EventSkeleton />
             </>
           ) : (
-            events?.map((event) => (
+            filteredEvents?.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -117,6 +165,9 @@ export default function AdminHomePage() {
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
+                          {event.chapter && (
+                            <span className="text-xl">{event.chapter.emoji}</span>
+                          )}
                           <span className="line-clamp-1 text-xl">
                             {event.name}
                           </span>
