@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { createChapterSchema, updateChapterSchema } from "~/lib/types/chapter";
+import { createChapterSchema } from "~/lib/types/chapter";
 import { TRPCError } from "@trpc/server";
 
 export const chapterRouter = createTRPCRouter({

@@ -58,7 +58,7 @@ export function ChapterList() {
     chapter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chapter.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chapter.country.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  ) ?? [];
 
   if (isLoading) return <div className="text-center py-4">Loading chapters...</div>;
 
@@ -142,7 +142,7 @@ export function ChapterList() {
                 {/* Lead Tag */}
                 <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
                   <span>👤</span>
-                  <span>{chapter.leadName || "Not assigned"}</span>
+                  <span>{chapter.leadName ?? "Not assigned"}</span>
                 </div>
 
                 {/* Events Tag */}
@@ -162,7 +162,7 @@ export function ChapterList() {
 
       {filteredChapters.length === 0 && searchQuery && (
         <div className="text-center py-8 text-gray-500">
-          No chapters found matching "{searchQuery}"
+          No chapters found matching &quot;{searchQuery}&quot;
         </div>
       )}
 
