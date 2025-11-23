@@ -25,10 +25,10 @@ export const env = createEnv({
     ),
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
-    KV_URL: z.string().url(),
-    KV_REST_API_URL: z.string().url(),
-    KV_REST_API_TOKEN: z.string(),
-    KV_REST_API_READ_ONLY_TOKEN: z.string(),
+    KV_URL: z.string().url().optional(),
+    KV_REST_API_URL: z.string().url().optional(),
+    KV_REST_API_TOKEN: z.string().optional(),
+    KV_REST_API_READ_ONLY_TOKEN: z.string().optional(),
     RESEND_API_KEY: z.string().optional(),
   },
 
@@ -39,7 +39,11 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_NODE_ENV: z.string().optional(), // Copy NODE_ENV to the client
-    NEXT_PUBLIC_URL: z.string().url(),
+    NEXT_PUBLIC_URL: z.preprocess(
+      // Use VERCEL_URL if NEXT_PUBLIC_URL is not set
+      (str) => str ?? process.env.VERCEL_URL ?? "http://localhost:3000",
+      z.string(),
+    ),
     NEXT_PUBLIC_BASE_URL: z.string().url().default("https://aicollective.com"),
   },
 
