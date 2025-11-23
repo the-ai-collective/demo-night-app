@@ -1,7 +1,8 @@
 "use client";
 
 import { type Chapter } from "@prisma/client";
-import { Edit2, PlusIcon, Trash2 } from "lucide-react";
+import { BarChart3, Edit2, PlusIcon, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { api } from "~/trpc/react";
@@ -91,7 +92,12 @@ export default function ChaptersPage() {
                     <TableRow key={chapter.id}>
                       <TableCell className="text-xl">{chapter.emoji}</TableCell>
                       <TableCell className="font-medium">
-                        {chapter.name}
+                        <Link
+                          href={`/admin/chapters/${chapter.id}`}
+                          className="hover:underline"
+                        >
+                          {chapter.name}
+                        </Link>
                       </TableCell>
                       <TableCell>{chapter.city || "-"}</TableCell>
                       <TableCell className="text-center">
@@ -111,10 +117,20 @@ export default function ChaptersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          <Link href={`/admin/chapters/${chapter.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="View Stats"
+                            >
+                              <BarChart3 className="h-4 w-4" />
+                            </Button>
+                          </Link>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEdit(chapter)}
+                            title="Edit"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -123,6 +139,7 @@ export default function ChaptersPage() {
                             size="icon"
                             className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             onClick={() => handleDelete(chapter)}
+                            title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
