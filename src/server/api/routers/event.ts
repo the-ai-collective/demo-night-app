@@ -28,6 +28,11 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapter: {
+    id: string;
+    name: string;
+    emoji: string;
+  } | null;
 };
 
 export type PublicDemo = Omit<
@@ -103,6 +108,7 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterId: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -112,6 +118,7 @@ export const eventRouter = createTRPCRouter({
         date: input.date,
         url: input.url,
         config: input.config,
+        chapterId: input.chapterId ?? null,
       };
 
       try {
@@ -146,6 +153,7 @@ export const eventRouter = createTRPCRouter({
             date: data.date!,
             url: data.url!,
             config: eventConfig,
+            chapterId: data.chapterId,
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -172,6 +180,13 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapter: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+          },
+        },
         _count: {
           select: {
             demos: true,
@@ -191,6 +206,13 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapter: {
+            select: {
+              id: true,
+              name: true,
+              emoji: true,
+            },
+          },
         },
       });
     }),
@@ -518,4 +540,11 @@ const completeEventSelect: Prisma.EventSelect = {
     },
   },
   awards: { orderBy: { index: "asc" } },
+  chapter: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
 };

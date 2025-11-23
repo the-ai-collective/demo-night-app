@@ -8,14 +8,23 @@ import { toast } from "sonner";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { type RouterOutputs } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
@@ -25,6 +34,9 @@ const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
 };
 
+type AdminEventListItem = RouterOutputs["event"]["allAdmin"][number];
+type EventInput = Event | AdminEventListItem;
+
 export function UpsertEventModal({
   event,
   onSubmit,
@@ -32,7 +44,7 @@ export function UpsertEventModal({
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventInput;
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -43,8 +55,23 @@ export function UpsertEventModal({
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
   const [useTestData, setUseTestData] = useState(false);
+  // Extract chapterId from either event.chapterId (Prisma Event) or event.chapter?.id (allAdmin result)
+  const getChapterId = (evt?: EventInput): string | null => {
+    if (!evt) return null;
+    if ("chapterId" in evt && evt.chapterId !== undefined) {
+      return evt.chapterId;
+    }
+    if ("chapter" in evt && evt.chapter) {
+      return evt.chapter.id;
+    }
+    return null;
+  };
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    getChapterId(event),
+  );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.all.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
@@ -62,6 +89,11 @@ export function UpsertEventModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{event ? "Edit" : "Create New"} Event</DialogTitle>
+          <DialogDescription>
+            {event
+              ? "Update the event details below."
+              : "Create a new demo night event. Fill in the details below."}
+          </DialogDescription>
         </DialogHeader>
         <form
           onSubmit={handleSubmit((data) => {
@@ -77,6 +109,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: selectedChapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -149,6 +182,30 @@ export function UpsertEventModal({
               placeholder="https://lu.ma/demo-night"
               required
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={selectedChapterId ?? "none"}
+              onValueChange={(value) =>
+                setSelectedChapterId(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="No Chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-gray-500">
+              Optional: Assign this event to a chapter
+            </p>
           </label>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch

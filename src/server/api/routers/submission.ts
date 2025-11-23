@@ -6,6 +6,9 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { sendEmailSafely } from "~/lib/email";
+import { SubmissionConfirmationEmail } from "~/emails/submission-confirmation";
+import { SubmissionStatusUpdateEmail } from "~/emails/submission-status-update";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -34,7 +37,30 @@ export const submissionRouter = createTRPCRouter({
       try {
         const result = await db.submission.create({
           data: input,
+          include: {
+            event: {
+              select: {
+                name: true,
+                url: true,
+              },
+            },
+          },
         });
+
+        // Send confirmation email (non-blocking)
+        sendEmailSafely({
+          to: input.email,
+          subject: `Submission Received: ${result.event.name}`,
+          react: SubmissionConfirmationEmail({
+            submitterName: input.pocName,
+            demoTitle: input.name,
+            eventName: result.event.name,
+            submissionDate: new Date(),
+          }),
+        }).catch((error) => {
+          console.error("Failed to send confirmation email:", error);
+        });
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,10 +111,61 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Fetch current submission to check for status changes
+      const currentSubmission = await db.submission.findUnique({
+        where: { id },
+        include: {
+          event: {
+            select: {
+              name: true,
+              url: true,
+            },
+          },
+        },
+      });
+
+      if (!currentSubmission) {
+        throw new Error("Submission not found");
+      }
+
+      const updatedSubmission = await db.submission.update({
         where: { id },
         data,
+        include: {
+          event: {
+            select: {
+              name: true,
+              url: true,
+            },
+          },
+        },
       });
+
+      // Send status update email if status changed to CONFIRMED or REJECTED
+      const statusChanged =
+        data.status &&
+        data.status !== currentSubmission.status &&
+        (data.status === "CONFIRMED" || data.status === "REJECTED");
+
+      if (statusChanged) {
+        // Use non-blocking email sending to avoid delaying the response
+        sendEmailSafely({
+          to: updatedSubmission.email,
+          subject: `Update on your submission: ${updatedSubmission.event.name}`,
+          react: SubmissionStatusUpdateEmail({
+            submitterName: updatedSubmission.pocName,
+            demoTitle: updatedSubmission.name,
+            eventName: updatedSubmission.event.name,
+            status: data.status as "CONFIRMED" | "REJECTED",
+            message: data.comment ?? undefined,
+          }),
+        }).catch((error) => {
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return updatedSubmission;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())
@@ -129,11 +206,32 @@ export const submissionRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const event = await db.event.findUnique({
         where: { id: input.eventId },
+        select: {
+          secret: true,
+          name: true,
+          url: true,
+        },
       });
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
-      return db.submission.update({
+
+      // Fetch current submission to check for status changes
+      const currentSubmission = await db.submission.findUnique({
+        where: { id: input.id },
+        select: {
+          status: true,
+          email: true,
+          pocName: true,
+          name: true,
+        },
+      });
+
+      if (!currentSubmission) {
+        throw new Error("Submission not found");
+      }
+
+      const updatedSubmission = await db.submission.update({
         where: { id: input.id },
         data: {
           status: input.status,
@@ -141,7 +239,38 @@ export const submissionRouter = createTRPCRouter({
           rating: input.rating,
           comment: input.comment,
         },
+        select: {
+          status: true,
+          email: true,
+          pocName: true,
+          name: true,
+          comment: true,
+        },
       });
+
+      // Send status update email if status changed to CONFIRMED or REJECTED
+      const statusChanged =
+        input.status &&
+        input.status !== currentSubmission.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED");
+
+      if (statusChanged && event) {
+        sendEmailSafely({
+          to: updatedSubmission.email,
+          subject: `Update on your submission: ${event.name}`,
+          react: SubmissionStatusUpdateEmail({
+            submitterName: updatedSubmission.pocName,
+            demoTitle: updatedSubmission.name,
+            eventName: event.name,
+            status: input.status as "CONFIRMED" | "REJECTED",
+            message: updatedSubmission.comment ?? undefined,
+          }),
+        }).catch((error) => {
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return updatedSubmission;
     }),
   setSubmissions: protectedProcedure
     .input(
