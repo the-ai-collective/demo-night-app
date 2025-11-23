@@ -182,27 +182,28 @@ export const eventRouter = createTRPCRouter({
       return db.event.findMany({
         where,
         orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        url: true,
-        config: true,
-        secret: true,
-        chapter: {
-          select: {
-            name: true,
-            emoji: true,
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          url: true,
+          config: true,
+          secret: true,
+          chapterId: true,
+          chapter: {
+            select: {
+              name: true,
+              emoji: true,
+            },
+          },
+          _count: {
+            select: {
+              demos: true,
+              attendees: true,
+            },
           },
         },
-        _count: {
-          select: {
-            demos: true,
-            attendees: true,
-          },
-        },
-      },
-    });
+      });
   }),
   getAdmin: protectedProcedure
     .input(z.string())

@@ -1,7 +1,13 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import {
+  CalendarIcon,
+  PlusIcon,
+  Presentation,
+  Trophy,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -40,6 +46,7 @@ export default function AdminHomePage() {
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
   const { data: chapters } = api.chapter.getAllAdmin.useQuery();
+  const { data: chapterOverview } = api.chapter.getOverview.useQuery();
   const [selectedChapterId, setSelectedChapterId] = useState<string>("all");
   const {
     data: events,
@@ -99,6 +106,51 @@ export default function AdminHomePage() {
             </Button>
           </div>
         </div>
+        {chapterOverview && (
+          <div className="mb-6 grid gap-4 md:grid-cols-4">
+            <SummaryStat
+              label="Total Chapters"
+              value={chapterOverview.totals.totalChapters.toString()}
+            />
+            <SummaryStat
+              label="Total Events"
+              value={chapterOverview.totals.totalEvents.toString()}
+            />
+            <SummaryStat
+              label="Events (30d)"
+              value={chapterOverview.totals.eventsLast30Days.toString()}
+              subtext={`${chapterOverview.totals.attendeesLast30Days} attendees`}
+            />
+            <SummaryStat
+              label="Votes (30d)"
+              value={chapterOverview.totals.votesLast30Days.toString()}
+            />
+          </div>
+        )}
+        {chapterOverview?.topChapter && (
+          <div className="mb-6">
+            <Card>
+              <CardContent className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Top Chapter (last 30d)
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
+                    <span className="text-2xl">
+                      {chapterOverview.topChapter.emoji}
+                    </span>
+                    {chapterOverview.topChapter.name}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {chapterOverview.topChapter.attendeesLast30Days} attendees •{" "}
+                    {chapterOverview.topChapter.eventsLast30Days} events
+                  </p>
+                </div>
+                <Trophy className="h-10 w-10 text-orange-500" />
+              </CardContent>
+            </Card>
+          </div>
+        )}
         <div className="flex flex-col gap-4">
           {isLoading ? (
             <>
@@ -272,6 +324,26 @@ function EventSkeleton() {
           </div>
           <div className="h-8 w-8 rounded bg-gray-200" />
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SummaryStat({
+  label,
+  value,
+  subtext,
+}: {
+  label: string;
+  value: string;
+  subtext?: string;
+}) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="mt-2 text-2xl font-bold">{value}</p>
+        {subtext && <p className="text-sm text-muted-foreground">{subtext}</p>}
       </CardContent>
     </Card>
   );

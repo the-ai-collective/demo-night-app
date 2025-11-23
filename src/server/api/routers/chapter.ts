@@ -91,6 +91,83 @@ export const chapterRouter = createTRPCRouter({
     });
   }),
 
+  getOverview: protectedProcedure.query(async () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const chapters = await db.chapter.findMany({
+      include: {
+        events: {
+          include: {
+            _count: {
+              select: {
+                attendees: true,
+                votes: true,
+                feedback: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    let totalEvents = 0;
+    let eventsLast30Days = 0;
+    let attendeesLast30Days = 0;
+    let votesLast30Days = 0;
+
+    const chapterStats = chapters.map((chapter) => {
+      const chapterEvents = chapter.events;
+      totalEvents += chapterEvents.length;
+
+      const recentEvents = chapterEvents.filter(
+        (event) => event.date >= thirtyDaysAgo,
+      );
+
+      const chapterEventsLast30 = recentEvents.length;
+      const chapterAttendeesLast30 = recentEvents.reduce(
+        (sum, event) => sum + event._count.attendees,
+        0,
+      );
+      const chapterVotesLast30 = recentEvents.reduce(
+        (sum, event) => sum + event._count.votes,
+        0,
+      );
+
+      eventsLast30Days += chapterEventsLast30;
+      attendeesLast30Days += chapterAttendeesLast30;
+      votesLast30Days += chapterVotesLast30;
+
+      return {
+        id: chapter.id,
+        name: chapter.name,
+        emoji: chapter.emoji,
+        city: chapter.city,
+        totalEvents: chapterEvents.length,
+        eventsLast30Days: chapterEventsLast30,
+        attendeesLast30Days: chapterAttendeesLast30,
+        votesLast30Days: chapterVotesLast30,
+      };
+    });
+
+    // this is arbitrary, we could use another metric like avg. attendees per event, etc.
+    const topChapter = [...chapterStats]
+      .sort((a, b) => b.attendeesLast30Days - a.attendeesLast30Days)[0] ?? null;
+
+    return {
+      totals: {
+        totalChapters: chapters.length,
+        totalEvents,
+        eventsLast30Days,
+        attendeesLast30Days,
+        votesLast30Days,
+      },
+      topChapter,
+      chapters: chapterStats,
+    };
+  }),
+
   getStats: protectedProcedure
     .input(z.string())
     .query(async ({ input: chapterId }) => {
