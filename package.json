@@ -14,7 +14,8 @@
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "start:dev": "next start --env-file .env.development.local",
-    "lint": "next lint"
+    "lint": "next lint",
+    "email:preview": "email dev --dir src/emails"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -35,6 +36,13 @@
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-switch": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "@react-email/button": "^0.2.0",
+    "@react-email/components": "^1.0.1",
+    "@react-email/container": "^0.0.15",
+    "@react-email/heading": "^0.0.15",
+    "@react-email/html": "^0.0.11",
+    "@react-email/section": "^0.0.16",
+    "@react-email/text": "^0.1.5",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-query": "^5.25.0",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
@@ -58,9 +66,11 @@
     "react-dom": "18.2.0",
     "react-dom-confetti": "^0.2.0",
     "react-dropzone": "^14.2.3",
+    "react-email": "^5.0.5",
     "react-hook-form": "^7.54.2",
     "react-qr-code": "^2.0.12",
     "react-resizable-panels": "^2.1.7",
+    "resend": "^6.5.2",
     "server-only": "^0.0.1",
     "sonner": "^1.4.41",
     "superjson": "^2.2.1",
@@ -72,6 +82,7 @@
     "zod-openapi": "^4.2.4"
   },
   "devDependencies": {
+    "@react-email/preview-server": "5.0.5",
     "@types/eslint": "^8.56.2",
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.57",

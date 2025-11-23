@@ -1,13 +1,15 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+
+import type { Chapter, EventWithChapter } from "~/lib/types/chapter";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -32,7 +34,7 @@ export function UpsertEventModal({
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventWithChapter;
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
@@ -56,6 +58,17 @@ export function UpsertEventModal({
       url: event?.url ?? "",
     },
   });
+  const { data: chapters } = api.chapter.all.useQuery();
+  const chaptersTyped = chapters as Chapter[] | undefined;
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    event?.chapterId ?? null,
+  );
+
+  // Update selectedChapterId when event changes
+  useEffect(() => {
+    setSelectedChapterId(event?.chapterId ?? null);
+    setIsPitchNight((event?.config as EventConfig)?.isPitchNight ?? false);
+  }, [event, open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,6 +90,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: selectedChapterId ?? null,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -149,6 +163,21 @@ export function UpsertEventModal({
               placeholder="https://lu.ma/demo-night"
               required
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <select
+              value={selectedChapterId ?? ""}
+              onChange={(e) => setSelectedChapterId(e.target.value || null)}
+              className="rounded-md border border-gray-200 p-2"
+            >
+              <option value="">None</option>
+              {chaptersTyped?.map((c: Chapter) => (
+                <option key={c.id} value={c.id}>
+                  {c.emoji} {c.name}
+                </option>
+              ))}
+            </select>
           </label>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch

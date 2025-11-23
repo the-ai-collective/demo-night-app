@@ -6,6 +6,10 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import {
+  sendSubmissionConfirmationEmail,
+  sendSubmissionStatusUpdateEmail,
+} from "~/lib/email";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -35,6 +39,29 @@ export const submissionRouter = createTRPCRouter({
         const result = await db.submission.create({
           data: input,
         });
+
+        // Fetch event details for email
+        const event = await db.event.findUnique({
+          where: { id: input.eventId },
+        });
+
+        // Send confirmation email
+        if (event) {
+          await sendSubmissionConfirmationEmail({
+            to: input.email,
+            submitterName: input.pocName,
+            demoName: input.name,
+            eventName: event.name,
+            eventDate: new Date(event.date).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            eventUrl: event.url,
+          });
+        }
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,10 +112,45 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Get the current submission before update to check status change
+      const currentSubmission = await db.submission.findUnique({
+        where: { id },
+        include: { event: true },
+      });
+
+      const result = await db.submission.update({
         where: { id },
         data,
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        currentSubmission &&
+        data.status &&
+        data.status !== currentSubmission.status &&
+        (data.status === "CONFIRMED" || data.status === "REJECTED")
+      ) {
+        await sendSubmissionStatusUpdateEmail({
+          to: result.email,
+          submitterName: result.pocName,
+          demoName: result.name,
+          eventName: currentSubmission.event.name,
+          eventDate: new Date(currentSubmission.event.date).toLocaleDateString(
+            "en-US",
+            {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            },
+          ),
+          eventUrl: currentSubmission.event.url,
+          status: data.status,
+        });
+      }
+
+      return result;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())
@@ -133,7 +195,13 @@ export const submissionRouter = createTRPCRouter({
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
-      return db.submission.update({
+
+      // Get the current submission before update to check status change
+      const currentSubmission = await db.submission.findUnique({
+        where: { id: input.id },
+      });
+
+      const result = await db.submission.update({
         where: { id: input.id },
         data: {
           status: input.status,
@@ -142,6 +210,31 @@ export const submissionRouter = createTRPCRouter({
           comment: input.comment,
         },
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        currentSubmission &&
+        input.status &&
+        input.status !== currentSubmission.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED")
+      ) {
+        await sendSubmissionStatusUpdateEmail({
+          to: result.email,
+          submitterName: result.pocName,
+          demoName: result.name,
+          eventName: event.name,
+          eventDate: new Date(event.date).toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          eventUrl: event.url,
+          status: input.status,
+        });
+      }
+
+      return result;
     }),
   setSubmissions: protectedProcedure
     .input(

@@ -5,7 +5,9 @@ import { Expand } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { cn } from "~/lib/utils";
+import type { Chapter } from "~/lib/types/chapter";
 import type { CompleteEvent } from "~/server/api/routers/event";
+import { api } from "~/trpc/react";
 
 interface EventSelectorProps {
   events: CompleteEvent[];
@@ -24,6 +26,9 @@ export default function EventSelector({
   const isExpanded = typeof isOpen === "boolean" ? isOpen : internalExpanded;
   const setIsExpanded = setIsOpen ?? setInternalExpanded;
   const [selectedEvent, setSelectedEvent] = useState(events[0]!);
+  const { data: chapters } = api.chapter.all.useQuery();
+  const chaptersTyped = chapters as Chapter[] | undefined;
+    
 
   const toggleExpand = () => setIsExpanded(!isExpanded);
 
@@ -57,7 +62,7 @@ export default function EventSelector({
           onClick={toggleExpand}
           className="flex w-full cursor-pointer flex-row items-center justify-between rounded-lg bg-white/80 px-4 py-3 text-center text-lg font-semibold shadow-lg backdrop-blur transition-all duration-300 ease-in-out hover:bg-gray-100/80"
         >
-          <motion.div
+            <motion.div
             key={selectedEvent.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -65,7 +70,10 @@ export default function EventSelector({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-row gap-2"
           >
-            <p>{selectedEvent.name}</p>
+            <p>
+              {selectedEvent.chapterId && chaptersTyped?.find((c) => c.id === selectedEvent.chapterId)?.emoji ? `${chaptersTyped?.find((c) => c.id === selectedEvent.chapterId)?.emoji} ` : ''}
+              {selectedEvent.name}
+            </p>
           </motion.div>
           <Expand size={22} strokeWidth={2.25} color="black" />
         </div>
@@ -111,7 +119,10 @@ export default function EventSelector({
                     )}
                   >
                     <div className="flex w-full flex-col leading-6">
-                      <p>{event.name}</p>
+                      <p>
+                        {event.chapterId && chaptersTyped?.find((c) => c.id === event.chapterId)?.emoji ? `${chaptersTyped?.find((c) => c.id === event.chapterId)?.emoji} ` : ''}
+                        {event.name}
+                      </p>
                       <p className="text-sm font-semibold italic leading-5 text-gray-700">
                         {new Date(event.date).toLocaleDateString()}
                       </p>

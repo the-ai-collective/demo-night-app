@@ -15,6 +15,7 @@ export type AdminEvent = Event & {
   attendees: Attendee[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapterId?: string | null;
 };
 
 export type IDashboardContext = {
