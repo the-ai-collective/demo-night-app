@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 import {
+  sendSubmissionConfirmation,
+  sendSubmissionStatusUpdate,
+} from "~/lib/email";
+import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -35,6 +39,31 @@ export const submissionRouter = createTRPCRouter({
         const result = await db.submission.create({
           data: input,
         });
+
+        // Get event details for email
+        const event = await db.event.findUnique({
+          where: { id: input.eventId },
+        });
+
+        if (event) {
+          // Send confirmation email (non-blocking)
+          sendSubmissionConfirmation({
+            demoName: input.name,
+            eventName: event.name,
+            eventDate: event.date.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+            eventUrl: event.url,
+            pocName: input.pocName,
+            email: input.email,
+          }).catch((error) => {
+            console.error("Failed to send confirmation email:", error);
+          });
+        }
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,10 +114,45 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Get the current submission to check if status changed
+      const currentSubmission = await db.submission.findUnique({
+        where: { id },
+        include: { event: true },
+      });
+
+      const result = await db.submission.update({
         where: { id },
         data,
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        currentSubmission &&
+        input.status &&
+        input.status !== currentSubmission.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED")
+      ) {
+        const event = currentSubmission.event;
+        sendSubmissionStatusUpdate({
+          demoName: result.name,
+          eventName: event.name,
+          eventDate: event.date.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          eventUrl: event.url,
+          pocName: result.pocName,
+          email: result.email,
+          status: input.status,
+        }).catch((error) => {
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return result;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())
@@ -133,7 +197,12 @@ export const submissionRouter = createTRPCRouter({
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
-      return db.submission.update({
+
+      const currentSubmission = await db.submission.findUnique({
+        where: { id: input.id },
+      });
+
+      const result = await db.submission.update({
         where: { id: input.id },
         data: {
           status: input.status,
@@ -142,6 +211,34 @@ export const submissionRouter = createTRPCRouter({
           comment: input.comment,
         },
       });
+
+      // Send email if status changed to CONFIRMED or REJECTED
+      if (
+        currentSubmission &&
+        event &&
+        input.status &&
+        input.status !== currentSubmission.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED")
+      ) {
+        sendSubmissionStatusUpdate({
+          demoName: result.name,
+          eventName: event.name,
+          eventDate: event.date.toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          eventUrl: event.url,
+          pocName: result.pocName,
+          email: result.email,
+          status: input.status,
+        }).catch((error) => {
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return result;
     }),
   setSubmissions: protectedProcedure
     .input(
