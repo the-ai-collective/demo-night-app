@@ -10,6 +10,8 @@ import { ModalProvider } from "~/components/modal/provider";
 import "~/styles/globals.css";
 import { getBranding } from "~/lib/branding.server";
 
+import { Providers } from "./Providers";
+
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding();
   const appName = branding.appName;
@@ -107,10 +109,12 @@ export default function RootLayout({
       className={`${kallisto.variable} ${openSans.variable} ${marker.variable} font-sans`}
     >
       <body>
-        <TRPCReactProvider>
-          <Toaster position="top-center" />
-          <ModalProvider>{children}</ModalProvider>
-        </TRPCReactProvider>
+        <Providers>
+          <TRPCReactProvider>
+            <Toaster position="top-center" />
+            <ModalProvider>{children}</ModalProvider>
+          </TRPCReactProvider>
+        </Providers>
       </body>
     </html>
   );

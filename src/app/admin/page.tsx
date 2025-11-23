@@ -1,9 +1,10 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, LogOut, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
 import { getBrandingClient } from "~/lib/branding";
@@ -30,6 +31,7 @@ function getDaysAgo(date: Date): string {
 }
 
 export default function AdminHomePage() {
+  const { data: session } = useSession();
   const branding = getBrandingClient();
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
@@ -66,7 +68,19 @@ export default function AdminHomePage() {
               Admin Dashboard
             </span>
           </div>
-          <div className="flex w-[108px] items-center justify-end" />
+          <div className="flex w-[108px] items-center justify-end">
+            {session && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                data-testid="logout-button"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign Out
+              </Button>
+            )}
+          </div>
         </div>
       </header>
       <div className="container mx-auto p-8">
