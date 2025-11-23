@@ -61,7 +61,7 @@ export const SubmissionStatusUpdateEmail = ({
         color: "#10b981",
         heading: `🚀 Congratulations!`,
         body: `Hi ${submitterName},\n\nGreat news! Your submission for ${companyName} has been approved for ${eventName}!`,
-        details: `We&apos;re excited to have you present. Check your email for event details and next steps.`,
+        details: `We're excited to have you present. Check your email for event details and next steps.`,
       };
     }
     if (isRejected) {
@@ -81,7 +81,7 @@ export const SubmissionStatusUpdateEmail = ({
         color: "#f59e0b",
         heading: "Waitlisted",
         body: `Hi ${submitterName},\n\nThank you for submitting ${companyName} to ${eventName}.`,
-        details: `Your submission has been placed on our waitlist. We&apos;ll reach out if a spot becomes available.`,
+        details: `Your submission has been placed on our waitlist. We'll reach out if a spot becomes available.`,
       };
     }
     if (isAwaiting) {
@@ -89,9 +89,9 @@ export const SubmissionStatusUpdateEmail = ({
         icon: "🎯",
         title: "Shortlisted",
         color: "#3b82f6",
-        heading: "🎯 You&apos;ve Been Shortlisted!",
+        heading: "🎯 You've Been Shortlisted!",
         body: `Hi ${submitterName},\n\nCongratulations! ${companyName} has been shortlisted for ${eventName}.`,
-        details: `We&apos;re impressed with your submission and we&apos;d love to have you present. Are you available to demo on the event date?`,
+        details: `We're impressed with your submission and we'd love to have you present. Are you available to demo on the event date?`,
       };
     }
     if (isPending) {
@@ -101,7 +101,7 @@ export const SubmissionStatusUpdateEmail = ({
         color: "#8b5cf6",
         heading: "📋 Submission Received",
         body: `Hi ${submitterName},\n\nThank you for submitting ${companyName} to ${eventName}.`,
-        details: `We&apos;ve received your submission and our team will review it shortly. You&apos;ll receive an email update once we&apos;ve made a decision.`,
+        details: `We've received your submission and our team will review it shortly. You'll receive an email update once we've made a decision.`,
       };
     }
     if (isCancelled) {
@@ -120,7 +120,7 @@ export const SubmissionStatusUpdateEmail = ({
       title: "Update",
       color: "#6366f1",
       heading: "Update on Your Submission",
-      body: `Hi ${submitterName},\n\nHere&apos;s an update on your ${companyName} submission to ${eventName}.`,
+      body: `Hi ${submitterName},\n\nHere's an update on your ${companyName} submission to ${eventName}.`,
       details: "Thank you for your participation!",
     };
   };
