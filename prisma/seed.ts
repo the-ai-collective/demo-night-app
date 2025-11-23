@@ -3,12 +3,19 @@ import { type Feedback, PrismaClient, SubmissionStatus } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
+  // Update all existing users to admin role (for testing/development)
+  await prisma.user.updateMany({
+    where: { role: "user" },
+    data: { role: "admin" },
+  });
+
   await prisma.user.upsert({
     where: { email: "test@example.com" },
-    update: {},
+    update: { role: "admin" },
     create: {
       name: "Test User",
       email: "test@example.com",
+      role: "admin",
     },
   });
 

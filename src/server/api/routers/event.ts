@@ -16,7 +16,7 @@ import {
 } from "~/lib/types/eventConfig";
 import {
   createTRPCRouter,
-  protectedProcedure,
+  adminProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
@@ -28,6 +28,7 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapter: { id: string; name: string; emoji: string } | null;
 };
 
 export type PublicDemo = Omit<
@@ -94,7 +95,7 @@ export const eventRouter = createTRPCRouter({
         select: completeEventSelect,
       });
     }),
-  upsert: protectedProcedure
+  upsert: adminProcedure
     .input(
       z.object({
         originalId: z.string().optional(),
@@ -103,6 +104,7 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterId: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -112,6 +114,7 @@ export const eventRouter = createTRPCRouter({
         date: input.date,
         url: input.url,
         config: input.config,
+        chapterId: input.chapterId,
       };
 
       try {
@@ -146,6 +149,7 @@ export const eventRouter = createTRPCRouter({
             date: data.date!,
             url: data.url!,
             config: eventConfig,
+            chapterId: data.chapterId,
             demos: {
               create: DEFAULT_DEMOS,
             },
@@ -162,26 +166,44 @@ export const eventRouter = createTRPCRouter({
         throw error;
       }
     }),
-  allAdmin: protectedProcedure.query(() => {
-    return db.event.findMany({
-      orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        url: true,
-        config: true,
-        secret: true,
-        _count: {
-          select: {
-            demos: true,
-            attendees: true,
+  allAdmin: adminProcedure
+    .input(
+      z
+        .object({
+          chapterId: z.string().nullable().optional(),
+        })
+        .optional(),
+    )
+    .query(({ input }) => {
+      return db.event.findMany({
+        where: input?.chapterId ? { chapterId: input.chapterId } : undefined,
+        orderBy: { date: "desc" },
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          url: true,
+          config: true,
+          secret: true,
+          chapterId: true,
+          chapter: {
+            select: {
+              id: true,
+              name: true,
+              emoji: true,
+            },
+          },
+          _count: {
+            select: {
+              demos: true,
+              attendees: true,
+              submissions: true,
+            },
           },
         },
-      },
-    });
-  }),
-  getAdmin: protectedProcedure
+      });
+    }),
+  getAdmin: adminProcedure
     .input(z.string())
     .query(async ({ input }): Promise<AdminEvent | null> => {
       return db.event.findUnique({
@@ -191,10 +213,11 @@ export const eventRouter = createTRPCRouter({
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },
           eventFeedback: { orderBy: { createdAt: "desc" } },
+          chapter: true,
         },
       });
     }),
-  updateCurrent: protectedProcedure
+  updateCurrent: adminProcedure
     .input(z.string().nullable())
     .mutation(async ({ input }) => {
       if (!input) {
@@ -209,7 +232,7 @@ export const eventRouter = createTRPCRouter({
       }
       return kv.updateCurrentEvent(event);
     }),
-  updateCurrentState: protectedProcedure
+  updateCurrentState: adminProcedure
     .input(
       z.object({
         phase: z.nativeEnum(kv.EventPhase).optional(),
@@ -220,7 +243,7 @@ export const eventRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       return kv.updateCurrentEventState(input);
     }),
-  populateTestData: protectedProcedure
+  populateTestData: adminProcedure
     .input(
       z.object({
         eventId: z.string(),
@@ -485,7 +508,7 @@ export const eventRouter = createTRPCRouter({
         return { success: true };
       });
     }),
-  delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
+  delete: adminProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.event
       .delete({
         where: { id: input },
@@ -505,6 +528,14 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapterId: true,
+  chapter: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
   demos: {
     orderBy: { index: "asc" },
     select: {
@@ -518,4 +549,5 @@ const completeEventSelect: Prisma.EventSelect = {
     },
   },
   awards: { orderBy: { index: "asc" } },
+  eventFeedback: true,
 };

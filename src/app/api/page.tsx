@@ -1,11 +1,26 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
+import { useState, useEffect } from "react";
 import "swagger-ui-react/swagger-ui.css";
 
-const SwaggerUI = dynamic(() => import("swagger-ui-react"), { ssr: false });
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const SwaggerUI = dynamicImport(() => import("swagger-ui-react"), { ssr: false });
 
 const Home = () => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent SSR/prerendering flash
+  if (!mounted) {
+    return null;
+  }
+
   // Serve Swagger UI with our OpenAPI schema
   return <SwaggerUI url="/api/openapi.json" />;
 };

@@ -6,7 +6,7 @@ import { api } from "~/trpc/react";
 import { env } from "~/env";
 
 const REFRESH_INTERVAL =
-  env.NEXT_PUBLIC_NODE_ENV === "development" ? 1_000 : 5_000;
+  env.NEXT_PUBLIC_NODE_ENV === "development" ? 5_000 : 5_000;
 
 export function useEventAdmin({
   initialEvent,
@@ -18,6 +18,8 @@ export function useEventAdmin({
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery(undefined, {
       initialData: initialCurrentEvent,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
     });
   const { data: event, refetch: refetchEvent } = api.event.getAdmin.useQuery(
     initialEvent?.id ?? "",
@@ -26,6 +28,9 @@ export function useEventAdmin({
       refetchInterval:
         currentEvent?.id === initialEvent?.id ? REFRESH_INTERVAL : false,
       initialData: initialEvent,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
     },
   );
 

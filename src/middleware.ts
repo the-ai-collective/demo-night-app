@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-const VERCEL_DEPLOYMENT = !!process.env.VERCEL;
-
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
@@ -10,7 +8,8 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const cookieName = `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.session-token`;
+  const isSecure = req.nextUrl.protocol === "https:";
+  const cookieName = `${isSecure ? "__Secure-" : ""}next-auth.session-token`;
   const session = !!req.cookies.get(cookieName);
   if (!session) {
     return NextResponse.redirect(

@@ -5,6 +5,7 @@ const config = {
     project: true,
   },
   plugins: ["@typescript-eslint"],
+  ignorePatterns: ["**/*.test.ts", "**/*.test.tsx", "vitest.config.ts"],
   extends: [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/stylistic-type-checked",

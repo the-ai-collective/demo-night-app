@@ -36,7 +36,7 @@ export default function DemoRecap({
   ).get("secret");
 
   const { data: stats } = api.demo.getStats.useQuery(
-    { id: demo.id, secret: secret ?? "" },
+    { id: demo.id, token: secret ?? "" },
     { enabled: !!secret },
   );
 

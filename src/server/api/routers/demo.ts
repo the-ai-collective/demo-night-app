@@ -3,8 +3,9 @@ import { z } from "zod";
 
 import {
   createTRPCRouter,
+  adminProcedure,
+  demoTokenProcedure,
   protectedProcedure,
-  publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
@@ -46,11 +47,16 @@ export type DemoStats = {
 };
 
 export const demoRouter = createTRPCRouter({
-  get: publicProcedure
-    .input(z.object({ id: z.string(), secret: z.string() }))
-    .query(async ({ input }) => {
+  get: demoTokenProcedure
+    .input(z.object({ id: z.string(), token: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // Verify the token's demoId matches the requested demoId
+      if (ctx.tokenPayload.id !== input.id) {
+        throw new Error("Token does not grant access to this demo");
+      }
+
       const demo = await db.demo.findUnique({
-        where: { id: input.id, secret: input.secret },
+        where: { id: input.id },
         include: {
           feedback: {
             include: {
@@ -90,22 +96,27 @@ export const demoRouter = createTRPCRouter({
       }
       return { ...demo, feedback: allFeedback };
     }),
-  update: publicProcedure
+  update: demoTokenProcedure
     .input(
       z.object({
         id: z.string(),
-        secret: z.string(),
+        token: z.string(),
         name: z.string(),
         description: z.string().optional(),
         email: z.string().email().optional().or(z.literal("")),
         url: z.string().url().optional().or(z.literal("")),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Verify the token's demoId matches the requested demoId
+      if (ctx.tokenPayload.id !== input.id) {
+        throw new Error("Token does not grant access to this demo");
+      }
+
       return db.demo.update({
-        where: { id: input.id, secret: input.secret },
+        where: { id: input.id },
         data: {
-          ...input,
+          name: input.name,
           description: input.description ?? null,
           email: input.email ?? null,
           url: input.url ?? null,
@@ -125,7 +136,7 @@ export const demoRouter = createTRPCRouter({
         },
       });
     }),
-  upsert: protectedProcedure
+  upsert: adminProcedure
     .input(
       z.object({
         originalId: z.string().optional(),
@@ -170,7 +181,7 @@ export const demoRouter = createTRPCRouter({
         });
       }
     }),
-  updateIndex: protectedProcedure
+  updateIndex: adminProcedure
     .input(z.object({ id: z.string(), index: z.number() }))
     .mutation(async ({ input }) => {
       return db.$transaction(async (prisma) => {
@@ -226,7 +237,7 @@ export const demoRouter = createTRPCRouter({
         });
       });
     }),
-  setDemos: protectedProcedure
+  setDemos: adminProcedure
     .input(
       z.object({
         eventId: z.string(),
@@ -259,7 +270,7 @@ export const demoRouter = createTRPCRouter({
         });
       });
     }),
-  delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
+  delete: adminProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.$transaction(async (prisma) => {
       const demoToDelete = await prisma.demo.findUnique({
         where: { id: input },
@@ -285,11 +296,16 @@ export const demoRouter = createTRPCRouter({
       });
     });
   }),
-  getStats: publicProcedure
-    .input(z.object({ id: z.string(), secret: z.string() }))
-    .query(async ({ input }): Promise<DemoStats> => {
+  getStats: demoTokenProcedure
+    .input(z.object({ id: z.string(), token: z.string() }))
+    .query(async ({ input, ctx }): Promise<DemoStats> => {
+      // Verify the token's demoId matches the requested demoId
+      if (ctx.tokenPayload.id !== input.id) {
+        throw new Error("Token does not grant access to this demo");
+      }
+
       const demo = await db.demo.findUnique({
-        where: { id: input.id, secret: input.secret },
+        where: { id: input.id },
         include: {
           feedback: true,
           votes: true,

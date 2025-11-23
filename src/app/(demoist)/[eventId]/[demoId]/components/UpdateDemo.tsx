@@ -70,7 +70,7 @@ export function UpdateDemoForm({
       onSubmit={handleSubmit((data) => {
         updateDemoMutation.mutate({
           id: demo.id,
-          secret,
+          token: secret,
           name: data.name,
           description: data.description,
           email: data.email,

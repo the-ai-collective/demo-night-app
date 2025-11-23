@@ -41,7 +41,7 @@ import {
 import { env } from "~/env";
 
 const REFRESH_INTERVAL =
-  env.NEXT_PUBLIC_NODE_ENV === "development" ? 1_000 : 5_000;
+  env.NEXT_PUBLIC_NODE_ENV === "development" ? 5_000 : 5_000;
 
 export default function AwardsAndVotingTab() {
   const { event, currentEvent, refetchEvent } = useDashboardContext();
@@ -210,69 +210,97 @@ export default function AwardsAndVotingTab() {
                   : isPitchNight ? "Investments" : "Votes"}
                 <span> ({votes?.length ?? 0} total)</span>
               </h2>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    onClick={() => handleSelectWinner(null)}
-                    disabled={!selectedAward?.winnerId}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Deselect winner</TooltipContent>
-              </Tooltip>
+              <div className="flex items-center gap-2">
+                {/* TODO: Re-enable when calculateAccuracy mutation is implemented
+                {(currentEvent?.phase === EventPhase.Results || currentEvent?.phase === EventPhase.Recap) && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (!event?.id) return;
+                          calculateAccuracyMutation.mutateAsync({ eventId: event.id }).then(() => {
+                            refetchEvent();
+                          });
+                        }}
+                        disabled={calculateAccuracyMutation.isPending}
+                      >
+                        🔮 Calculate Accuracy
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Calculate prediction accuracy for all attendees</TooltipContent>
+                  </Tooltip>
+                )}
+                */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8"
+                      onClick={() => handleSelectWinner(null)}
+                      disabled={!selectedAward?.winnerId}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Deselect winner</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
           <div className="h-full max-h-[calc(100vh-122px)] overflow-y-auto rounded-lg border">
             <Table>
               <TableHeader className="sticky top-0">
                 <TableRow>
-                  <TableHead className="w-[50px] text-right">#</TableHead>
                   <TableHead>Demo</TableHead>
+                  <TableHead className="w-[100px] text-right">
+                    {isPitchNight ? "Invested" : "Votes"}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <AnimatePresence mode="popLayout">
                   {Array.from(votesByDemoId.entries())
                     .sort((a, b) => b[1] - a[1])
-                    .map(([demoId, voteCount]) => (
-                      <motion.tr
-                        key={demoId}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className={cn(
-                          "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
-                          "cursor-pointer",
-                          selectedAward?.winnerId === demoId && "bg-accent",
-                        )}
-                        onClick={() => handleSelectWinner(demoId)}
-                      >
-                        <TableCell className="text-right font-medium">
-                          {isPitchNight ? `$${(voteCount / 1000).toFixed(0)}k` : voteCount}
-                        </TableCell>
-                        <TableCell className="flex items-center justify-start gap-2 font-medium">
-                          {selectedAward?.winnerId === demoId && (
-                            <CircleCheck className="h-4 w-4 text-green-500" />
+                    .map(([demoId, voteCount]) => {
+                      return (
+                        <motion.tr
+                          key={demoId}
+                          layout
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className={cn(
+                            "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+                            "cursor-pointer",
+                            selectedAward?.winnerId === demoId && "bg-accent",
                           )}
-                          <span
-                            className={cn(
-                              selectedAward?.winnerId === demoId &&
-                                "font-semibold",
+                          onClick={() => handleSelectWinner(demoId)}
+                        >
+                          <TableCell className="flex items-center justify-start gap-2 font-medium">
+                            {selectedAward?.winnerId === demoId && (
+                              <CircleCheck className="h-4 w-4 text-green-500" />
                             )}
-                          >
-                            {
-                              event.demos.find((demo) => demo.id === demoId)
-                                ?.name
-                            }
-                          </span>
-                        </TableCell>
-                      </motion.tr>
-                    ))}
+                            <span
+                              className={cn(
+                                selectedAward?.winnerId === demoId &&
+                                  "font-semibold",
+                              )}
+                            >
+                              {
+                                event.demos.find((demo) => demo.id === demoId)
+                                  ?.name
+                              }
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {isPitchNight ? `$${(voteCount / 1000).toFixed(0)}k` : voteCount}
+                          </TableCell>
+                        </motion.tr>
+                      );
+                    })}
                 </AnimatePresence>
               </TableBody>
             </Table>

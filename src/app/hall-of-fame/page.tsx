@@ -11,6 +11,8 @@ import Logos from "~/components/Logos";
 
 import { env } from "~/env";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding();
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
@@ -38,62 +39,69 @@ export const voteRouter = createTRPCRouter({
           if (input.amount < 0) {
             throw new Error("Investment amount cannot be negative");
           }
+        }
 
-          // Check total allocated doesn't exceed $100k for this award
-          const existingVotes = await db.vote.findMany({
+        // Wrap budget validation and upsert in a transaction to prevent race conditions
+        return db.$transaction(async (tx) => {
+          // Check total allocated doesn't exceed $100k for this award (if amount is provided)
+          if (input.amount !== null && input.amount !== undefined) {
+            const existingVotes = await tx.vote.findMany({
+              where: {
+                eventId: input.eventId,
+                attendeeId: input.attendeeId,
+                awardId: input.awardId,
+                NOT: {
+                  demoId: input.demoId, // Exclude current demo to avoid double-counting on update
+                },
+              },
+            });
+
+            const totalAllocated = existingVotes.reduce(
+              (sum, v) => sum + (v.amount ?? 0),
+              0,
+            );
+
+            if (totalAllocated + input.amount > 100000) {
+              const remaining = 100000 - totalAllocated;
+              throw new Error(
+                `Total investment cannot exceed $100,000. You have $${remaining / 1000}k remaining.`,
+              );
+            }
+          }
+
+          // Use the new compound unique key that includes demoId
+          // If demoId is null, we need to delete any existing vote for this award (demo night clearing vote)
+          if (input.demoId === null) {
+            // For demo nights: delete existing vote for this award if clearing selection
+            await tx.vote.deleteMany({
+              where: {
+                eventId: input.eventId,
+                attendeeId: input.attendeeId,
+                awardId: input.awardId,
+              },
+            });
+            return null; // Return null when clearing vote
+          }
+
+          // For valid votes (demoId is not null), upsert the vote
+          return tx.vote.upsert({
             where: {
-              eventId: input.eventId,
-              attendeeId: input.attendeeId,
-              awardId: input.awardId,
-              NOT: {
-                demoId: input.demoId, // Exclude current demo to avoid double-counting on update
+              eventId_attendeeId_awardId_demoId: {
+                eventId: input.eventId,
+                attendeeId: input.attendeeId,
+                awardId: input.awardId,
+                demoId: input.demoId,
               },
             },
+            create: { ...input },
+            update: { ...input },
           });
-
-          const totalAllocated = existingVotes.reduce(
-            (sum, v) => sum + (v.amount ?? 0),
-            0,
-          );
-
-          if (totalAllocated + input.amount > 100000) {
-            const remaining = 100000 - totalAllocated;
-            throw new Error(
-              `Total investment cannot exceed $100,000. You have $${remaining / 1000}k remaining.`,
-            );
-          }
-        }
-
-        // Use the new compound unique key that includes demoId
-        // If demoId is null, we need to delete any existing vote for this award (demo night clearing vote)
-        if (input.demoId === null) {
-          // For demo nights: delete existing vote for this award if clearing selection
-          await db.vote.deleteMany({
-            where: {
-              eventId: input.eventId,
-              attendeeId: input.attendeeId,
-              awardId: input.awardId,
-            },
-          });
-          return null as any; // Return null when clearing vote
-        }
-
-        // For valid votes (demoId is not null), upsert the vote
-        return db.vote.upsert({
-          where: {
-            eventId_attendeeId_awardId_demoId: {
-              eventId: input.eventId,
-              attendeeId: input.attendeeId,
-              awardId: input.awardId,
-              demoId: input.demoId,
-            },
-          },
-          create: { ...input },
-          update: { ...input },
         });
-      } catch (error: any) {
-        if (error.code === "P2002") {
-          throw new Error("Cannot vote for the same award twice");
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === "P2002") {
+            throw new Error("Cannot vote for the same award twice");
+          }
         }
         throw error;
       }
@@ -128,9 +136,25 @@ export const voteRouter = createTRPCRouter({
 
       return investmentsByDemo;
     }),
-  delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {
-    return db.vote.delete({
-      where: { id: input },
-    });
-  }),
+  delete: publicProcedure
+    .input(z.object({ id: z.string(), attendeeId: z.string() }))
+    .mutation(async ({ input }) => {
+      // Verify the vote belongs to the attendee before deleting
+      const vote = await db.vote.findUnique({
+        where: { id: input.id },
+        select: { attendeeId: true },
+      });
+
+      if (!vote) {
+        throw new Error("Vote not found");
+      }
+
+      if (vote.attendeeId !== input.attendeeId) {
+        throw new Error("Unauthorized: You can only delete your own votes");
+      }
+
+      return db.vote.delete({
+        where: { id: input.id },
+      });
+    }),
 });

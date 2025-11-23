@@ -1,248 +1,251 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
-import Image from "next/image";
+import {
+  FolderIcon,
+  PlusIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { getBrandingClient } from "~/lib/branding";
-import { type EventConfig } from "~/lib/types/eventConfig";
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
+import { useEffect } from "react";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+import { ChapterManagement } from "./components/ChapterManagement";
 import { UpsertEventModal } from "./components/UpsertEventModal";
+import { EventListView, EventListSkeleton } from "./components/EventListView";
+import { EventGridView, EventGridSkeleton } from "./components/EventGridView";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+import { LayoutToggle } from "~/components/layout-toggle";
+import { useLayoutPreference } from "~/hooks/use-layout-preference";
 
-function getDaysAgo(date: Date): string {
-  const now = new Date();
-  const eventDate = new Date(date);
-  const diffTime = now.getTime() - eventDate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "1 day ago";
-  if (diffDays === -1) return "in 1 day";
-  if (diffDays < 0) return `in ${Math.abs(diffDays)} days`;
-  return `${diffDays} days ago`;
-}
+type EventWithChapter = Event & {
+  chapterId: string | null;
+  chapter: { id: string; name: string; emoji: string } | null;
+  _count: {
+    demos: number;
+    attendees: number;
+    submissions: number;
+  };
+};
 
 export default function AdminHomePage() {
+  const [mounted, setMounted] = useState(false);
   const branding = getBrandingClient();
-  const { data: currentEvent, refetch: refetchCurrentEvent } =
-    api.event.getCurrent.useQuery();
+  const utils = api.useUtils();
+  const { data: currentEvent } = api.event.getCurrent.useQuery();
+  const [selectedChapterFilter, setSelectedChapterFilter] = useState<
+    string | null
+  >(null);
   const {
     data: events,
-    refetch: refetchEvents,
     isLoading,
-  } = api.event.allAdmin.useQuery();
+  } = api.event.allAdmin.useQuery(
+    selectedChapterFilter ? { chapterId: selectedChapterFilter } : undefined,
+  );
+  const { data: chapters } = api.chapter.getAll.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
-  const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [chapterModalOpen, setChapterModalOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<EventWithChapter | undefined>(
+    undefined,
+  );
+  const [layout, setLayout] = useLayoutPreference();
 
-  const refetch = () => {
-    refetchCurrentEvent();
-    refetchEvents();
+  const refetch = async () => {
+    await utils.event.getCurrent.invalidate();
+    await utils.event.allAdmin.invalidate();
+    await utils.chapter.getAll.invalidate();
   };
 
-  const showUpsertEventModal = (event?: Event) => {
+  const showUpsertEventModal = (event?: EventWithChapter) => {
     setEventToEdit(event);
     setModalOpen(true);
   };
 
   const router = useRouter();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent SSR/prerendering flash
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b bg-white/60 shadow-sm backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between gap-1 px-8 py-2">
-          <Logos size={36} logoPath={branding.logoPath} />
-          <div className="flex flex-col items-center justify-center">
-            <h1 className="line-clamp-1 font-marker text-xl font-bold leading-6 tracking-tight">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* Compact header */}
+      <header className="sticky top-0 z-20 border-b border-slate-200/60 bg-white/90 shadow-sm backdrop-blur-2xl">
+        <div className="container mx-auto flex items-center justify-between gap-4 px-6 py-4 sm:px-10 sm:py-5">
+          <div className="shrink-0">
+            <Logos size={40} logoPath={branding.logoPath} />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5">
+            <h1 className="line-clamp-1 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text font-marker text-xl font-bold leading-tight tracking-tight text-transparent sm:text-2xl">
               {branding.appName} App
             </h1>
-            <span className="font-marker text-sm font-bold text-muted-foreground">
+            <span className="font-marker text-xs font-semibold tracking-wide text-slate-500 sm:text-sm">
               Admin Dashboard
             </span>
           </div>
-          <div className="flex w-[108px] items-center justify-end" />
+          <div className="w-10 shrink-0 sm:w-[100px]" />
         </div>
       </header>
-      <div className="container mx-auto p-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
-        </div>
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <>
-              <EventSkeleton />
-              <EventSkeleton />
-              <EventSkeleton />
-            </>
-          ) : (
-            events?.map((event) => (
-              <Card
-                key={event.id}
-                className={cn(
-                  "cursor-pointer transition-all hover:shadow-md",
-                  "border-border",
-                  "active:scale-[0.99]",
-                )}
-                onClick={() => {
-                  router.push(`/admin/${event.id}`);
-                }}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <Image
-                      src={
-                        (event.config as EventConfig | null)?.isPitchNight
-                          ? "/images/pitch.png"
-                          : "/images/logo.png"
-                      }
-                      alt={
-                        (event.config as EventConfig | null)?.isPitchNight
-                          ? "Pitch Night"
-                          : "Demo Night"
-                      }
-                      width={48}
-                      height={48}
-                      className="h-12 w-12 rounded-lg object-contain"
-                    />
-                    <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <div className="min-w-0 flex-1">
-                        <CardTitle className="flex items-center gap-2">
-                          <span className="line-clamp-1 text-xl">
-                            {event.name}
-                          </span>
-                          {event.id === currentEvent?.id && (
-                            <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
-                              <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
-                              <span className="text-xs font-semibold text-green-600">
-                                LIVE
-                              </span>
-                            </div>
-                          )}
-                        </CardTitle>
-                        <div className="mt-1 flex items-center gap-1 text-sm font-medium">
-                          <CalendarIcon className="h-4 w-4" />
-                          <span className="first-letter:capitalize">
-                            {getDaysAgo(event.date)}
-                          </span>
-                          <span className="text-muted-foreground">
-                            (
-                            {event.date.toLocaleDateString("en-US", {
-                              timeZone: "UTC",
-                              weekday: "short",
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                            )
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Presentation className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {event._count.demos}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {event._count.demos === 1 ? "demo" : "demos"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {event._count.attendees}
-                          </span>
-                          <span className="text-muted-foreground">
-                            {event._count.attendees === 1
-                              ? "attendee"
-                              : "attendees"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        showUpsertEventModal(event);
-                      }}
-                    >
-                      <span className="sr-only">Edit</span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                      >
-                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                        <path d="m15 5 4 4" />
-                      </svg>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
-      <UpsertEventModal
-        event={eventToEdit}
-        onSubmit={() => refetch()}
-        onDeleted={() => {
-          setModalOpen(false);
-          refetch();
-        }}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
-    </main>
-  );
-}
 
-function EventSkeleton() {
-  return (
-    <Card className="animate-pulse">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="h-12 w-12 rounded-lg bg-gray-200" />
-          <div className="flex min-w-0 flex-1 items-center gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="h-7 w-48 rounded bg-gray-200" />
-              <div className="mt-2 flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-200" />
-                <div className="h-4 w-32 rounded bg-gray-200" />
-              </div>
+      {/* Compact main content */}
+      <div className="container mx-auto max-w-[1400px] px-6 py-6 sm:px-10 sm:py-10">
+        {/* Compact page header */}
+        <div className="mb-6 flex flex-col gap-6 sm:mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-1.5">
+              <h2 className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl sm:leading-tight">
+                Events
+              </h2>
+              <p className="text-sm font-medium text-slate-600">
+                Manage your demo night events and chapters
+              </p>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-200" />
-                <div className="h-4 w-16 rounded bg-gray-200" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 rounded bg-gray-200" />
-                <div className="h-4 w-20 rounded bg-gray-200" />
-              </div>
+
+            {/* Compact action buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setChapterModalOpen(true)}
+                className="group relative flex-1 overflow-hidden border-slate-300 bg-white px-4 py-2 text-slate-700 shadow-md transition-all duration-300 hover:scale-105 hover:border-slate-400 hover:bg-slate-50 hover:shadow-lg sm:flex-none"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-100/0 via-slate-100/50 to-slate-100/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <FolderIcon className="relative mr-2 h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
+                <span className="relative hidden text-sm font-semibold sm:inline">Manage Chapters</span>
+                <span className="relative text-sm font-semibold sm:hidden">Chapters</span>
+              </Button>
+              <Button
+                onClick={() => showUpsertEventModal()}
+                className="group relative flex-1 overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl sm:flex-none"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <PlusIcon className="relative mr-2 h-4 w-4 transition-all duration-500 group-hover:rotate-180" />
+                <span className="relative hidden text-sm font-bold sm:inline">Create Event</span>
+                <span className="relative text-sm font-bold sm:hidden">Create</span>
+              </Button>
             </div>
           </div>
-          <div className="h-8 w-8 rounded bg-gray-200" />
+
+          {/* Compact filter section */}
+          <div className="flex flex-col gap-3 rounded-xl border border-slate-200/60 bg-white/50 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="rounded-md bg-gradient-to-br from-indigo-100 to-purple-100 p-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-indigo-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                  />
+                </svg>
+              </div>
+              <span className="text-sm font-bold text-slate-800">
+                Filter by chapter
+              </span>
+            </div>
+            <Select
+              value={selectedChapterFilter ?? "all"}
+              onValueChange={(value) =>
+                setSelectedChapterFilter(value === "all" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full border-slate-300 bg-white px-3 py-2 text-sm font-semibold shadow-sm transition-all hover:border-indigo-400 hover:shadow-md sm:w-[220px]">
+                <SelectValue placeholder="All Chapters" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <span className="font-semibold">All Chapters</span>
+                </SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    <span className="font-medium">{chapter.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Events display */}
+        {isLoading ? (
+          layout === "grid" ? <EventGridSkeleton /> : <EventListSkeleton />
+        ) : layout === "grid" ? (
+          <EventGridView
+            events={events ?? []}
+            currentEventId={currentEvent?.id}
+            onEventClick={(eventId) => router.push(`/admin/${eventId}`)}
+            onEditClick={showUpsertEventModal}
+          />
+        ) : (
+          <EventListView
+            events={events ?? []}
+            currentEventId={currentEvent?.id}
+            onEventClick={(eventId) => router.push(`/admin/${eventId}`)}
+            onEditClick={showUpsertEventModal}
+          />
+        )}
+
+        <UpsertEventModal
+          event={eventToEdit}
+          onSubmit={async () => {
+            await refetch();
+          }}
+          onDeleted={async () => {
+            await refetch();
+          }}
+          open={modalOpen}
+          onOpenChange={(open) => {
+            setModalOpen(open);
+            if (!open) {
+              setEventToEdit(undefined);
+            }
+          }}
+        />
+        <ChapterManagement
+          open={chapterModalOpen}
+          onOpenChange={(open) => {
+            setChapterModalOpen(open);
+            if (!open) refetch();
+          }}
+          onChapterDeleted={(deletedChapterId) => {
+            // Close the manage chapters dialog
+            setChapterModalOpen(false);
+            // Reset filter if the deleted chapter was the current filter
+            if (selectedChapterFilter === deletedChapterId) {
+              setSelectedChapterFilter(null);
+            }
+            refetch();
+          }}
+        />
+      </div>
+
+      <LayoutToggle
+        layout={layout}
+        onToggle={() => setLayout(layout === "grid" ? "list" : "grid")}
+      />
+    </main>
   );
 }

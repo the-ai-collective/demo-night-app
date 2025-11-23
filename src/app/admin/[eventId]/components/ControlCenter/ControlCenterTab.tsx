@@ -164,7 +164,7 @@ function PhaseButton({
           variant="secondary"
           onClick={onPhaseSelect}
           className={cn(
-            "relative flex w-[calc(20%-0.4rem)] min-w-0",
+            "relative flex w-[calc(16.666%-0.4rem)] min-w-0",
             config.phase === currentPhase
               ? "bg-green-100 text-green-500 hover:bg-green-100/80"
               : "",
