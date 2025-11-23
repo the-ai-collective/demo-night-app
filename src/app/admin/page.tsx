@@ -13,7 +13,6 @@ import { api } from "~/trpc/react";
 import { useEffect } from "react";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 import { ChapterManagement } from "./components/ChapterManagement";
 import { UpsertEventModal } from "./components/UpsertEventModal";

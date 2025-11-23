@@ -1,10 +1,4 @@
 import validator from "validator";
-import DOMPurify from "dompurify";
-import { JSDOM } from "jsdom";
-
-// Create a DOMPurify instance for server-side use
-const window = new JSDOM("").window;
-const purify = DOMPurify(window as any);
 
 /**
  * Sanitize text for use in emails
@@ -36,15 +30,42 @@ export function sanitizeEmailText(text: string, maxLength = 500): string {
 /**
  * Sanitize HTML content for emails
  * Allows safe HTML while removing dangerous content
+ * Uses a simple allowlist approach without requiring jsdom
  */
 export function sanitizeEmailHTML(html: string): string {
   if (!html) return "";
 
-  return purify.sanitize(html, {
-    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li"],
-    ALLOWED_ATTR: ["href"],
-    ALLOW_DATA_ATTR: false,
+  // Strip all HTML tags except the allowed ones
+  let sanitized = html;
+
+  // Remove script tags and their content
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+
+  // Remove style tags and their content
+  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "");
+
+  // Remove event handlers (onclick, onerror, etc.)
+  sanitized = sanitized.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, "");
+  sanitized = sanitized.replace(/\son\w+\s*=\s*[^\s>]*/gi, "");
+
+  // Remove javascript: and data: URLs
+  sanitized = sanitized.replace(/href\s*=\s*["']?\s*javascript:/gi, "href=");
+  sanitized = sanitized.replace(/href\s*=\s*["']?\s*data:/gi, "href=");
+
+  // Only allow specific tags: b, i, em, strong, a, p, br, ul, ol, li
+  // Remove all other tags
+  sanitized = sanitized.replace(/<(?!\/?(?:b|i|em|strong|a|p|br|ul|ol|li)\b)[^>]+>/gi, "");
+
+  // For <a> tags, only allow href attribute
+  sanitized = sanitized.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+    const hrefMatch = attrs.match(/href\s*=\s*["']([^"']*)["']/i);
+    if (hrefMatch) {
+      return `<a href="${hrefMatch[1]}">`;
+    }
+    return "<a>";
   });
+
+  return sanitized;
 }
 
 /**

@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import "swagger-ui-react/swagger-ui.css";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 const SwaggerUI = dynamicImport(() => import("swagger-ui-react"), { ssr: false });
 

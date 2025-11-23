@@ -6,7 +6,6 @@ import { getBranding } from "~/lib/branding.server";
 import Workspaces from "./components/Workspaces";
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export async function generateMetadata() {
   const currentEvent = await api.event.getCurrent();
