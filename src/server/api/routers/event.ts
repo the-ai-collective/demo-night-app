@@ -180,6 +180,7 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapterId: true,
         chapter: {
           select: {
             id: true,

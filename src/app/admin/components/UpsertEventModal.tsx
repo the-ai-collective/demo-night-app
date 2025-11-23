@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -69,6 +69,9 @@ export function UpsertEventModal({
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
     getChapterId(event),
   );
+  useEffect(() => {
+    setSelectedChapterId(getChapterId(event));
+  }, [event]);
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
   const { data: chapters } = api.chapter.all.useQuery();
