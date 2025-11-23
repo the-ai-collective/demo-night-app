@@ -43,6 +43,10 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
+      wellKnown: "https://accounts.google.com/.well-known/openid-configuration",
+      httpOptions: {
+        timeout: 10000, 
+      },
     }),
     CredentialsProvider({
       name: "Credentials",

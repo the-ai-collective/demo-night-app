@@ -11,7 +11,7 @@
     "db:seed": "yarn env:dev prisma db seed",
     "db:studio": "yarn env:dev prisma studio",
     "db:studio:prod": "prisma studio",
-    "build": "prisma migrate deploy && prisma generate && next build",
+    "build": "prisma migrate deploy && prisma generate --accelerate && next build",
     "start": "next start",
     "start:dev": "next start --env-file .env.development.local",
     "lint": "next lint"

@@ -280,24 +280,6 @@ const messageText = {
   fontStyle: "italic",
 };
 
-const buttonSection = {
-  textAlign: "center" as const,
-  margin: "40px 0",
-  padding: "0 32px",
-};
-
-const button = {
-  borderRadius: "8px",
-  color: "#ffffff",
-  fontSize: "16px",
-  fontWeight: "600",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "inline-block",
-  padding: "14px 32px",
-  transition: "all 0.2s ease",
-};
-
 const footerSection = {
   padding: "32px",
   borderTop: "1px solid #e2e8f0",
