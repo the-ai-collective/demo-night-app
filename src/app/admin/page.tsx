@@ -1,19 +1,17 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, LogOut, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { getBrandingClient } from "~/lib/branding";
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import { AdminHeader } from "./components/AdminHeader";
 import { UpsertEventModal } from "./components/UpsertEventModal";
-import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
 
@@ -31,8 +29,6 @@ function getDaysAgo(date: Date): string {
 }
 
 export default function AdminHomePage() {
-  const { data: session } = useSession();
-  const branding = getBrandingClient();
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
   const {
@@ -57,39 +53,20 @@ export default function AdminHomePage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b bg-white/60 shadow-sm backdrop-blur">
-        <div className="container mx-auto flex items-center justify-between gap-1 px-8 py-2">
-          <Logos size={36} logoPath={branding.logoPath} />
-          <div className="flex flex-col items-center justify-center">
-            <h1 className="line-clamp-1 font-marker text-xl font-bold leading-6 tracking-tight">
-              {branding.appName} App
-            </h1>
-            <span className="font-marker text-sm font-bold text-muted-foreground">
-              Admin Dashboard
-            </span>
-          </div>
-          <div className="flex w-[108px] items-center justify-end">
-            {session && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                data-testid="logout-button"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+      <AdminHeader />
       <div className="container mx-auto p-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.push("/admin/chapters")}>
+              <Presentation className="mr-2 h-4 w-4" />
+              Manage Chapters
+            </Button>
+            <Button onClick={() => showUpsertEventModal()}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -139,6 +116,14 @@ export default function AdminHomePage() {
                               <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
                               <span className="text-xs font-semibold text-green-600">
                                 LIVE
+                              </span>
+                            </div>
+                          )}
+                          {event.chapter && (
+                            <div className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1">
+                              <span className="text-xs">{event.chapter.emoji}</span>
+                              <span className="text-xs font-semibold text-blue-600">
+                                {event.chapter.name}
                               </span>
                             </div>
                           )}

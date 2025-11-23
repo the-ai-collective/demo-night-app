@@ -103,6 +103,7 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterId: z.string().optional().nullable(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -112,6 +113,7 @@ export const eventRouter = createTRPCRouter({
         date: input.date,
         url: input.url,
         config: input.config,
+        chapterId: input.chapterId,
       };
 
       try {
@@ -172,6 +174,12 @@ export const eventRouter = createTRPCRouter({
         url: true,
         config: true,
         secret: true,
+        chapter: {
+          select: {
+            name: true,
+            emoji: true,
+          },
+        },
         _count: {
           select: {
             demos: true,

@@ -57,16 +57,31 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Chapter {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  emoji  String
+  city   String?
+  hidden Boolean @default(false)
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 // ############# Business logic #############
 
 model Event {
   id String @id @default(cuid())
 
-  name   String
-  date   DateTime
-  url    String
-  config Json     @default("{}")
-  secret String   @default(cuid())
+  name      String
+  date      DateTime
+  url       String
+  config    Json     @default("{}")
+  secret    String   @default(cuid())
+  chapter   Chapter? @relation(fields: [chapterId], references: [id])
+  chapterId String?
 
   submissions   Submission[]
   demos         Demo[]

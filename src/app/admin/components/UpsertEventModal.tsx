@@ -16,6 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
@@ -45,17 +52,21 @@ export function UpsertEventModal({
   const [useTestData, setUseTestData] = useState(false);
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.getAllAdmin.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, setValue, watch } = useForm({
     values: {
       name: event?.name ?? "",
       id: event?.id ?? defaultId,
       date: (event?.date ?? new Date()).toISOString().substring(0, 10),
       url: event?.url ?? "",
+      chapterId: event?.chapterId ?? "none",
     },
   });
+
+  const selectedChapterId = watch("chapterId");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,6 +88,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: data.chapterId === "none" ? null : data.chapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -150,6 +162,27 @@ export function UpsertEventModal({
               required
             />
           </label>
+
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={selectedChapterId}
+              onValueChange={(value) => setValue("chapterId", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a chapter..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter (Global)</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
+
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"
