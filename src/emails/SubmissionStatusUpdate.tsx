@@ -5,199 +5,253 @@ import {
   Head,
   Hr,
   Html,
+  Img,
+  Link,
   Preview,
+  Row,
   Section,
   Text,
 } from "@react-email/components";
 import * as React from "react";
 
-type SubmissionStatus = "PENDING" | "CONFIRMED" | "REJECTED" | "WAITLISTED" | "AWAITING_CONFIRMATION" | "CANCELLED";
-
 interface SubmissionStatusUpdateEmailProps {
-  companyName: string;
-  submitterName: string;
-  eventName: string;
-  status: SubmissionStatus;
+  companyName?: string;
+  submitterName?: string;
+  eventName?: string;
+  status?: string;
   message?: string;
-  eventUrl?: string;
-  eventDate?: string;
 }
 
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000";
+
+const hr = {
+  borderColor: "#e5e7eb",
+  margin: "24px 0",
+};
+
+const subheading = {
+  fontSize: "18px",
+  lineHeight: "24px",
+  fontWeight: "600" as const,
+  margin: "12px 0",
+  color: "#374151",
+};
+
 export const SubmissionStatusUpdateEmail = ({
-  companyName,
-  submitterName,
-  eventName,
-  status,
+  companyName = "Your Company",
+  submitterName = "there",
+  eventName = "Event",
+  status = "PENDING",
   message,
-  eventUrl,
-  eventDate,
 }: SubmissionStatusUpdateEmailProps) => {
   const isConfirmed = status === "CONFIRMED";
-  const isAwaitingConfirmation = status === "AWAITING_CONFIRMATION";
-  const isCancelled = status === "CANCELLED";
+  const isRejected = status === "REJECTED";
+  const isWaitlisted = status === "WAITLISTED";
+  const isAwaiting = status === "AWAITING_CONFIRMATION";
   const isPending = status === "PENDING";
-  
-  const statusIcon = isConfirmed 
-    ? "✅" 
-    : isAwaitingConfirmation
-    ? "🎯"
-    : status === "WAITLISTED" 
-    ? "⏳"
-    : isCancelled
-    ? "❌"
-    : isPending
-    ? "📋"
-    : "❌";
-  
-  const statusTitle = isConfirmed 
-    ? "Approved" 
-    : isAwaitingConfirmation
-    ? "Shortlisted"
-    : status === "WAITLISTED" 
-    ? "Waitlisted"
-    : isCancelled
-    ? "Cancelled"
-    : isPending
-    ? "Received"
-    : "Status Update";
-  
-  const statusColor = isConfirmed 
-    ? "#10b981" 
-    : isAwaitingConfirmation
-    ? "#3b82f6"
-    : status === "WAITLISTED" 
-    ? "#f59e0b"
-    : isCancelled
-    ? "#ef4444"
-    : isPending
-    ? "#8b5cf6"
-    : "#ef4444";
+  const isCancelled = status === "CANCELLED";
+
+  const getStatusContent = () => {
+    if (isConfirmed) {
+      return {
+        icon: "✅",
+        title: "Approved",
+        color: "#10b981",
+        heading: `🚀 Congratulations!`,
+        body: `Hi ${submitterName},\n\nGreat news! Your submission for ${companyName} has been approved for ${eventName}!`,
+        details: `We're excited to have you present. Check your email for event details and next steps.`,
+      };
+    }
+    if (isRejected) {
+      return {
+        icon: "❌",
+        title: "Status Update",
+        color: "#ef4444",
+        heading: "Status Update",
+        body: `Hi ${submitterName},\n\nThank you for submitting ${companyName} to ${eventName}.`,
+        details: `Unfortunately, it was not selected for this event. We received many amazing submissions and had to make some tough choices. We encourage you to apply again for future events!`,
+      };
+    }
+    if (isWaitlisted) {
+      return {
+        icon: "⏳",
+        title: "Waitlisted",
+        color: "#f59e0b",
+        heading: "Waitlisted",
+        body: `Hi ${submitterName},\n\nThank you for submitting ${companyName} to ${eventName}.`,
+        details: `Your submission has been placed on our waitlist. We'll reach out if a spot becomes available.`,
+      };
+    }
+    if (isAwaiting) {
+      return {
+        icon: "🎯",
+        title: "Shortlisted",
+        color: "#3b82f6",
+        heading: "🎯 You've Been Shortlisted!",
+        body: `Hi ${submitterName},\n\nCongratulations! ${companyName} has been shortlisted for ${eventName}.`,
+        details: `We're impressed with your submission and we'd love to have you present. Are you available to demo on the event date?`,
+      };
+    }
+    if (isPending) {
+      return {
+        icon: "📋",
+        title: "Received",
+        color: "#8b5cf6",
+        heading: "📋 Submission Received",
+        body: `Hi ${submitterName},\n\nThank you for submitting ${companyName} to ${eventName}.`,
+        details: `We've received your submission and our team will review it shortly. You'll receive an email update once we've made a decision.`,
+      };
+    }
+    if (isCancelled) {
+      return {
+        icon: "❌",
+        title: "Cancelled",
+        color: "#dc2626",
+        heading: "Submission Cancelled",
+        body: `Hi ${submitterName},\n\nWe regret to inform you that your submission for ${companyName} has been cancelled.`,
+        details: `If you have any questions, please feel free to reach out to us.`,
+      };
+    }
+
+    return {
+      icon: "📨",
+      title: "Update",
+      color: "#6366f1",
+      heading: "Update on Your Submission",
+      body: `Hi ${submitterName},\n\nHere's an update on your ${companyName} submission to ${eventName}.`,
+      details: "Thank you for your participation!",
+    };
+  };
+
+  const content = getStatusContent();
 
   return (
     <Html>
       <Head />
-      <Preview>{statusTitle}: {companyName} for {eventName}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          {/* Header */}
-          <Section style={box}>
-            <Text style={{ ...heading, color: statusColor }}>
-              {statusIcon} {statusTitle}
-            </Text>
-          </Section>
+      <Preview>
+        {content.heading} - {companyName}
+      </Preview>
+      <Body style={{ backgroundColor: "#f3f4f6" }}>
+        <Container>
+          <Section style={{ backgroundColor: "#ffffff", margin: "0 auto" }}>
+            <Row style={{ width: "100%" }}>
+              <Section style={{ padding: "48px" }}>
+                <Text style={{ fontSize: "32px", margin: "16px 0" }}>
+                  {content.icon} {content.title}
+                </Text>
+                <Text style={{ fontSize: "16px", lineHeight: "1.5" }}>
+                  {content.body}
+                </Text>
 
-          {/* Content */}
-          <Section style={box}>
-            <Text style={paragraph}>Hi {submitterName},</Text>
-
-            {isConfirmed ? (
-              <>
-                <Text style={paragraph}>
-                  Great news! <strong>{companyName}</strong> has been selected to demo at{" "}
-                  <strong>{eventName}</strong>! 🎉
-                </Text>
-                <Text style={paragraph}>
-                  We're excited to have you on stage. Our team will be in touch with more
-                  details about logistics, timing, and what to expect.
-                </Text>
-              </>
-            ) : isAwaitingConfirmation ? (
-              <>
-                <Text style={paragraph}>
-                  Congratulations! <strong>{companyName}</strong> has been shortlisted for{" "}
-                  <strong>{eventName}</strong>! 🎯
-                </Text>
-                {eventDate && (
-                  <Text style={paragraph}>
-                    The event is scheduled for <strong>{eventDate}</strong>.
-                  </Text>
-                )}
-                <Text style={paragraph}>
-                  We would love to have you present your demo. Please confirm if you're available
-                  to present on that day.
-                </Text>
-              </>
-            ) : status === "WAITLISTED" ? (
-              <>
-                <Text style={paragraph}>
-                  Thank you for submitting <strong>{companyName}</strong> to{" "}
-                  <strong>{eventName}</strong>.
-                </Text>
-                <Text style={paragraph}>
-                  We love your submission! Unfortunately, we're at capacity for this event,
-                  but we'd like to keep you in mind as a backup. We'll reach out if a spot
-                  opens up.
-                </Text>
-              </>
-            ) : isCancelled ? (
-              <>
-                <Text style={paragraph}>
-                  We regret to inform you that <strong>{companyName}</strong>'s submission to{" "}
-                  <strong>{eventName}</strong> has been cancelled.
-                </Text>
-                <Text style={paragraph}>
-                  If you have any questions about this decision, please don't hesitate to reach out.
-                </Text>
-              </>
-            ) : isPending ? (
-              <>
-                <Text style={paragraph}>
-                  Thank you for submitting <strong>{companyName}</strong> to{" "}
-                  <strong>{eventName}</strong>!
-                </Text>
-                <Text style={paragraph}>
-                  We've received your submission and our team is reviewing it. You'll hear from us soon
-                  with an update on your status.
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={paragraph}>
-                  Thank you for submitting <strong>{companyName}</strong> to{" "}
-                  <strong>{eventName}</strong>.
-                </Text>
-                <Text style={paragraph}>
-                  Unfortunately, it was not selected for this event. We received many amazing
-                  submissions and had to make some tough choices.
-                </Text>
-                <Text style={paragraph}>
-                  We encourage you to apply again for future events!
-                </Text>
-              </>
-            )}
-
-            {message && (
-              <>
                 <Hr style={hr} />
-                <Text style={subheading}>Message from organizers:</Text>
-                <Text style={{ ...paragraph, backgroundColor: "#f3f4f6", padding: "12px", borderRadius: "6px" }}>
-                  "{message}"
+
+                <Text style={subheading}>Submission Details:</Text>
+
+                <Section
+                  style={{
+                    backgroundColor: "#f9fafb",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    margin: "12px 0",
+                  }}
+                >
+                  <Row>
+                    <Text
+                      style={{
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        fontWeight: "600",
+                        margin: "8px 0",
+                      }}
+                    >
+                      Company:
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: "14px",
+                        color: "#1f2937",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {companyName}
+                    </Text>
+                  </Row>
+
+                  <Row>
+                    <Text
+                      style={{
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        fontWeight: "600",
+                        margin: "8px 0",
+                      }}
+                    >
+                      Event:
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: "14px",
+                        color: "#1f2937",
+                        fontWeight: "500",
+                      }}
+                    >
+                      {eventName}
+                    </Text>
+                  </Row>
+                </Section>
+
+                <Hr style={hr} />
+
+                <Text style={{ fontSize: "16px", lineHeight: "1.5" }}>
+                  {content.details}
                 </Text>
-              </>
-            )}
 
-            <Hr style={hr} />
+                {message && (
+                  <>
+                    <Hr style={hr} />
+                    <Text style={subheading}>Message from organizers:</Text>
+                    <Section
+                      style={{
+                        backgroundColor: "#f3f4f6",
+                        padding: "16px",
+                        borderRadius: "8px",
+                        margin: "12px 0",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: "14px",
+                          color: "#374151",
+                          fontStyle: "italic",
+                          margin: "0",
+                        }}
+                      >
+                        &quot;{message}&quot;
+                      </Text>
+                    </Section>
+                  </>
+                )}
 
-            {isConfirmed && eventUrl && (
-              <Section style={{ textAlign: "center" }}>
-                <Button style={button} href={eventUrl}>
-                  View Event Details
-                </Button>
+                <Hr style={hr} />
+
+                <Text style={{ fontSize: "16px", lineHeight: "1.5" }}>
+                  If you have any questions, feel free to reach out to us.
+                </Text>
+                <Text style={{ fontSize: "16px", lineHeight: "1.5" }}>
+                  Best regards,
+                  <br />
+                  <strong>Demo Night Team</strong>
+                </Text>
               </Section>
-            )}
+            </Row>
 
-            <Text style={paragraph}>
-              Best regards,
-              <br />
-              <strong>Demo Night Team</strong>
-            </Text>
-          </Section>
-
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              © 2025 Demo Night. All rights reserved.
-            </Text>
+            <Section style={{ backgroundColor: "#f3f4f6", padding: "24px 48px" }}>
+              <Text style={{ fontSize: "12px", color: "#6b7280", margin: "0" }}>
+                © 2025 Demo Night. All rights reserved.
+              </Text>
+            </Section>
           </Section>
         </Container>
       </Body>
@@ -205,83 +259,4 @@ export const SubmissionStatusUpdateEmail = ({
   );
 };
 
-SubmissionStatusUpdateEmail.PreviewProps = {
-  companyName: "Acme Corp",
-  submitterName: "John Doe",
-  eventName: "SF Demo Night",
-  status: "CONFIRMED",
-  message: "We loved your product demo!",
-  eventUrl: "https://demo.night/events/sf-demo-night",
-} as SubmissionStatusUpdateEmailProps;
-
 export default SubmissionStatusUpdateEmail;
-
-// Styles
-const main = {
-  backgroundColor: "#f3f4f6",
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI","Roboto","Oxygen","Ubuntu","Cantarell","Fira Sans","Droid Sans","Helvetica Neue",sans-serif',
-};
-
-const container = {
-  backgroundColor: "#ffffff",
-  margin: "0 auto",
-  padding: "20px 0",
-  marginBottom: "64px",
-};
-
-const box = {
-  padding: "0 48px",
-};
-
-const heading = {
-  fontSize: "32px",
-  fontWeight: "bold",
-  margin: "16px 0",
-};
-
-const subheading = {
-  fontSize: "18px",
-  fontWeight: "600",
-  margin: "12px 0",
-  color: "#374151",
-};
-
-const paragraph = {
-  color: "#495057",
-  fontSize: "16px",
-  lineHeight: "1.5",
-  textAlign: "left" as const,
-  margin: "12px 0",
-};
-
-const hr = {
-  borderColor: "#e5e7eb",
-  margin: "24px 0",
-};
-
-const button = {
-  backgroundColor: "#f97316",
-  borderRadius: "6px",
-  color: "#fff",
-  fontSize: "14px",
-  fontWeight: "bold",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  padding: "12px 24px",
-  display: "inline-block",
-  margin: "24px 0",
-};
-
-const footer = {
-  backgroundColor: "#f3f4f6",
-  padding: "24px 48px",
-  textAlign: "center" as const,
-};
-
-const footerText = {
-  color: "#6b7280",
-  fontSize: "12px",
-  lineHeight: "1.5",
-  margin: "0",
-};
