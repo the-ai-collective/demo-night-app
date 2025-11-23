@@ -8,6 +8,7 @@ import {
 import { z } from "zod";
 
 import { DEFAULT_AWARDS, PITCH_NIGHT_AWARDS } from "~/lib/types/award";
+import { type Chapter } from "~/lib/types/chapter";
 import * as kv from "~/lib/types/currentEvent";
 import { DEFAULT_DEMOS } from "~/lib/types/demo";
 import {
@@ -28,7 +29,7 @@ export type CompleteEvent = Event & {
   demos: PublicDemo[];
   awards: Award[];
   eventFeedback: EventFeedback[];
-  chapterId?: string | null;
+  chapter?: Chapter | null;
 };
 
 export type PublicDemo = Omit<
@@ -508,6 +509,13 @@ const completeEventSelect: Prisma.EventSelect = {
   url: true,
   config: true,
   chapterId: true,
+  chapter: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
   demos: {
     orderBy: { index: "asc" },
     select: {

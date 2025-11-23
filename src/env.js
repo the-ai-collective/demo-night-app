@@ -29,6 +29,8 @@ export const env = createEnv({
     KV_REST_API_URL: z.string().url(),
     KV_REST_API_TOKEN: z.string(),
     KV_REST_API_READ_ONLY_TOKEN: z.string(),
+    RESEND_API_KEY: z.string(),
+    RESEND_EMAIL_FROM: z.string()
   },
 
   /**
@@ -61,6 +63,8 @@ export const env = createEnv({
     KV_REST_API_URL: process.env.KV_REST_API_URL,
     KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     KV_REST_API_READ_ONLY_TOKEN: process.env.KV_REST_API_READ_ONLY_TOKEN,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
