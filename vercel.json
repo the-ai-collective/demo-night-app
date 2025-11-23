@@ -1,4 +1,5 @@
 {
-  "buildCommand": "yarn build",
-  "framework": "nextjs"
+  "buildCommand": "prisma generate && next build",
+  "framework": "nextjs",
+  "installCommand": "yarn install"
 }
