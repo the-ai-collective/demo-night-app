@@ -1,6 +1,4 @@
 # Feature Proposal: Analytics & Insights Dashboard
-
-
 ---
 
 ## How I Identified This Opportunity
@@ -9,7 +7,7 @@ While exploring the Demo Night App codebase for the take-home assignment, I noti
 
 1. **Rich data model** - The schema includes extensive tracking (submissions, demos, feedback, votes, awards across multiple events and chapters)
 2. **Chapter system** - The newly-added chapter management (Task 1) enables multi-location tracking
-3. **No analytics aggregation** - The admin interface shows individual events but no cross-event insights
+3. **No analytics aggregation** - The admin interface shows individual events but no cross event insights
 4. **Mature product stage** - Multiple models suggest the app has accumulated meaningful historical data
 
 This led me to wonder: **Are event organizers manually analyzing this data, or is there an opportunity to provide automated insights?**
@@ -20,7 +18,7 @@ This led me to wonder: **Are event organizers manually analyzing this data, or i
 
 **I believe event organizers running multiple Demo Night events may struggle to:**
 - Understand patterns across events (What makes demos successful? Which chapters have highest engagement?)
-- Make data-driven decisions about event planning and demo selection
+- Make data driven decisions about event planning and demo selection
 - Benchmark performance across locations and time periods
 
 **However, I don't have validation that this is an actual pain point.** Before building this feature, I would want to:
@@ -51,7 +49,7 @@ Focus on proving value with minimal scope:
 
 3. **Recent Events List** - Simple table with:
    - Event name, date, chapter
-   - # demos, # attendees, avg rating
+   - demos, attendees, avg rating
    - Sortable columns
 
 **Why this scope?** 
@@ -96,17 +94,17 @@ Focus on proving value with minimal scope:
 
 **If organizers do need analytics**, these scenarios might resonate:
 
-1. **"Compare chapters to share best practices"**
+1. **Compare chapters to share best practices**
    - See which chapters have highest feedback scores
    - Identify what they're doing differently
    - Share tactics across locations
 
-2. **"Understand what makes demos successful"**
+2. **Understand what makes demos successful**
    - Look at winning demos' feedback patterns
    - Identify common characteristics
    - Improve future demo selection
 
-3. **"Track program growth over time"**
+3. **Track program growth over time**
    - See if events are getting bigger/better
    - Justify continued investment to stakeholders
    - Celebrate milestones
@@ -199,10 +197,10 @@ export const analyticsRouter = createTRPCRouter({
 ### Data Aggregation Strategy
 
 #### Approach A: Real-time calculation (Recommended for MVP)
-- Calculate metrics on-demand in tRPC procedures
+- Calculate metrics on demand in tRPC procedures
 - Use Prisma aggregations and groupBy queries
 - Cache results with React Query (5-minute stale time)
-- **Pros**: Simple, always up-to-date, no additional infrastructure
+- **Pros**: Simple, always up to date, no additional infrastructure
 - **Cons**: Slower for large datasets
 
 #### Approach B: Materialized views (Future optimization)
@@ -287,7 +285,7 @@ After MVP, evaluate:
 
 **Success Signal:** 
 - 3+ organizers visit analytics page multiple times in first month
-- Receive at least one piece of positive feedback ("This helped me understand X")
+- Receive at least one piece of positive feedback (This helped me understand X)
 - No major performance complaints
 
 **Failure Signal:**
@@ -305,7 +303,7 @@ After MVP, evaluate:
 
 **Bigger question:** Does this actually improve event quality?
 - That's harder to attribute, would need controlled comparison
-- Or survey organizers: "Did analytics influence any decisions?"
+- Or survey organizers -> Did analytics influence any decisions?
 
 ---
 
@@ -332,7 +330,7 @@ After MVP, evaluate:
 **Biggest risk**: Spending 8-10 hours on a feature nobody wants
 - **De-risk by**: 
   - Show mockups/wireframes first (15 min to make)
-  - Ask: "Would this be useful? What's missing?"
+  - Ask: Would this be useful? What's missing?
   - Get approval before writing code
 
 ### 5. Alternative Solutions
@@ -362,7 +360,7 @@ After MVP, evaluate:
 
 ### 3. Do Nothing
 - Maybe organizers don't actually need this
-- Current event-by-event view might be sufficient
+- Current event by event view might be sufficient
 - **Worth validating** before assuming there's a problem
 
 ---
@@ -481,7 +479,7 @@ const engagementByChapter = await db.event.findMany({
 
 **Product Judgment:**
 - Prioritized learning over building (user research first)
-- Suggested starting small rather than over-engineering
+- Suggested starting small rather than over engineering
 - Identified decision points to pivot or continue
 
 ### Honest Assessment
@@ -493,7 +491,7 @@ const engagementByChapter = await db.event.findMany({
 
 **Weaknesses:**
 - No actual user validation (just hypotheses)
-- May not be a high-priority need
+- May not be a high priority need
 - Could be solving a non-problem
 
 ### What I Would Do Next (If This Were Real)
@@ -503,12 +501,4 @@ const engagementByChapter = await db.event.findMany({
 3. **Get feedback**: "Is this useful? What's missing?"
 4. **Decision**: Continue, pivot, or kill
 
-**For this assignment:**
-This proposal serves to demonstrate how I think about product development - balancing user needs, technical constraints, and pragmatic scope decisions.
-
 ---
-
-## Appendix: Technical Details
-
-
-
