@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Card } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
 import type { Chapter } from "~/lib/types/chapter";
 import { CalendarIcon, Mail, ArrowRight } from "lucide-react";
 

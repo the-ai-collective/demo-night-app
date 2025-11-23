@@ -118,7 +118,7 @@ function SubmissionReview({
       await sendStatusEmailMutation.mutateAsync({
         submissionId: submission.id,
         status: status as SubmissionStatus,
-        message: comment || undefined,
+        message: comment ?? undefined,
       });
       toast.success("Email sent successfully!");
       onUpdate();
@@ -149,6 +149,7 @@ function SubmissionReview({
 
   useEffect(() => {
     debouncedUpdate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, flagged, rating]);
 
   return (

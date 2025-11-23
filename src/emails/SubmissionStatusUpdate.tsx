@@ -1,12 +1,9 @@
 import {
   Body,
-  Button,
   Container,
   Head,
   Hr,
   Html,
-  Img,
-  Link,
   Preview,
   Row,
   Section,
@@ -18,13 +15,10 @@ interface SubmissionStatusUpdateEmailProps {
   companyName?: string;
   submitterName?: string;
   eventName?: string;
+  eventDate?: string;
   status?: string;
   message?: string;
 }
-
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
 
 const hr = {
   borderColor: "#e5e7eb",
@@ -43,6 +37,7 @@ export const SubmissionStatusUpdateEmail = ({
   companyName = "Your Company",
   submitterName = "there",
   eventName = "Event",
+  eventDate,
   status = "PENDING",
   message,
 }: SubmissionStatusUpdateEmailProps) => {
@@ -200,6 +195,30 @@ export const SubmissionStatusUpdateEmail = ({
                       {eventName}
                     </Text>
                   </Row>
+
+                  {eventDate && (
+                    <Row>
+                      <Text
+                        style={{
+                          fontSize: "14px",
+                          color: "#6b7280",
+                          fontWeight: "600",
+                          margin: "8px 0",
+                        }}
+                      >
+                        Date:
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: "14px",
+                          color: "#1f2937",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {eventDate}
+                      </Text>
+                    </Row>
+                  )}
                 </Section>
 
                 <Hr style={hr} />
@@ -258,5 +277,3 @@ export const SubmissionStatusUpdateEmail = ({
     </Html>
   );
 };
-
-export default SubmissionStatusUpdateEmail;

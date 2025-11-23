@@ -67,8 +67,8 @@ export const SubmissionConfirmationEmail = ({
           <Hr style={hr} />
 
           <Text style={paragraph}>
-            We've received your submission and our team will review it shortly.
-            You'll receive an email update once we've made a decision.
+            We&apos;ve received your submission and our team will review it shortly.
+            You&apos;ll receive an email update once we&apos;ve made a decision.
           </Text>
 
           {submissionUrl && (
@@ -109,8 +109,6 @@ SubmissionConfirmationEmail.PreviewProps = {
   eventDate: "December 5, 2025",
   submissionUrl: "https://demo.night/submissions/123",
 } as SubmissionConfirmationEmailProps;
-
-export default SubmissionConfirmationEmail;
 
 // Styles
 const main = {
