@@ -164,9 +164,24 @@ export const eventRouter = createTRPCRouter({
         throw error;
       }
     }),
-  allAdmin: protectedProcedure.query(() => {
-    return db.event.findMany({
-      orderBy: { date: "desc" },
+  allAdmin: protectedProcedure
+    .input(
+      z
+        .object({
+          chapterId: z.string().optional(),
+        })
+        .optional(),
+    )
+    .query(({ input }) => {
+      const where: Prisma.EventWhereInput = {};
+      if (input?.chapterId) {
+        where.chapterId =
+          input.chapterId === "uncategorized" ? null : input.chapterId;
+      }
+
+      return db.event.findMany({
+        where,
+        orderBy: { date: "desc" },
       select: {
         id: true,
         name: true,
@@ -526,4 +541,10 @@ const completeEventSelect: Prisma.EventSelect = {
     },
   },
   awards: { orderBy: { index: "asc" } },
+  chapter: {
+    select: {
+      name: true,
+      emoji: true,
+    },
+  },
 };

@@ -10,6 +10,14 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
 import { AdminHeader } from "./components/AdminHeader";
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import { Button } from "~/components/ui/button";
@@ -31,11 +39,17 @@ function getDaysAgo(date: Date): string {
 export default function AdminHomePage() {
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
+  const { data: chapters } = api.chapter.getAllAdmin.useQuery();
+  const [selectedChapterId, setSelectedChapterId] = useState<string>("all");
   const {
     data: events,
     refetch: refetchEvents,
     isLoading,
-  } = api.event.allAdmin.useQuery();
+  } = api.event.allAdmin.useQuery(
+    selectedChapterId === "all"
+      ? undefined
+      : { chapterId: selectedChapterId },
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
 
@@ -58,6 +72,23 @@ export default function AdminHomePage() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Events</h2>
           <div className="flex gap-2">
+            <Select
+              value={selectedChapterId}
+              onValueChange={setSelectedChapterId}
+            >
+              <SelectTrigger className="w-[200px] bg-white">
+                <SelectValue placeholder="Filter by chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Chapters</SelectItem>
+                <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button variant="outline" onClick={() => router.push("/admin/chapters")}>
               <Presentation className="mr-2 h-4 w-4" />
               Manage Chapters
