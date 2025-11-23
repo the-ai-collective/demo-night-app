@@ -26,16 +26,22 @@ export const attendeeRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        name: z.string().nullable(),
-        email: z.string().nullable(),
-        linkedin: z.string().nullable(),
-        type: z.string().nullable(),
+        name: z.string().nullable().refine(val => !val || val.length <= 200, "Name too long"),
+        email: z.string().email().nullable().or(z.literal("")).or(z.null()),
+        linkedin: z.string().url().nullable().or(z.literal("")).or(z.null()),
+        type: z.string().nullable().refine(val => !val || val.length <= 100, "Type too long"),
       }),
     )
     .mutation(async ({ input }) => {
+      // Explicitly map fields instead of spreading input to prevent field injection
       return db.attendee.update({
         where: { id: input.id },
-        data: { ...input },
+        data: {
+          name: input.name,
+          email: input.email ?? null,
+          linkedin: input.linkedin ?? null,
+          type: input.type,
+        },
       });
     }),
   delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {

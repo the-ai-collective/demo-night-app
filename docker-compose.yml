@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   demo-night-app-redis:
     image: redis
@@ -24,7 +22,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
 
 volumes:
   postgres-data:

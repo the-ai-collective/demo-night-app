@@ -35,6 +35,23 @@ yarn db:studio               # Open Prisma Studio GUI
 yarn db:push                 # Push schema without migration
 ```
 
+### Email Development
+
+```bash
+yarn email:preview           # Start email preview server (http://localhost:3001)
+```
+
+The email preview server allows you to view and test all email templates in a browser:
+- Preview all email templates from `/src/emails/` directory
+- See how emails look across different email clients
+- Test email content without sending actual emails
+- Hot reload when email templates are modified
+
+Email templates are built with React Email and include:
+- **SubmissionConfirmation** - Sent when a demo is submitted
+- **SubmissionApproved** - Sent when a submission is approved
+- **SubmissionRejected** - Sent when a submission is rejected
+
 ## Architecture
 
 ### Tech Stack

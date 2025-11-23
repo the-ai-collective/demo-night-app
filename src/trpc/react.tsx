@@ -9,7 +9,24 @@ import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
 
-const createQueryClient = () => new QueryClient();
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Disable automatic refetching to reduce redundant queries
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        // Keep data fresh for 30 seconds before considering it stale
+        staleTime: 30_000,
+        // Cache data for 5 minutes
+        gcTime: 5 * 60 * 1000,
+        // Retry failed queries
+        retry: 1,
+        // Deduplicate requests within this window
+        networkMode: "online",
+      },
+    },
+  });
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {

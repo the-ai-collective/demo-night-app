@@ -13,6 +13,11 @@ import { ZodError } from "zod";
 
 import { getServerAuthSession } from "~/server/auth";
 import { db } from "~/server/db";
+import { verifyAccessToken, type TokenPayload } from "~/lib/auth-tokens";
+import {
+  generalRateLimiter,
+  getClientIdentifier,
+} from "~/lib/rate-limit";
 
 /**
  * 1. CONTEXT
@@ -82,13 +87,25 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
- * Public (unauthenticated) procedure
+ * Public (unauthenticated) procedure with rate limiting
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
  * guarantee that a user querying is authorized, but you can still access user session data if they
- * are logged in.
+ * are logged in. Includes rate limiting to prevent abuse.
  */
-export const publicProcedure = t.procedure;
+export const publicProcedure = t.procedure.use(async ({ next, ctx }) => {
+  const identifier = getClientIdentifier(ctx.headers);
+  const { success } = await generalRateLimiter.limit(identifier);
+
+  if (!success) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Rate limit exceeded. Please try again later.",
+    });
+  }
+
+  return next();
+});
 
 /**
  * Protected (authenticated) procedure
@@ -107,6 +124,143 @@ export const protectedProcedure = t.procedure.use(async ({ next }) => {
     ctx: {
       // infers the `session` as non-nullable
       session: { ...session, user: session.user },
+    },
+  });
+});
+
+/**
+ * Admin (authenticated + authorized) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to admin users, use this. It verifies
+ * the session is valid and that the user has admin role.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const adminProcedure = t.procedure.use(async ({ next }) => {
+  const session = await getServerAuthSession();
+  if (!session || !session.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
+  // Fetch user from database to check role
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (!user || user.role !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required"
+    });
+  }
+
+  return next({
+    ctx: {
+      // infers the `session` as non-nullable
+      session: { ...session, user: session.user },
+    },
+  });
+});
+
+/**
+ * Token-authenticated procedure for event access
+ *
+ * Validates a JWT token and ensures it's for event access.
+ * Use this for endpoints that require event-level access via token.
+ */
+export const eventTokenProcedure = t.procedure.use(async ({ next, input, ctx }) => {
+  // Apply rate limiting for token-based requests
+  const identifier = getClientIdentifier(ctx.headers);
+  const { success } = await generalRateLimiter.limit(identifier);
+
+  if (!success) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Rate limit exceeded. Please try again later.",
+    });
+  }
+
+  const token = (input as any)?.token;
+
+  if (!token || typeof token !== "string") {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Access token required"
+    });
+  }
+
+  let payload: TokenPayload;
+  try {
+    payload = verifyAccessToken(token);
+  } catch (error) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid or expired access token"
+    });
+  }
+
+  if (payload.type !== "event") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Invalid token type"
+    });
+  }
+
+  return next({
+    ctx: {
+      tokenPayload: payload,
+    },
+  });
+});
+
+/**
+ * Token-authenticated procedure for demo access
+ *
+ * Validates a JWT token and ensures it's for demo access.
+ * Use this for endpoints that require demo-level access via token.
+ */
+export const demoTokenProcedure = t.procedure.use(async ({ next, input, ctx }) => {
+  // Apply rate limiting for token-based requests
+  const identifier = getClientIdentifier(ctx.headers);
+  const { success } = await generalRateLimiter.limit(identifier);
+
+  if (!success) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Rate limit exceeded. Please try again later.",
+    });
+  }
+
+  const token = (input as any)?.token;
+
+  if (!token || typeof token !== "string") {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Access token required"
+    });
+  }
+
+  let payload: TokenPayload;
+  try {
+    payload = verifyAccessToken(token);
+  } catch (error) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid or expired access token"
+    });
+  }
+
+  if (payload.type !== "demo") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Invalid token type"
+    });
+  }
+
+  return next({
+    ctx: {
+      tokenPayload: payload,
     },
   });
 });

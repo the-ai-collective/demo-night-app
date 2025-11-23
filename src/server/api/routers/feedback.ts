@@ -3,10 +3,11 @@ import { z } from "zod";
 
 import {
   createTRPCRouter,
-  protectedProcedure,
+  adminProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { sanitizeEmailText } from "~/lib/sanitize";
 
 export const MAX_RATING = 5;
 
@@ -45,6 +46,18 @@ export const feedbackRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        // Sanitize user inputs
+        const sanitizedData = {
+          eventId: input.eventId,
+          attendeeId: input.attendeeId,
+          demoId: input.demoId,
+          rating: input.rating,
+          claps: input.claps,
+          tellMeMore: input.tellMeMore,
+          quickActions: input.quickActions?.map(action => sanitizeEmailText(action, 50)),
+          comment: input.comment ? sanitizeEmailText(input.comment, 500) : null,
+        };
+
         return db.feedback.upsert({
           where: {
             eventId_attendeeId_demoId: {
@@ -53,8 +66,8 @@ export const feedbackRouter = createTRPCRouter({
               demoId: input.demoId,
             },
           },
-          create: { ...input },
-          update: { ...input },
+          create: sanitizedData,
+          update: sanitizedData,
         });
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -63,7 +76,7 @@ export const feedbackRouter = createTRPCRouter({
         throw error;
       }
     }),
-  delete: protectedProcedure.input(z.string()).mutation(async ({ input }) => {
+  delete: adminProcedure.input(z.string()).mutation(async ({ input }) => {
     return db.feedback.delete({
       where: { id: input },
     });

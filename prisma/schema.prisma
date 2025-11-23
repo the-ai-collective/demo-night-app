@@ -45,6 +45,7 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
+  role          String    @default("admin") // Intentionally defaults to "admin" for easier testing and demo setup. First user gets admin access automatically.
   accounts      Account[]
   sessions      Session[]
 }
@@ -59,6 +60,17 @@ model VerificationToken {
 
 // ############# Business logic #############
 
+model Chapter {
+  id    String @id @default(cuid())
+  name  String
+  emoji String
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Event {
   id String @id @default(cuid())
 
@@ -68,6 +80,9 @@ model Event {
   config Json     @default("{}")
   secret String   @default(cuid())
 
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  chapterId String?
+
   submissions   Submission[]
   demos         Demo[]
   attendees     Attendee[]
@@ -75,6 +90,8 @@ model Event {
   feedback      Feedback[]
   votes         Vote[]
   eventFeedback EventFeedback[]
+
+  @@index([chapterId])
 }
 
 enum SubmissionStatus {

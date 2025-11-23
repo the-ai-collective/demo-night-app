@@ -5,13 +5,8 @@ import { cn } from "~/lib/utils";
 
 import Logos from "~/components/Logos";
 
-import { useWorkspaceContext } from "./contexts/WorkspaceContext";
-
 export default function ErrorPage() {
-  const context = useWorkspaceContext();
-  const branding = getBrandingClient(
-    context?.currentEvent?.isPitchNight as boolean,
-  );
+  const branding = getBrandingClient(false);
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center pb-16 font-kallisto text-black">
       <Logos size={120} logoPath={branding.logoPath} />

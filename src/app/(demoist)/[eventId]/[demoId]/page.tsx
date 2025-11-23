@@ -24,7 +24,7 @@ export async function generateMetadata({
 
   try {
     const event = await api.event.get(eventId);
-    const demo = await api.demo.get({ id: demoId, secret });
+    const demo = await api.demo.get({ id: demoId, token: secret });
 
     if (!event || !demo) {
       return {
@@ -64,7 +64,7 @@ export default async function DemoistPage({
 
   const currentEvent = await api.event.getCurrent();
   const event = await api.event.get(eventId);
-  const demo = await api.demo.get({ id: demoId, secret });
+  const demo = await api.demo.get({ id: demoId, token: secret });
 
   if (!event || !demo) {
     redirect("/404");

@@ -1,11 +1,20 @@
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import {
   createTRPCRouter,
+  eventTokenProcedure,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import {
+  sendSubmissionConfirmation,
+  sendSubmissionApproved,
+  sendSubmissionRejected,
+} from "~/lib/email";
+import { emailRateLimiter, getClientIdentifier } from "~/lib/rate-limit";
+import { sanitizeName, sanitizeEmailText, sanitizeEmail, sanitizeURL } from "~/lib/sanitize";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -30,15 +39,59 @@ export const submissionRouter = createTRPCRouter({
         demoUrl: z.string().optional(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
+        // Sanitize all inputs before storing
+        const sanitizedData = {
+          eventId: input.eventId,
+          name: sanitizeName(input.name),
+          tagline: sanitizeEmailText(input.tagline, 200),
+          description: sanitizeEmailText(input.description, 1000),
+          email: sanitizeEmail(input.email),
+          url: sanitizeURL(input.url),
+          pocName: sanitizeName(input.pocName),
+          demoUrl: input.demoUrl ? sanitizeURL(input.demoUrl) : undefined,
+        };
+
         const result = await db.submission.create({
-          data: input,
+          data: sanitizedData,
         });
+
+        // Get event details for the email
+        const event = await db.event.findUnique({
+          where: { id: input.eventId },
+          select: { name: true },
+        });
+
+        // Send confirmation email (don't block on email sending)
+        if (event) {
+          // Check email rate limit before sending
+          const identifier = getClientIdentifier(ctx.headers);
+          const { success } = await emailRateLimiter.limit(identifier);
+
+          if (success) {
+            sendSubmissionConfirmation({
+              to: input.email,
+              demoTitle: input.name,
+              eventName: event.name,
+              submitterName: input.pocName,
+            }).catch((error) => {
+              console.error("[Submission] Failed to send confirmation email:", error);
+              // TODO: Add to monitoring/alerting system (e.g., Sentry, DataDog)
+              // TODO: Consider implementing a retry queue for failed emails
+              // Don't throw - we don't want to fail the submission if email fails
+            });
+          } else {
+            console.warn("[Submission] Email rate limit exceeded for:", identifier);
+          }
+        }
+
         return result;
-      } catch (error: any) {
-        if (error.code === "P2002") {
-          throw new Error("A submission with this email already exists.");
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+          if (error.code === "P2002") {
+            throw new Error("A submission with this email already exists.");
+          }
         }
         throw new Error("Failed to create submission.");
       }
@@ -48,20 +101,19 @@ export const submissionRouter = createTRPCRouter({
     .query(async ({ input }) => {
       return db.submission.count({ where: { eventId: input.eventId } });
     }),
-  all: publicProcedure
+  all: eventTokenProcedure
     .input(
       z.object({
         eventId: z.string(),
-        secret: z.string(),
+        token: z.string(),
       }),
     )
-    .query(async ({ input }) => {
-      const event = await db.event.findUnique({
-        where: { id: input.eventId },
-      });
-      if (event?.secret !== input.secret) {
-        throw new Error("Unauthorized");
+    .query(async ({ input, ctx }) => {
+      // Verify the token's eventId matches the requested eventId
+      if (ctx.tokenPayload.id !== input.eventId) {
+        throw new Error("Token does not grant access to this event");
       }
+
       return db.submission.findMany({
         where: { eventId: input.eventId },
       });
@@ -85,10 +137,52 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Get current submission to check status change
+      const currentSubmission = await db.submission.findUnique({
+        where: { id },
+        include: { event: { select: { name: true, url: true, date: true } } },
+      });
+
+      const result = await db.submission.update({
         where: { id },
         data,
       });
+
+      // Send status update emails if status changed to CONFIRMED or REJECTED
+      if (currentSubmission && input.status && input.status !== currentSubmission.status) {
+        const emailData = {
+          to: currentSubmission.email,
+          demoTitle: currentSubmission.name,
+          eventName: currentSubmission.event.name,
+          submitterName: currentSubmission.pocName,
+        };
+
+        if (input.status === "CONFIRMED") {
+          sendSubmissionApproved({
+            ...emailData,
+            eventUrl: currentSubmission.event.url,
+            eventDate: currentSubmission.event.date.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+          }).catch((error) => {
+            console.error("[Submission] Failed to send approval email:", error);
+            // TODO: Add to monitoring/alerting system (e.g., Sentry, DataDog)
+            // TODO: Consider implementing a retry queue for failed emails
+          });
+        } else if (input.status === "REJECTED") {
+          sendSubmissionRejected(emailData).catch((error) => {
+            console.error("[Submission] Failed to send rejection email:", error);
+            // TODO: Add to monitoring/alerting system (e.g., Sentry, DataDog)
+            // TODO: Consider implementing a retry queue for failed emails
+          });
+        }
+      }
+
+      return result;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())

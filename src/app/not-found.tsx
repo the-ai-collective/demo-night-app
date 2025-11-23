@@ -4,6 +4,8 @@ import { LinkButton } from "~/components/Button";
 import { LogoConfetti } from "~/components/Confetti";
 import Logos from "~/components/Logos";
 
+export const dynamic = 'force-dynamic';
+
 export default async function NotFoundPage({
   searchParams,
 }: {

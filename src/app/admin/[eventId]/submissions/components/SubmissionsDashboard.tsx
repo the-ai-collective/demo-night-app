@@ -85,7 +85,7 @@ export default function SubmissionsDashboard({
   const branding = getBrandingClient();
   const { data: submissions, refetch } = api.submission.all.useQuery({
     eventId: initialEvent.id,
-    secret: initialEvent.secret,
+    token: initialEvent.secret,
   });
   const setSubmissionsMutation = api.submission.setSubmissions.useMutation();
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
@@ -323,7 +323,7 @@ export default function SubmissionsDashboard({
                 </HoverCard>
               )}
               <Button asChild variant="secondary">
-                <Link href={`/${initialEvent.id}/submit`} className="gap-2">
+                <Link href={`/${initialEvent.id}/submit?from=admin`} className="gap-2">
                   <ExternalLink className="size-4" />
                   View form
                 </Link>

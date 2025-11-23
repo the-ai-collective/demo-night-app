@@ -71,10 +71,12 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             demoUrl: data.demoUrl,
           })
           .then(() => {
-            toast.success(
-              `Successfully submitted ${branding.isPitchNight ? "pitch" : "demo"}!`,
-            );
-            window.location.href = `${window.location.pathname}?success=true`;
+            const params = new URLSearchParams(window.location.search);
+            const from = params.get("from");
+            const successUrl = from
+              ? `${window.location.pathname}?success=true&from=${from}`
+              : `${window.location.pathname}?success=true`;
+            window.location.href = successUrl;
           })
           .catch((error) => {
             toast.error(error.message);

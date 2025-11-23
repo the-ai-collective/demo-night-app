@@ -5,6 +5,8 @@ import { getBranding } from "~/lib/branding.server";
 
 import Presentations from "./components/Presentations";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   const currentEvent = await api.event.getCurrent();
   const branding = await getBranding();

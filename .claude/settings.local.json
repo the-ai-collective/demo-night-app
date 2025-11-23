@@ -18,10 +18,15 @@
       "Bash(rg:*)",
       "Bash(curl:*)",
       "Bash(mkdir:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Skill(frontend-design:frontend-design)",
+      "Bash(cat:*)",
+      "WebSearch"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["context7"]
+  "enabledMcpjsonServers": [
+    "context7"
+  ]
 }

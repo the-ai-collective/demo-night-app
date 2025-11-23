@@ -39,7 +39,7 @@ import FeedbackOverview from "./FeedbackOverview";
 import { env } from "~/env";
 
 const REFRESH_INTERVAL =
-  env.NEXT_PUBLIC_NODE_ENV === "development" ? 1_000 : 5_000;
+  env.NEXT_PUBLIC_NODE_ENV === "development" ? 5_000 : 5_000;
 
 export default function DemosAndFeedbackTab() {
   const { currentEvent, event, refetchEvent, config } = useDashboardContext();

@@ -1,12 +1,11 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { type EventConfig } from "~/lib/types/eventConfig";
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 import { Button } from "~/components/ui/button";
@@ -16,10 +15,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
 import { env } from "~/env";
+
+type EventWithChapter = Event & { chapterId?: string | null };
 
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 5).toUpperCase();
@@ -32,30 +40,59 @@ export function UpsertEventModal({
   open,
   onOpenChange,
 }: {
-  event?: Event;
+  event?: EventWithChapter;
   onSubmit: (event: Event) => void;
   onDeleted: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [defaultId] = useState(() => generateRandomId());
-  const [isPitchNight, setIsPitchNight] = useState(
-    (event?.config as EventConfig)?.isPitchNight ?? false,
-  );
+  const [isPitchNight, setIsPitchNight] = useState(false);
   const [useTestData, setUseTestData] = useState(false);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    null,
+  );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.getAll.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
-  const { register, handleSubmit } = useForm({
-    values: {
-      name: event?.name ?? "",
-      id: event?.id ?? defaultId,
-      date: (event?.date ?? new Date()).toISOString().substring(0, 10),
-      url: event?.url ?? "",
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: {
+      name: "",
+      id: "",
+      date: "",
+      url: "",
     },
   });
+
+  // Reset form and state when modal opens/closes or event changes
+  useEffect(() => {
+    if (open) {
+      if (event) {
+        // Editing existing event
+        reset({
+          name: event.name,
+          id: event.id,
+          date: event.date.toISOString().substring(0, 10),
+          url: event.url,
+        });
+        setSelectedChapterId(event.chapterId ?? null);
+        setIsPitchNight((event.config as EventConfig)?.isPitchNight ?? false);
+      } else {
+        // Creating new event - reset to empty form
+        reset({
+          name: "",
+          id: generateRandomId(),
+          date: new Date().toISOString().substring(0, 10),
+          url: "",
+        });
+        setSelectedChapterId(null);
+        setIsPitchNight(false);
+      }
+      setUseTestData(false);
+    }
+  }, [event, open, reset]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,6 +114,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: selectedChapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -136,6 +174,7 @@ export function UpsertEventModal({
               type="date"
               {...register("date", { valueAsDate: true })}
               className="rounded-md border border-gray-200 p-2"
+              min={new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().substring(0, 10)}
               required
             />
           </label>
@@ -150,6 +189,27 @@ export function UpsertEventModal({
               required
             />
           </label>
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={selectedChapterId ?? "none"}
+              onValueChange={(value) =>
+                setSelectedChapterId(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"
@@ -199,12 +259,7 @@ export function UpsertEventModal({
             <Button
               type="submit"
               disabled={upsertMutation.isPending}
-              className={cn(
-                "flex-1",
-                isPitchNight
-                  ? "bg-green-700/80 hover:bg-green-800/80"
-                  : "bg-orange-500/80 hover:bg-orange-600/80",
-              )}
+              className="flex-1"
             >
               {event ? "Update Event" : "Create Event"}
             </Button>

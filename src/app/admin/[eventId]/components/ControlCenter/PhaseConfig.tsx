@@ -1,10 +1,10 @@
 import {
   HandshakeIcon,
+  LoaderIcon,
   PresentationIcon,
   TrophyIcon,
   VoteIcon,
 } from "lucide-react";
-import { LoaderIcon } from "lucide-react";
 
 import { EventPhase } from "~/lib/types/currentEvent";
 

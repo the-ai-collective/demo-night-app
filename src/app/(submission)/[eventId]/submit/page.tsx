@@ -59,7 +59,7 @@ export default async function SubmitDemoPage({
   searchParams,
 }: {
   params: { eventId: string };
-  searchParams?: { success?: boolean };
+  searchParams?: { success?: boolean; from?: string };
 }) {
   const event = await api.event.get(params.eventId);
   const session = await getServerAuthSession();
@@ -69,7 +69,7 @@ export default async function SubmitDemoPage({
   }
 
   if (searchParams?.success) {
-    return <SubmitDemoMessagePage success={true} event={event} />;
+    return <SubmitDemoMessagePage success={true} event={event} fromAdmin={searchParams.from === "admin"} />;
   }
 
   const eventDate = new Date(event.date);
@@ -98,9 +98,11 @@ export default async function SubmitDemoPage({
 function SubmitDemoMessagePage({
   success,
   event,
+  fromAdmin = false,
 }: {
   success: boolean;
   event: CompleteEvent;
+  fromAdmin?: boolean;
 }) {
   const branding = getBrandingClient(
     (event.config as EventConfig)?.isPitchNight as boolean,
@@ -110,12 +112,14 @@ function SubmitDemoMessagePage({
     ? "Your submission has been received. Expect to hear from us a few days before the event!"
     : "Oof. Sorry, but the buzzer has already sounded!";
 
+  const backUrl = fromAdmin ? `/admin` : event.url;
+
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center px-4 pb-16 text-center font-kallisto text-black">
       <Logos size={120} logoPath={branding.logoPath} />
       <h1 className="pt-4 text-center text-2xl font-bold">{title}</h1>
       <p className="text-lg font-semibold italic text-gray-500">{message}</p>
-      <LinkButton href={event.url}>Back to event</LinkButton>
+      <LinkButton href={backUrl}>Back to {fromAdmin ? "admin" : "event"}</LinkButton>
       <div className="z-3 pointer-events-none fixed inset-0">
         <LogoConfetti />
       </div>

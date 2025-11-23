@@ -8,7 +8,7 @@ import Logos from "~/components/Logos";
 import { UpdateAttendeeButton } from "./UpdateAttendee";
 
 export default function EventHeader() {
-  const { currentEvent, attendee, setAttendee } = useWorkspaceContext();
+  const { currentEvent, event, attendee, setAttendee } = useWorkspaceContext();
   const branding = getBrandingClient(currentEvent?.isPitchNight as boolean);
   return (
     <header className="fixed left-0 right-0 z-[11] flex h-20 w-full select-none flex-col items-center bg-white/60 text-black backdrop-blur">
@@ -18,9 +18,18 @@ export default function EventHeader() {
           <div className="flex w-[72px] shrink-0 items-center gap-0">
             <Logos size={36} logoPath={branding.logoPath} />
           </div>
-          <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
-            {currentEvent?.name ?? ""}
-          </h1>
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
+              {currentEvent?.name ?? ""}
+            </h1>
+            {event?.chapter && (
+              <div className="flex items-center gap-1 text-xs text-purple-700">
+                <span className="font-semibold">
+                  {event.chapter.emoji} {event.chapter.name}
+                </span>
+              </div>
+            )}
+          </div>
           <div className="flex w-[72px] shrink-0 items-center justify-end">
             <div className="flex aspect-square w-9 items-center justify-center">
               {currentEvent?.phase !== EventPhase.Pre && (
