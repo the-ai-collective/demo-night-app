@@ -1,16 +1,10 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import {
-  CalendarIcon,
-  PlusIcon,
-  Presentation,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
@@ -46,8 +40,10 @@ export default function AdminHomePage() {
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
   const { data: chapters } = api.chapter.getAllAdmin.useQuery();
-  const { data: chapterOverview } = api.chapter.getOverview.useQuery();
+  const { data: chapterOverview, refetch: refetchChapterOverview } =
+    api.chapter.getOverview.useQuery();
   const [selectedChapterId, setSelectedChapterId] = useState<string>("all");
+  const [snapshotChapterId, setSnapshotChapterId] = useState<string | null>(null);
   const {
     data: events,
     refetch: refetchEvents,
@@ -63,6 +59,7 @@ export default function AdminHomePage() {
   const refetch = () => {
     refetchCurrentEvent();
     refetchEvents();
+    refetchChapterOverview();
   };
 
   const showUpsertEventModal = (event?: Event) => {
@@ -71,6 +68,37 @@ export default function AdminHomePage() {
   };
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (!chapterOverview) return;
+
+    if (selectedChapterId !== "all") {
+      if (selectedChapterId === "uncategorized") {
+        if (snapshotChapterId !== null) setSnapshotChapterId(null);
+        return;
+      }
+      if (snapshotChapterId !== selectedChapterId) {
+        setSnapshotChapterId(selectedChapterId);
+      }
+      return;
+    }
+
+    if (
+      snapshotChapterId &&
+      chapterOverview.chapters.some((chapter) => chapter.id === snapshotChapterId)
+    ) {
+      return;
+    }
+    const defaultId =
+      chapterOverview.topChapter?.id ?? chapterOverview.chapters[0]?.id ?? null;
+    setSnapshotChapterId(defaultId);
+  }, [chapterOverview, selectedChapterId, snapshotChapterId]);
+
+  const snapshotChapter =
+    snapshotChapterId && chapterOverview
+      ? chapterOverview.chapters.find((chapter) => chapter.id === snapshotChapterId) ??
+        null
+      : null;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -107,7 +135,7 @@ export default function AdminHomePage() {
           </div>
         </div>
         {chapterOverview && (
-          <div className="mb-6 grid gap-4 md:grid-cols-4">
+          <div className="mb-6 grid gap-4 md:grid-cols-3">
             <SummaryStat
               label="Total Chapters"
               value={chapterOverview.totals.totalChapters.toString()}
@@ -117,39 +145,54 @@ export default function AdminHomePage() {
               value={chapterOverview.totals.totalEvents.toString()}
             />
             <SummaryStat
-              label="Events (30d)"
-              value={chapterOverview.totals.eventsLast30Days.toString()}
+              label="Last 30 Days"
+              value={`${chapterOverview.totals.eventsLast30Days} events`}
               subtext={`${chapterOverview.totals.attendeesLast30Days} attendees`}
-            />
-            <SummaryStat
-              label="Votes (30d)"
-              value={chapterOverview.totals.votesLast30Days.toString()}
             />
           </div>
         )}
-        {chapterOverview?.topChapter && (
-          <div className="mb-6">
-            <Card>
-              <CardContent className="flex items-center justify-between p-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Top Chapter (last 30d)
-                  </p>
-                  <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
-                    <span className="text-2xl">
-                      {chapterOverview.topChapter.emoji}
-                    </span>
-                    {chapterOverview.topChapter.name}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {chapterOverview.topChapter.attendeesLast30Days} attendees •{" "}
-                    {chapterOverview.topChapter.eventsLast30Days} events
-                  </p>
+        {chapterOverview && snapshotChapter && (
+          <Card className="mb-6">
+            <CardContent className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Chapter Snapshot</p>
+                <div className="mt-1 flex items-center gap-2 text-lg font-semibold">
+                  <span className="text-2xl">{snapshotChapter.emoji}</span>
+                  {snapshotChapter.name}
                 </div>
-                <Trophy className="h-10 w-10 text-orange-500" />
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-sm text-muted-foreground">
+                  {snapshotChapter.totalEvents} total events •{" "}
+                  {snapshotChapter.eventsLast30Days} events /{" "}
+                  {snapshotChapter.attendeesLast30Days} attendees (30d)
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 md:w-64">
+                <Select
+                  value={snapshotChapterId ?? undefined}
+                  onValueChange={(value) => setSnapshotChapterId(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select chapter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {chapterOverview.chapters.map((chapter) => (
+                      <SelectItem key={chapter.id} value={chapter.id}>
+                        {chapter.emoji} {chapter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    router.push(`/admin/chapters/${snapshotChapter.id}`)
+                  }
+                >
+                  View Full Stats
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
         <div className="flex flex-col gap-4">
           {isLoading ? (

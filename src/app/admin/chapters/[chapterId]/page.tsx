@@ -71,11 +71,7 @@ export default function ChapterStatsPage({
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/admin/chapters")}
-            >
+            <Button variant="ghost" size="icon" onClick={() => router.push("/admin")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -88,6 +84,9 @@ export default function ChapterStatsPage({
               )}
             </div>
           </div>
+          <Button variant="outline" onClick={() => router.push("/admin/chapters")}>
+            Manage Chapters
+          </Button>
         </div>
 
         {/* Ranking Cards */}
