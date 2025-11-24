@@ -6,6 +6,10 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import {
+  sendSubmissionConfirmationEmail,
+  sendSubmissionStatusUpdateEmail,
+} from "~/lib/email";
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -32,9 +36,36 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       try {
+        // Fetch event data for email
+        const event = await db.event.findUnique({
+          where: { id: input.eventId },
+        });
+
+        if (!event) {
+          throw new Error("Event not found");
+        }
+
         const result = await db.submission.create({
           data: input,
         });
+
+        // Send confirmation email (non-blocking)
+        sendSubmissionConfirmationEmail({
+          submission: {
+            name: result.name,
+            email: result.email,
+            tagline: result.tagline,
+          },
+          event: {
+            name: event.name,
+            date: event.date,
+            url: event.url,
+          },
+        }).catch((error) => {
+          // Log but don't throw - email failures shouldn't break submission creation
+          console.error("Failed to send confirmation email:", error);
+        });
+
         return result;
       } catch (error: any) {
         if (error.code === "P2002") {
@@ -85,10 +116,60 @@ export const submissionRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      return db.submission.update({
+
+      // Fetch current submission to check previous status
+      const previousSubmission = await db.submission.findUnique({
+        where: { id },
+        include: {
+          event: true,
+        },
+      });
+
+      if (!previousSubmission) {
+        throw new Error("Submission not found");
+      }
+
+      const previousStatus = previousSubmission.status;
+      const updatedSubmission = await db.submission.update({
         where: { id },
         data,
       });
+
+      // Fetch event separately since we need it for email
+      const event = await db.event.findUnique({
+        where: { id: previousSubmission.eventId },
+      });
+
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      // Send status update email if status changed to CONFIRMED or REJECTED
+      if (
+        data.status &&
+        (data.status === "CONFIRMED" || data.status === "REJECTED") &&
+        previousStatus !== data.status
+      ) {
+        sendSubmissionStatusUpdateEmail({
+          submission: {
+            name: updatedSubmission.name,
+            email: updatedSubmission.email,
+            tagline: updatedSubmission.tagline,
+          },
+          event: {
+            name: event.name,
+            date: event.date,
+            url: event.url,
+          },
+          previousStatus,
+          newStatus: data.status,
+        }).catch((error) => {
+          // Log but don't throw - email failures shouldn't break status updates
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return updatedSubmission;
     }),
   convertToDemo: protectedProcedure
     .input(z.string())
@@ -133,7 +214,18 @@ export const submissionRouter = createTRPCRouter({
       if (event?.secret !== input.secret) {
         throw new Error("Unauthorized");
       }
-      return db.submission.update({
+
+      // Fetch current submission to check previous status
+      const previousSubmission = await db.submission.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!previousSubmission) {
+        throw new Error("Submission not found");
+      }
+
+      const previousStatus = previousSubmission.status;
+      const updatedSubmission = await db.submission.update({
         where: { id: input.id },
         data: {
           status: input.status,
@@ -142,6 +234,33 @@ export const submissionRouter = createTRPCRouter({
           comment: input.comment,
         },
       });
+
+      // Send status update email if status changed to CONFIRMED or REJECTED
+      if (
+        input.status &&
+        (input.status === "CONFIRMED" || input.status === "REJECTED") &&
+        previousStatus !== input.status
+      ) {
+        sendSubmissionStatusUpdateEmail({
+          submission: {
+            name: updatedSubmission.name,
+            email: updatedSubmission.email,
+            tagline: updatedSubmission.tagline,
+          },
+          event: {
+            name: event.name,
+            date: event.date,
+            url: event.url,
+          },
+          previousStatus,
+          newStatus: input.status,
+        }).catch((error) => {
+          // Log but don't throw - email failures shouldn't break status updates
+          console.error("Failed to send status update email:", error);
+        });
+      }
+
+      return updatedSubmission;
     }),
   setSubmissions: protectedProcedure
     .input(

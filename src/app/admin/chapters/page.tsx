@@ -1,7 +1,8 @@
 "use client";
 
 import { type Chapter } from "@prisma/client";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { ArrowLeftIcon, PlusIcon, SearchIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -10,16 +11,6 @@ import { getBrandingClient } from "~/lib/branding";
 import { api } from "~/trpc/react";
 
 import Logos from "~/components/Logos";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent } from "~/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +21,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
@@ -50,7 +51,12 @@ export default function ChaptersPage() {
   const updateMutation = api.chapter.update.useMutation();
   const deleteMutation = api.chapter.delete.useMutation();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       name: "",
       emoji: "",
@@ -58,10 +64,12 @@ export default function ChaptersPage() {
     },
   });
 
-  const filteredChapters = chapters?.filter((chapter) =>
-    chapter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chapter.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  ) ?? [];
+  const filteredChapters =
+    chapters?.filter(
+      (chapter) =>
+        chapter.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        chapter.slug.toLowerCase().includes(searchQuery.toLowerCase()),
+    ) ?? [];
 
   const openCreateModal = () => {
     setChapterToEdit(undefined);
@@ -140,6 +148,14 @@ export default function ChaptersPage() {
       </header>
 
       <div className="container mx-auto p-8">
+        <div className="mb-4">
+          <Link href="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeftIcon className="mr-2 h-4 w-4" />
+              Back to Events
+            </Button>
+          </Link>
+        </div>
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Chapters</h2>
@@ -178,19 +194,28 @@ export default function ChaptersPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredChapters.map((chapter) => (
-              <Card key={chapter.id} className="hover:shadow-md transition-shadow">
+              <Card
+                key={chapter.id}
+                className="transition-shadow hover:shadow-md"
+              >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="mb-2 flex items-center gap-2">
                         <span className="text-2xl">{chapter.emoji}</span>
-                        <h3 className="font-semibold text-lg">{chapter.name}</h3>
+                        <h3 className="text-lg font-semibold">
+                          {chapter.name}
+                        </h3>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Slug: <code className="text-xs bg-muted px-1 py-0.5 rounded">{chapter.slug}</code>
+                      <p className="mb-1 text-sm text-muted-foreground">
+                        Slug:{" "}
+                        <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                          {chapter.slug}
+                        </code>
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {chapter._count.events} {chapter._count.events === 1 ? "event" : "events"}
+                        {chapter._count.events}{" "}
+                        {chapter._count.events === 1 ? "event" : "events"}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -244,7 +269,9 @@ export default function ChaptersPage() {
                   placeholder="San Francisco"
                 />
                 {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -255,7 +282,9 @@ export default function ChaptersPage() {
                   placeholder="🌉"
                 />
                 {errors.emoji && (
-                  <p className="text-sm text-destructive">{errors.emoji.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.emoji.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -265,16 +294,20 @@ export default function ChaptersPage() {
                   {...register("slug", {
                     pattern: {
                       value: /^[a-z0-9-]+$/,
-                      message: "Slug must be lowercase alphanumeric with hyphens",
+                      message:
+                        "Slug must be lowercase alphanumeric with hyphens",
                     },
                   })}
                   placeholder="sf (auto-generated from name if not provided)"
                 />
                 {errors.slug && (
-                  <p className="text-sm text-destructive">{errors.slug.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.slug.message}
+                  </p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Used in URLs. Auto-generated from name if not provided. Lowercase letters, numbers, and hyphens only.
+                  Used in URLs. Auto-generated from name if not provided.
+                  Lowercase letters, numbers, and hyphens only.
                   {chapterToEdit && " Leave empty to keep current slug."}
                 </p>
               </div>
@@ -287,7 +320,10 @@ export default function ChaptersPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
                 {chapterToEdit ? "Update" : "Create"}
               </Button>
             </DialogFooter>
@@ -301,11 +337,13 @@ export default function ChaptersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Chapter</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{chapterToDelete?.name}</strong>?
+              Are you sure you want to delete{" "}
+              <strong>{chapterToDelete?.name}</strong>?
               <br />
               <br />
-              Deleting a chapter will not delete events. Events assigned to this chapter
-              will become unassigned and can be reassigned to another chapter later.
+              Deleting a chapter will not delete events. Events assigned to this
+              chapter will become unassigned and can be reassigned to another
+              chapter later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -322,4 +360,3 @@ export default function ChaptersPage() {
     </main>
   );
 }
-

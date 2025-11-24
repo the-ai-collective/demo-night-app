@@ -166,14 +166,14 @@ export function UpsertEventModal({
           <div className="flex flex-col gap-1">
             <Label htmlFor="chapter">Chapter</Label>
             <Select
-              value={chapterId ?? ""}
-              onValueChange={(value) => setChapterId(value === "" ? null : value)}
+              value={chapterId ?? "none"}
+              onValueChange={(value) => setChapterId(value === "none" ? null : value)}
             >
               <SelectTrigger id="chapter">
                 <SelectValue placeholder="No chapter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No chapter</SelectItem>
+                <SelectItem value="none">No chapter</SelectItem>
                 {chapters?.map((chapter) => (
                   <SelectItem key={chapter.id} value={chapter.id}>
                     {chapter.emoji} {chapter.name}

@@ -61,6 +61,7 @@
     "react-hook-form": "^7.54.2",
     "react-qr-code": "^2.0.12",
     "react-resizable-panels": "^2.1.7",
+    "resend": "^6.5.2",
     "server-only": "^0.0.1",
     "sonner": "^1.4.41",
     "superjson": "^2.2.1",
