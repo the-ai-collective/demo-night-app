@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, PlusIcon, Presentation, Settings, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,10 +11,18 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import { ChapterManagement } from "./components/ChapterManagement";
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -31,13 +39,25 @@ function getDaysAgo(date: Date): string {
 
 export default function AdminHomePage() {
   const branding = getBrandingClient();
+  const [selectedChapterId, setSelectedChapterId] = useState<
+    string | null | undefined
+  >(undefined);
+  const [chapterManagementOpen, setChapterManagementOpen] = useState(false);
   const { data: currentEvent, refetch: refetchCurrentEvent } =
     api.event.getCurrent.useQuery();
   const {
     data: events,
     refetch: refetchEvents,
     isLoading,
-  } = api.event.allAdmin.useQuery();
+  } = api.event.allAdmin.useQuery({
+    chapterId:
+      selectedChapterId === undefined
+        ? undefined
+        : selectedChapterId === "none"
+          ? null
+          : selectedChapterId,
+  });
+  const { data: chapters } = api.chapter.getAll.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
 
@@ -70,12 +90,43 @@ export default function AdminHomePage() {
         </div>
       </header>
       <div className="container mx-auto p-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select
+              value={selectedChapterId ?? "all"}
+              onValueChange={(value) =>
+                setSelectedChapterId(value === "all" ? undefined : value)
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Chapters</SelectItem>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    <span className="flex items-center gap-2">
+                      <span>{chapter.emoji}</span>
+                      <span>{chapter.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              onClick={() => setChapterManagementOpen(true)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Chapters
+            </Button>
+            <Button onClick={() => showUpsertEventModal()}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </div>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -117,6 +168,11 @@ export default function AdminHomePage() {
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="flex items-center gap-2">
+                          {event.chapter && (
+                            <span className="text-xl" title={event.chapter.name}>
+                              {event.chapter.emoji}
+                            </span>
+                          )}
                           <span className="line-clamp-1 text-xl">
                             {event.name}
                           </span>
@@ -210,6 +266,10 @@ export default function AdminHomePage() {
         }}
         open={modalOpen}
         onOpenChange={setModalOpen}
+      />
+      <ChapterManagement
+        open={chapterManagementOpen}
+        onOpenChange={setChapterManagementOpen}
       />
     </main>
   );

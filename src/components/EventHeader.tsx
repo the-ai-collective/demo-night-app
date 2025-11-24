@@ -26,13 +26,23 @@ export default function EventHeader({
         <div className="flex w-full flex-1 flex-row items-center justify-between px-3">
           <Logos size={36} logoPath={branding.logoPath} />
           <div className="flex flex-col items-center">
-            <h1 className="mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
+            <h1 className="mt-1 flex items-center gap-1 line-clamp-1 text-ellipsis px-1 font-marker text-xl font-bold tracking-tight">
+              {event.chapter && (
+                <span className="text-xl" title={event.chapter.name}>
+                  {event.chapter.emoji}
+                </span>
+              )}
               {demoName
                 ? `${demoName} ${branding.appName.replace(" Night", "")} Recap`
                 : event.name}
             </h1>
             {demoName && (
-              <h2 className="-mt-1 line-clamp-1 text-ellipsis px-1 font-marker text-sm font-bold tracking-tight">
+              <h2 className="-mt-1 flex items-center gap-1 line-clamp-1 text-ellipsis px-1 font-marker text-sm font-bold tracking-tight">
+                {event.chapter && (
+                  <span className="text-sm" title={event.chapter.name}>
+                    {event.chapter.emoji}
+                  </span>
+                )}
                 {event.name}
               </h2>
             )}

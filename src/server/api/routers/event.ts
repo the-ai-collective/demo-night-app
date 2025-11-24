@@ -103,6 +103,7 @@ export const eventRouter = createTRPCRouter({
         date: z.date().optional(),
         url: z.string().url().optional(),
         config: eventConfigSchema.optional(),
+        chapterId: z.string().nullable().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -112,6 +113,7 @@ export const eventRouter = createTRPCRouter({
         date: input.date,
         url: input.url,
         config: input.config,
+        chapterId: input.chapterId,
       };
 
       try {
@@ -162,25 +164,44 @@ export const eventRouter = createTRPCRouter({
         throw error;
       }
     }),
-  allAdmin: protectedProcedure.query(() => {
-    return db.event.findMany({
-      orderBy: { date: "desc" },
-      select: {
-        id: true,
-        name: true,
-        date: true,
-        url: true,
-        config: true,
-        secret: true,
-        _count: {
-          select: {
-            demos: true,
-            attendees: true,
+  allAdmin: protectedProcedure
+    .input(
+      z
+        .object({
+          chapterId: z.string().nullable().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      return db.event.findMany({
+        where: input?.chapterId !== undefined
+          ? { chapterId: input.chapterId }
+          : undefined,
+        orderBy: { date: "desc" },
+        select: {
+          id: true,
+          name: true,
+          date: true,
+          url: true,
+          config: true,
+          secret: true,
+          chapterId: true,
+          chapter: {
+            select: {
+              id: true,
+              name: true,
+              emoji: true,
+            },
+          },
+          _count: {
+            select: {
+              demos: true,
+              attendees: true,
+            },
           },
         },
-      },
-    });
-  }),
+      });
+    }),
   getAdmin: protectedProcedure
     .input(z.string())
     .query(async ({ input }): Promise<AdminEvent | null> => {
@@ -505,6 +526,13 @@ const completeEventSelect: Prisma.EventSelect = {
   date: true,
   url: true,
   config: true,
+  chapter: {
+    select: {
+      id: true,
+      name: true,
+      emoji: true,
+    },
+  },
   demos: {
     orderBy: { index: "asc" },
     select: {

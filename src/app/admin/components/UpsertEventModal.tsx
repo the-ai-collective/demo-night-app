@@ -16,6 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
 
 import { DeleteEventButton } from "./DeleteEvent";
@@ -43,8 +50,12 @@ export function UpsertEventModal({
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
   const [useTestData, setUseTestData] = useState(false);
+  const [chapterId, setChapterId] = useState<string | null>(
+    (event as { chapterId?: string | null })?.chapterId ?? null,
+  );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.getAll.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
@@ -77,6 +88,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: chapterId || null,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -149,6 +161,30 @@ export function UpsertEventModal({
               placeholder="https://lu.ma/demo-night"
               required
             />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-semibold">Chapter</span>
+            <Select
+              value={chapterId ?? "none"}
+              onValueChange={(value) =>
+                setChapterId(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a chapter (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    <span className="flex items-center gap-2">
+                      <span>{chapter.emoji}</span>
+                      <span>{chapter.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch

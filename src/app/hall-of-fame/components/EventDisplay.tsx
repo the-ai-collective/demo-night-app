@@ -44,6 +44,11 @@ export default function EventDisplay({ events }: EventDisplayProps) {
         />
         <div className="mt-8 flex w-full max-w-2xl flex-col items-center">
           <h1 className="flex items-center gap-2 text-center font-kallisto text-4xl font-extrabold text-black">
+            {selectedEvent.chapter && (
+              <span className="text-4xl" title={selectedEvent.chapter.name}>
+                {selectedEvent.chapter.emoji}
+              </span>
+            )}
             {selectedEvent.name}
           </h1>
           <p className="mt-1 text-lg font-bold text-gray-500">
