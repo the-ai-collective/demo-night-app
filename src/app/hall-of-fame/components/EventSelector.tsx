@@ -111,7 +111,14 @@ export default function EventSelector({
                     )}
                   >
                     <div className="flex w-full flex-col leading-6">
-                      <p>{event.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p>{event.name}</p>
+                        {event.chapter && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                            {event.chapter.emoji} {event.chapter.name}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-sm font-semibold italic leading-5 text-gray-700">
                         {new Date(event.date).toLocaleDateString()}
                       </p>

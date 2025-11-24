@@ -16,7 +16,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 
 import { DeleteEventButton } from "./DeleteEvent";
 import { env } from "~/env";
@@ -43,8 +51,12 @@ export function UpsertEventModal({
     (event?.config as EventConfig)?.isPitchNight ?? false,
   );
   const [useTestData, setUseTestData] = useState(false);
+  const [chapterId, setChapterId] = useState<string | null>(
+    event?.chapterId ?? null,
+  );
   const upsertMutation = api.event.upsert.useMutation();
   const populateTestDataMutation = api.event.populateTestData.useMutation();
+  const { data: chapters } = api.chapter.list.useQuery();
 
   const isDevMode = env.NEXT_PUBLIC_NODE_ENV === "development";
 
@@ -77,6 +89,7 @@ export function UpsertEventModal({
                 date: new Date(data.date),
                 url: data.url,
                 config,
+                chapterId: chapterId,
               })
               .then(async (result) => {
                 // If creating new event and test data checkbox is checked, populate test data
@@ -150,6 +163,25 @@ export function UpsertEventModal({
               required
             />
           </label>
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="chapter">Chapter</Label>
+            <Select
+              value={chapterId ?? ""}
+              onValueChange={(value) => setChapterId(value === "" ? null : value)}
+            >
+              <SelectTrigger id="chapter">
+                <SelectValue placeholder="No chapter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No chapter</SelectItem>
+                {chapters?.map((chapter) => (
+                  <SelectItem key={chapter.id} value={chapter.id}>
+                    {chapter.emoji} {chapter.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-start gap-3 rounded-md border border-gray-200 p-3">
             <Switch
               id="isPitchNight"

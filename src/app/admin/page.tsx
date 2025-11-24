@@ -1,8 +1,9 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Users } from "lucide-react";
+import { CalendarIcon, MapPinIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -15,6 +16,13 @@ import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardTitle } from "~/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 function getDaysAgo(date: Date): string {
   const now = new Date();
@@ -38,8 +46,10 @@ export default function AdminHomePage() {
     refetch: refetchEvents,
     isLoading,
   } = api.event.allAdmin.useQuery();
+  const { data: chapters } = api.chapter.list.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
 
   const refetch = () => {
     refetchCurrentEvent();
@@ -52,6 +62,12 @@ export default function AdminHomePage() {
   };
 
   const router = useRouter();
+
+  const filteredEvents = events?.filter((event) => {
+    if (selectedChapterId === null) return true;
+    if (selectedChapterId === "unassigned") return !event.chapterId;
+    return event.chapterId === selectedChapterId;
+  }) ?? [];
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -66,16 +82,52 @@ export default function AdminHomePage() {
               Admin Dashboard
             </span>
           </div>
-          <div className="flex w-[108px] items-center justify-end" />
+          <div className="flex w-[108px] items-center justify-end">
+            <Link href="/admin/chapters">
+              <Button variant="ghost" size="sm">
+                <MapPinIcon className="mr-2 h-4 w-4" />
+                Chapters
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
       <div className="container mx-auto p-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">Events</h2>
-          <Button onClick={() => showUpsertEventModal()}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Create Event
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/admin/chapters">
+              <Button variant="outline">
+                <MapPinIcon className="mr-2 h-4 w-4" />
+                Manage Chapters
+              </Button>
+            </Link>
+            <Button onClick={() => showUpsertEventModal()}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Event
+            </Button>
+          </div>
+        </div>
+        <div className="mb-4">
+          <Select
+            value={selectedChapterId ?? "all"}
+            onValueChange={(value) =>
+              setSelectedChapterId(value === "all" ? null : value === "unassigned" ? "unassigned" : value)
+            }
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by chapter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All chapters</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+              {chapters?.map((chapter) => (
+                <SelectItem key={chapter.id} value={chapter.id}>
+                  {chapter.emoji} {chapter.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-4">
           {isLoading ? (
@@ -84,8 +136,16 @@ export default function AdminHomePage() {
               <EventSkeleton />
               <EventSkeleton />
             </>
+          ) : filteredEvents.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground">
+                  No events found{selectedChapterId ? " for this chapter" : ""}.
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            events?.map((event) => (
+            filteredEvents.map((event) => (
               <Card
                 key={event.id}
                 className={cn(
@@ -116,10 +176,15 @@ export default function AdminHomePage() {
                     />
                     <div className="flex min-w-0 flex-1 items-center gap-4">
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 flex-wrap">
                           <span className="line-clamp-1 text-xl">
                             {event.name}
                           </span>
+                          {event.chapter && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                              {event.chapter.emoji} {event.chapter.name}
+                            </span>
+                          )}
                           {event.id === currentEvent?.id && (
                             <div className="flex items-center gap-2 rounded-full bg-green-100 px-2 py-1">
                               <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />

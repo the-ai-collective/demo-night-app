@@ -26,10 +26,9 @@ declare module "next-auth" {
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface JWT {
+    id?: string;
+  }
 }
 
 /**
@@ -67,13 +66,24 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session: ({ session, token, user }) => {
+      // For database sessions (OAuth), use user.id
+      // For JWT sessions (Credentials), use token.id
+      const userId = user?.id ?? (token.id as string | undefined);
+      if (userId) {
+        session.user.id = userId;
+      }
+      return session;
+    },
+  },
+  session: {
+    strategy: "jwt", // Use JWT for credentials, database for OAuth
   },
   theme: { logo: "/images/logo.png", colorScheme: "light" },
 };

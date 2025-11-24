@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   demo-night-app-redis:
     image: redis
@@ -16,7 +14,7 @@ services:
       SRH_CONNECTION_STRING: "redis://demo-night-app-redis:6379" # Using `demo-night-app-redis` hostname since they're in the same Docker network.
 
   demo-night-app-postgres:
-    image: postgres
+    image: postgres:15
     environment:
       POSTGRES_DB: demo-night-app
       POSTGRES_USER: postgres
