@@ -6,5 +6,9 @@ export default function Emoji({
   const codePoints = children.includes("-") ?
     children.split("-").map((code: string) => Number(`0x${code}`)) : [Number(`0x${children}`)];
 
+  if (codePoints.find((point) => Number.isNaN(point))) {
+    return <></>
+  }
+  
   return <span>{String.fromCodePoint(...codePoints)}</span>
 }
