@@ -44,7 +44,7 @@ export function UpsertChapterModal({
     values: {
       name: chapter?.name ?? "",
       id: chapter?.id ?? null,
-      emoji: chapter?.emoji ?? "",
+      emoji: chapter?.emoji ?? "1f680",
     },
   });
 
