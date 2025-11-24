@@ -105,7 +105,12 @@ export function AdminSidebar({
                       className="-ml-1"
                     />
                     <div className="flex flex-col items-start">
-                      <div className="flex items-center">
+                      <div className="flex items-center gap-2">
+                        {event.chapter && (
+                          <span className="text-lg" title={event.chapter.name}>
+                            {event.chapter.emoji}
+                          </span>
+                        )}
                         <div className="line-clamp-1 text-base font-bold leading-6">
                           {event.name}
                         </div>
@@ -121,6 +126,12 @@ export function AdminSidebar({
                             day: "numeric",
                           })}
                         </time>
+                        {event.chapter && (
+                          <>
+                            <span>•</span>
+                            <span>{event.chapter.name}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -142,8 +153,15 @@ export function AdminSidebar({
                       onClick={() => router.push(`/admin/${e.id}`)}
                     >
                       <div className="flex flex-col items-start">
-                        <div className="line-clamp-1 font-bold leading-6">
-                          {e.name}
+                        <div className="flex items-center gap-2">
+                          {e.chapter && (
+                            <span className="text-sm" title={e.chapter.name}>
+                              {e.chapter.emoji}
+                            </span>
+                          )}
+                          <div className="line-clamp-1 font-bold leading-6">
+                            {e.name}
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <CalendarIcon className="h-3 w-3" />

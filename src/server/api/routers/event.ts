@@ -208,6 +208,13 @@ export const eventRouter = createTRPCRouter({
       return db.event.findUnique({
         where: { id: input },
         include: {
+          chapter: {
+            select: {
+              id: true,
+              name: true,
+              emoji: true,
+            },
+          },
           demos: { orderBy: { index: "asc" } },
           attendees: { orderBy: { name: "asc" } },
           awards: { orderBy: { index: "asc" } },

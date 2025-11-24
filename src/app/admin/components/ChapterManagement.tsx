@@ -4,6 +4,7 @@ import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { EmojiPicker } from "~/components/EmojiPicker";
 import { api } from "~/trpc/react";
 
 type Chapter = {
@@ -244,19 +245,28 @@ function ChapterEditDialog({
           </label>
           <label className="flex flex-col gap-1">
             <span className="font-semibold">Emoji</span>
-            <input
-              type="text"
+            <EmojiPicker
               value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-              className="rounded-md border border-gray-200 p-2 text-2xl"
-              placeholder="🌉"
-              autoComplete="off"
-              maxLength={2}
-              required
+              onEmojiSelect={setEmoji}
+              disabled={createMutation.isPending || updateMutation.isPending}
             />
             <p className="text-xs text-muted-foreground">
-              Enter an emoji to represent this chapter (e.g., 🌉, 🗽, 🏛️)
+              Select an emoji to represent this chapter, or type one manually
             </p>
+            {emoji && (
+              <div className="mt-1 flex items-center gap-2 rounded-md border border-gray-200 p-2">
+                <span className="text-2xl">{emoji}</span>
+                <input
+                  type="text"
+                  value={emoji}
+                  onChange={(e) => setEmoji(e.target.value)}
+                  className="flex-1 rounded-md border-0 bg-transparent p-0 text-sm focus:outline-none focus:ring-0"
+                  placeholder="Or type emoji manually"
+                  autoComplete="off"
+                  maxLength={2}
+                />
+              </div>
+            )}
           </label>
           <div className="flex gap-2">
             <Button

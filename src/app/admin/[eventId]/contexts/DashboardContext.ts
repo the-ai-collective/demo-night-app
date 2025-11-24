@@ -1,6 +1,7 @@
 import {
   type Attendee,
   type Award,
+  type Chapter,
   type Demo,
   type Event,
   type EventFeedback,
@@ -11,6 +12,7 @@ import { type CurrentEvent } from "~/lib/types/currentEvent";
 import { type EventConfig } from "~/lib/types/eventConfig";
 
 export type AdminEvent = Event & {
+  chapter: Pick<Chapter, "id" | "name" | "emoji"> | null;
   demos: Demo[];
   attendees: Attendee[];
   awards: Award[];
