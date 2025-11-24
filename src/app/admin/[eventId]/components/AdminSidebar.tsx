@@ -147,22 +147,29 @@ export function AdminSidebar({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  {events?.map((e) => (
-                    <DropdownMenuItem
-                      key={e.id}
-                      onClick={() => router.push(`/admin/${e.id}`)}
-                    >
-                      <div className="flex flex-col items-start">
-                        <div className="flex items-center gap-2">
-                          {e.chapter && (
-                            <span className="text-sm" title={e.chapter.name}>
-                              {e.chapter.emoji}
-                            </span>
-                          )}
-                          <div className="line-clamp-1 font-bold leading-6">
-                            {e.name}
+                  {events?.map((e) => {
+                    const eventWithChapter = e as typeof e & {
+                      chapter?: { id: string; name: string; emoji: string } | null;
+                    };
+                    return (
+                      <DropdownMenuItem
+                        key={e.id}
+                        onClick={() => router.push(`/admin/${e.id}`)}
+                      >
+                        <div className="flex flex-col items-start">
+                          <div className="flex items-center gap-2">
+                            {eventWithChapter.chapter && (
+                              <span
+                                className="text-sm"
+                                title={eventWithChapter.chapter.name}
+                              >
+                                {eventWithChapter.chapter.emoji}
+                              </span>
+                            )}
+                            <div className="line-clamp-1 font-bold leading-6">
+                              {e.name}
+                            </div>
                           </div>
-                        </div>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <CalendarIcon className="h-3 w-3" />
                           <time>
@@ -177,7 +184,8 @@ export function AdminSidebar({
                         </div>
                       </div>
                     </DropdownMenuItem>
-                  ))}
+                    );
+                  })}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>

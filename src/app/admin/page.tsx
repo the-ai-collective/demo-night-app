@@ -1,7 +1,7 @@
 "use client";
 
 import { type Event } from "@prisma/client";
-import { CalendarIcon, PlusIcon, Presentation, Settings, Users } from "lucide-react";
+import { ArrowUpDown, CalendarIcon, PlusIcon, Presentation, Settings, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { type EventConfig } from "~/lib/types/eventConfig";
 import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
+import { BulkAssignEvents } from "./components/BulkAssignEvents";
 import { ChapterManagement } from "./components/ChapterManagement";
 import { UpsertEventModal } from "./components/UpsertEventModal";
 import Logos from "~/components/Logos";
@@ -59,6 +60,7 @@ export default function AdminHomePage() {
   });
   const { data: chapters } = api.chapter.getAll.useQuery();
   const [modalOpen, setModalOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<Event | undefined>(undefined);
 
   const refetch = () => {
@@ -115,6 +117,14 @@ export default function AdminHomePage() {
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              onClick={() => setBulkAssignOpen(true)}
+              disabled={!events || events.length === 0}
+            >
+              <ArrowUpDown className="mr-2 h-4 w-4" />
+              Bulk Assign
+            </Button>
             <Button
               variant="outline"
               onClick={() => setChapterManagementOpen(true)}
@@ -271,6 +281,14 @@ export default function AdminHomePage() {
         open={chapterManagementOpen}
         onOpenChange={setChapterManagementOpen}
       />
+      {events && (
+        <BulkAssignEvents
+          open={bulkAssignOpen}
+          onOpenChange={setBulkAssignOpen}
+          events={events}
+          onSuccess={() => refetch()}
+        />
+      )}
     </main>
   );
 }
