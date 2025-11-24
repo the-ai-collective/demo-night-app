@@ -9,13 +9,16 @@ import {
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
 // Email configuration
-// For development/testing, use Resend's testing domain: onboarding@resend.dev
-// For production, use your verified domain: noreply@aicollective.com
+// Configure via environment variables:
+// - RESEND_FROM_EMAIL: The email address to send from (e.g., noreply@aicollective.com)
+// - RESEND_FROM_NAME: The display name for the sender (e.g., "AI Collective")
+// Defaults: Uses Resend's testing domain in development, production domain in production
 const FROM_EMAIL =
-  env.NODE_ENV === "development"
+  env.RESEND_FROM_EMAIL ??
+  (env.NODE_ENV === "development"
     ? "onboarding@resend.dev"
-    : "noreply@aicollective.com";
-const FROM_NAME = "AI Collective";
+    : "noreply@aicollective.com");
+const FROM_NAME = env.RESEND_FROM_NAME ?? "AI Collective";
 
 /**
  * Send submission confirmation email
