@@ -73,3 +73,21 @@ yarn db:migrate
 
 - Fixing failed migrations:
   <https://www.prisma.io/docs/orm/prisma-migrate/workflows/patching-and-hotfixing>
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+This app is configured for easy deployment to Vercel. See [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for detailed instructions.
+
+**Quick Start:**
+1. Push your code to GitHub
+2. Import project in [Vercel](https://vercel.com)
+3. Set up PostgreSQL database (Vercel Postgres, Neon, or Supabase)
+4. Set up Vercel KV for Redis
+5. Configure environment variables (see deployment guide)
+6. Deploy!
+
+The build process automatically runs Prisma migrations, so your database will be set up on first deployment.
+
+For a complete walkthrough with test data seeding, see [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md).

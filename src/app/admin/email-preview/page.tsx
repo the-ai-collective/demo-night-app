@@ -16,8 +16,6 @@ const mockEvent: Event = {
   config: {},
   secret: "preview-secret",
   chapterId: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
 };
 
 const mockSubmission: Submission = {

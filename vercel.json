@@ -1,0 +1,10 @@
+{
+  "buildCommand": "prisma migrate deploy && prisma generate && next build",
+  "installCommand": "yarn install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "env": {
+    "SKIP_ENV_VALIDATION": "false"
+  }
+}
+
