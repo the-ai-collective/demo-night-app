@@ -44,6 +44,7 @@ yarn db:push                 # Push schema without migration
 - **API**: tRPC for type-safe APIs
 - **Cache**: Redis/Vercel KV
 - **Auth**: NextAuth.js with Google OAuth
+- **Email**: Resend
 - **UI**: Tailwind CSS + shadcn/ui components
 - **State Management**: React Query (via tRPC)
 
@@ -57,11 +58,12 @@ yarn db:push                 # Push schema without migration
   - `hall-of-fame/` - Past event winners display
   - `api/` - API routes for tRPC and NextAuth
 - `/src/server/` - Backend logic
-  - `api/routers/` - tRPC router definitions (event, demo, attendee, etc.)
+  - `api/routers/` - tRPC router definitions (event, demo, attendee, chapter, etc.)
   - `auth.ts` - NextAuth configuration
   - `db.ts` - Prisma client instance
 - `/src/components/` - Reusable React components
   - `ui/` - shadcn/ui base components
+- `/src/emails/` - Email templates using React Email (Resend integration)
 - `/prisma/` - Database schema and migrations
 
 ### Key Models (Prisma Schema)
@@ -73,6 +75,7 @@ yarn db:push                 # Push schema without migration
 - **Award** - Votable awards that can be won by demos
 - **Feedback** - Attendee feedback on demos (ratings, claps, comments)
 - **Vote** - Attendee votes for awards
+- **Chapter** - Event chapters with name and emoji for organization
 
 ### API Pattern
 
@@ -88,6 +91,7 @@ Required environment variables are defined in `.env.example` and validated in `/
 - Database URLs (PostgreSQL)
 - Redis/KV store configuration
 - NextAuth secret and OAuth credentials
+- Resend API key and email from address
 - Public URLs for the application
 
 ### Event Workflow
