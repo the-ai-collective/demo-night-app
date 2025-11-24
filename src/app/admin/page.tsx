@@ -1,6 +1,6 @@
 "use client";
 
-import { type Chapter, type Event } from "@prisma/client";
+import { type Event } from "@prisma/client";
 import { CalendarIcon, EyeIcon, ListFilterIcon, PlusIcon, Presentation, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -41,8 +41,6 @@ function getDaysAgo(date: Date): string {
 
 export default function AdminHomePage() {
   const branding = getBrandingClient();
-
-  const [showingFilters, setShowingFilters] = useState(false);
   const [filter, setFilter] = useState<string | null>(null);
 
   const { data: currentEvent, refetch: refetchCurrentEvent } =

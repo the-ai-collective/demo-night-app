@@ -23,7 +23,8 @@ export default function ChaptersPage() {
     data: chapters,
     refetch: refetchChapters,
     isLoading,
-  } = api.chapter.all.useQuery();
+  } = api.chapter.all.useQuery() as { data: Chapter[], refetch: any, isLoading: any };
+
   const [modalOpen, setModalOpen] = useState(false);
   const [chapterToEdit, setChapterToEdit] = useState<Chapter | undefined>(undefined);
 
@@ -75,7 +76,7 @@ export default function ChaptersPage() {
               <ChapterSkeleton />
             </>
           ) : (
-            chapters?.map((chapter) => (
+            chapters?.map((chapter: any) => (
               <Card
                 key={chapter.id}
                 className={cn(

@@ -14,7 +14,7 @@ export function useEventFeedback(eventId: string, attendeeId: string) {
     attendeeId,
   });
   const [eventFeedback, setEventFeedback] = useState<LocalEventFeedback>(
-    eventFeedbackData ?? emptyEventFeedback(eventId, attendeeId),
+    eventFeedbackData as LocalEventFeedback ?? emptyEventFeedback(eventId, attendeeId),
   );
   const [debouncedEventFeedback, setDebouncedEventFeedback] =
     useState(eventFeedback);
@@ -22,7 +22,7 @@ export function useEventFeedback(eventId: string, attendeeId: string) {
 
   useEffect(() => {
     if (eventFeedbackData) {
-      setEventFeedback(eventFeedbackData);
+      setEventFeedback(eventFeedbackData as LocalEventFeedback);
     }
   }, [eventFeedbackData]);
 

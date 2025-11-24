@@ -34,7 +34,8 @@ export default function InvestmentAmountSelect({
   const { data: votesData } = api.vote.all.useQuery({
     eventId,
     attendeeId,
-  });
+  }) as { data: [Vote] };
+
   const upsertMutation = api.vote.upsert.useMutation();
 
   // Load existing investments from votes

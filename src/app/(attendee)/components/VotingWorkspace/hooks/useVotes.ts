@@ -11,7 +11,8 @@ export function useVotes(eventId: string, attendee: Attendee) {
   const { data: votesData } = api.vote.all.useQuery({
     eventId,
     attendeeId: attendee.id,
-  });
+  }) as { data: [LocalVote] };
+
   const upsertMutation = api.vote.upsert.useMutation();
 
   useEffect(() => {

@@ -76,8 +76,8 @@ model Event {
   votes         Vote[]
   eventFeedback EventFeedback[]
 
-  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
   chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
 }
 
 model Chapter {

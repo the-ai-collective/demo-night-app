@@ -41,7 +41,7 @@ export function useFeedback(
 
   useEffect(() => {
     if (allFeedbackData) {
-      setFeedbackByDemoId(allFeedbackData);
+      setFeedbackByDemoId(allFeedbackData as FeedbackByDemoId);
     }
   }, [allFeedbackData]);
 

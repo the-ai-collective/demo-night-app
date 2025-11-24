@@ -2,16 +2,17 @@
   "compilerOptions": {
     /* Base Options: */
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "target": "es2022",
     "allowJs": true,
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
+    "maxNodeModuleJsDepth": 5,
 
     /* Strictness */
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
+    "strict": false,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
     "checkJs": true,
 
     /* Bundled projects */

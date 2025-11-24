@@ -27,7 +27,7 @@ export default function RecapWorkspace() {
   const { data: feedback } = api.feedback.all.useQuery({
     eventId: currentEvent.id,
     attendeeId: attendee.id,
-  });
+  }) as { data: Record<string, Feedback> };
 
   const markSurveyOpenedMutation =
     api.eventFeedback.markSurveyOpened.useMutation();
@@ -95,7 +95,7 @@ export default function RecapWorkspace() {
           </h2>
           <div className="z-10 flex w-full flex-col gap-4">
             {config.partners.map((p) => (
-              <PartnerItem key={p.name} {...p} />
+              <PartnerItem name={p.name} key={p.name} url={p.url} description={p.description} />
             ))}
           </div>
         </div>

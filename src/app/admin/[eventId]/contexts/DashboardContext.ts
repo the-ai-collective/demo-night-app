@@ -1,6 +1,6 @@
 import {
   type Attendee,
-  type Award,
+  type Award, Chapter,
   type Demo,
   type Event,
   type EventFeedback,
@@ -15,6 +15,7 @@ export type AdminEvent = Event & {
   attendees: Attendee[];
   awards: Award[];
   eventFeedback: EventFeedback[];
+  chapter: Chapter;
 };
 
 export type IDashboardContext = {
