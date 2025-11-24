@@ -8,8 +8,6 @@ import {
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
-export const MAX_RATING = 5;
-
 export const feedbackRouter = createTRPCRouter({
   all: publicProcedure
     .input(
