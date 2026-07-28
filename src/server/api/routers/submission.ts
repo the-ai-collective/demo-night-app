@@ -1,11 +1,26 @@
 import { z } from "zod";
 
+import { submissionCreateSchema } from "~/lib/types/submission";
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
 import { db } from "~/server/db";
+
+/**
+ * CSV imports and admin edits send "" for a cleared field, which should be
+ * stored as null. An *omitted* field stays undefined so Prisma leaves the
+ * column alone rather than nulling it out on a partial update.
+ */
+const optionalText = z
+  .string()
+  .nullable()
+  .optional()
+  .transform((value) => {
+    if (value === undefined) return undefined;
+    return value?.trim() ? value.trim() : null;
+  });
 
 const submissionStatus = z.enum([
   "PENDING",
@@ -18,22 +33,14 @@ const submissionStatus = z.enum([
 
 export const submissionRouter = createTRPCRouter({
   create: publicProcedure
-    .input(
-      z.object({
-        eventId: z.string(),
-        name: z.string(),
-        tagline: z.string(),
-        description: z.string(),
-        email: z.string().email(),
-        url: z.string().url(),
-        pocName: z.string(),
-        demoUrl: z.string().optional(),
-      }),
-    )
+    .input(submissionCreateSchema)
     .mutation(async ({ input }) => {
       try {
         const result = await db.submission.create({
-          data: input,
+          data: {
+            ...input,
+            companyLinkedin: input.companyLinkedin || null,
+          },
         });
         return result;
       } catch (error: any) {
@@ -77,6 +84,11 @@ export const submissionRouter = createTRPCRouter({
         url: z.string().url().optional(),
         pocName: z.string().optional(),
         demoUrl: z.string().nullable().optional(),
+        // Deliberately unvalidated urls: the admin panel autosaves on a 1s
+        // debounce, so strict validation here fires errors mid-keystroke.
+        pocLinkedin: optionalText,
+        companyLinkedin: optionalText,
+        demoNotes: optionalText,
         status: submissionStatus.optional(),
         flagged: z.boolean().optional(),
         rating: z.number().nullable().optional(),
@@ -157,6 +169,9 @@ export const submissionRouter = createTRPCRouter({
             url: z.string().url(),
             pocName: z.string(),
             demoUrl: z.string().nullable(),
+            pocLinkedin: optionalText,
+            companyLinkedin: optionalText,
+            demoNotes: optionalText,
           }),
         ),
       }),
