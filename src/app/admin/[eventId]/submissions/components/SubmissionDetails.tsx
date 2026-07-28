@@ -247,6 +247,9 @@ function Submission({
         url: data.url,
         demoUrl: data.demoUrl,
         pocName: data.pocName,
+        pocLinkedin: data.pocLinkedin,
+        companyLinkedin: data.companyLinkedin,
+        demoNotes: data.demoNotes,
       })
       .then(onUpdate)
       .catch((error) => {
@@ -290,6 +293,40 @@ function Submission({
               />
             </div>
           </div>
+          <div className="flex w-full flex-col gap-4 md:flex-row">
+            <div className="flex w-full flex-col gap-1">
+              <Label className="font-semibold">Your Name</Label>
+              <Input type="text" {...register("pocName")} disabled={!isAdmin} />
+            </div>
+            <div className="flex w-full flex-col gap-1">
+              <Label className="font-semibold">Your Email</Label>
+              <Input type="email" {...register("email")} disabled={!isAdmin} />
+            </div>
+          </div>
+          <div className="flex w-full flex-col gap-4 md:flex-row">
+            <div className="flex w-full flex-col gap-1">
+              <Label className="font-semibold">Your LinkedIn</Label>
+              <Input
+                type="url"
+                placeholder="None"
+                {...register("pocLinkedin")}
+                className="placeholder:italic"
+                autoComplete="off"
+                disabled={!isAdmin}
+              />
+            </div>
+            <div className="flex w-full flex-col gap-1">
+              <Label className="font-semibold">Company LinkedIn</Label>
+              <Input
+                type="url"
+                placeholder="None"
+                {...register("companyLinkedin")}
+                className="placeholder:italic"
+                autoComplete="off"
+                disabled={!isAdmin}
+              />
+            </div>
+          </div>
           <div className="flex flex-col gap-1">
             <div className="flex w-full flex-row items-center justify-start gap-1">
               <Label className="font-semibold">Tagline 👋</Label>
@@ -323,7 +360,7 @@ function Submission({
             />
           </div>
           <div className="flex flex-col gap-1">
-            <Label className="font-semibold">Demo Link 🔗</Label>
+            <Label className="font-semibold">Demo Video 🔗</Label>
             <Input
               type="url"
               placeholder="None"
@@ -333,15 +370,15 @@ function Submission({
               disabled={!isAdmin}
             />
           </div>
-          <div className="flex w-full flex-col gap-4 md:flex-row">
-            <div className="flex w-full flex-col gap-1">
-              <Label className="font-semibold">PoC Name</Label>
-              <Input type="text" {...register("pocName")} disabled={!isAdmin} />
-            </div>
-            <div className="flex w-full flex-col gap-1">
-              <Label className="font-semibold">PoC Email</Label>
-              <Input type="email" {...register("email")} disabled={!isAdmin} />
-            </div>
+          <div className="flex flex-col gap-1">
+            <Label className="font-semibold">What To Watch 👀</Label>
+            <Textarea
+              {...register("demoNotes")}
+              placeholder="None"
+              className="max-h-32 min-h-10 placeholder:italic"
+              rows={2}
+              disabled={!isAdmin}
+            />
           </div>
         </div>
       </Card>

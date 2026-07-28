@@ -1,10 +1,16 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { getBrandingClient } from "~/lib/branding";
 import { type EventConfig } from "~/lib/types/eventConfig";
+import {
+  type SubmissionFormValues,
+  submissionFormSchema,
+} from "~/lib/types/submission";
 import { TAGLINE_MAX_LENGTH } from "~/lib/types/taglineMaxLength";
 import { cn } from "~/lib/utils";
 import { type CompleteEvent } from "~/server/api/routers/event";
@@ -21,10 +27,13 @@ const PITCH_GUIDELINES_URL =
 export default function SubmitDemoPage({ event }: { event: CompleteEvent }) {
   return (
     <>
-      <div className="absolute bottom-0 max-h-[calc(100dvh-120px)] w-full max-w-2xl">
-        <div className="size-full p-4">
-          <SubmitDemoForm event={event} />
-        </div>
+      {/*
+       * Sized to exactly the space under the fixed header so the whole form
+       * lands in one viewport. The scroll is a fallback for phones and short
+       * windows only — nothing should be hidden below the fold on a laptop.
+       */}
+      <div className="absolute inset-x-0 bottom-0 top-14 mx-auto flex w-full max-w-2xl flex-col overflow-y-auto px-4">
+        <SubmitDemoForm event={event} />
       </div>
 
       <div className="z-3 pointer-events-none fixed inset-0">
@@ -34,63 +43,123 @@ export default function SubmitDemoPage({ event }: { event: CompleteEvent }) {
   );
 }
 
+/**
+ * Wraps a field so every one reads the same way: label, optional why-text
+ * explaining what we do with the answer, the control, then an inline error
+ * underneath. Fields whose label already says everything (name, email, links)
+ * skip `why` — the form has to fit on one screen.
+ */
+function Field({
+  label,
+  why,
+  error,
+  optional,
+  accessory,
+  children,
+}: {
+  label: string;
+  why?: string;
+  error?: string;
+  optional?: boolean;
+  accessory?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <label className="flex w-full flex-col gap-1">
+      <div className="flex flex-row flex-wrap items-center justify-start gap-x-2 font-semibold">
+        <span className="text-lg">{label}</span>
+        {optional && (
+          <span className="text-sm italic text-gray-400">(optional)</span>
+        )}
+        {accessory}
+      </div>
+      {why && (
+        <span className="text-base italic leading-tight text-gray-400">
+          {why}
+        </span>
+      )}
+      {children}
+      {error && <span className="text-sm text-red-500">{error}</span>}
+    </label>
+  );
+}
+
+function inputClassName(hasError: boolean, extra?: string) {
+  return cn(
+    // Held on a 24px line rather than text-lg's default 28px, so the type can
+    // grow without adding ~4px to every row on the form.
+    "z-10 rounded-lg border-2 bg-white/60 px-3 py-2.5 text-lg leading-6 backdrop-blur",
+    hasError ? "border-red-500" : "border-gray-200",
+    extra,
+  );
+}
+
 export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
   const branding = getBrandingClient(
     (event.config as EventConfig | null)?.isPitchNight ?? false,
   );
+  const isPitchNight = branding.isPitchNight;
+  const noun = isPitchNight ? "pitch" : "demo";
   const createMutation = api.submission.create.useMutation();
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm({
-    values: {
+  } = useForm<SubmissionFormValues>({
+    resolver: zodResolver(submissionFormSchema),
+    // Validate once a field has been visited, then live as it's corrected, so
+    // errors land under the field instead of arriving all at once on submit.
+    mode: "onTouched",
+    defaultValues: {
       name: "",
-      tagline: "",
-      description: "",
-      email: "",
       url: "",
       pocName: "",
+      email: "",
+      pocLinkedin: "",
+      companyLinkedin: "",
+      tagline: "",
+      description: "",
       demoUrl: "",
     },
   });
 
+  const tagline = watch("tagline") ?? "";
+
   return (
     <form
+      // Suppress native validation bubbles so the inline errors below each
+      // field are the only thing a submitter ever sees.
+      noValidate
       onSubmit={handleSubmit(async (data) => {
         await createMutation
-          .mutateAsync({
-            eventId: event.id,
-            name: data.name,
-            tagline: data.tagline,
-            description: data.description,
-            email: data.email,
-            url: data.url,
-            pocName: data.pocName,
-            demoUrl: data.demoUrl,
-          })
+          .mutateAsync({ eventId: event.id, ...data })
           .then(() => {
-            toast.success(
-              `Successfully submitted ${branding.isPitchNight ? "pitch" : "demo"}!`,
-            );
+            toast.success(`Successfully submitted ${noun}!`);
             window.location.href = `${window.location.pathname}?success=true`;
           })
           .catch((error) => {
             toast.error(error.message);
           });
       })}
-      className="flex w-full flex-col items-center gap-4 font-medium"
+      // `mt-auto` drops the form to the bottom of the space under the header,
+      // so the submit button lands just above the fold and any slack sits above
+      // the title. The auto margin collapses to 0 once the form outgrows the
+      // viewport, which keeps the top of the form reachable on short screens.
+      className="mt-auto flex w-full flex-col items-center gap-3.5 py-4 font-medium"
     >
       <div>
         <h1 className="text-center font-kallisto text-4xl font-bold tracking-tight">
-          {branding.isPitchNight
-            ? "Submit Your Pitch! 🚀"
-            : "Submit Your Demo! 🚀"}
+          {isPitchNight ? "Submit Your Pitch! 🚀" : "Submit Your Demo! 🚀"}
         </h1>
-        <p className="text-md max-w-xl pt-2 text-center font-medium leading-5 text-gray-500">
+        <p className="max-w-xl pt-1 text-center text-base font-medium leading-[21px] text-gray-500">
           We are so excited to see what you&apos;ve been building! Submissions
-          close the Saturday before the event at 11:59pm. For more info, see our{" "}
+          close the{" "}
+          {/* Hard breaks compose the three lines we want on desktop; on narrow
+              screens they'd strand words, so the text wraps on its own there. */}
+          <br className="hidden md:inline" />
+          Saturday before the event at 11:59pm. For more info, see our{" "}
           <a
             href={event.url}
             className="text-blue-500 underline"
@@ -99,189 +168,168 @@ export function SubmitDemoForm({ event }: { event: CompleteEvent }) {
             event page
           </a>
           !{" "}
-          {branding.isPitchNight
+          <br className="hidden md:inline" />
+          {isPitchNight
             ? "Pitches will be timed at five minutes."
             : "Demos will be timed at three minutes."}{" "}
           Please read our{" "}
           <a
-            href={
-              branding.isPitchNight
-                ? PITCH_GUIDELINES_URL
-                : DEMO_GUIDELINES_URL
-            }
+            href={isPitchNight ? PITCH_GUIDELINES_URL : DEMO_GUIDELINES_URL}
             className="text-blue-500 underline"
             target="_blank"
           >
-            {branding.isPitchNight ? "pitch" : "demo"} guidelines
+            {noun} guidelines
           </a>
           !
         </p>
       </div>
-      <div className="flex w-full flex-col gap-4 md:flex-row">
-        <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">
-            {branding.isPitchNight ? "Startup Name" : "Demo / Startup Name"}
-          </span>
+
+      <div className="flex w-full flex-col gap-3 md:flex-row md:gap-4">
+        <Field
+          label={isPitchNight ? "Startup Name" : "Demo / Startup Name"}
+          error={errors.name?.message}
+        >
           <input
             type="text"
             placeholder="The AI Collective"
-            {...register("name", {
-              required: `${branding.isPitchNight ? "Startup" : "Startup / demo"} name is required`,
-            })}
-            className={cn(
-              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.name ? "border-red-500" : "border-gray-200",
-            )}
+            {...register("name")}
+            className={inputClassName(!!errors.name)}
           />
-          {errors.name && (
-            <span className="text-red-500">{errors.name.message}</span>
-          )}
-        </label>
-        <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">
-            {branding.isPitchNight
-              ? "Startup Website"
-              : "Demo / Startup Website"}
-          </span>
+        </Field>
+        <Field
+          label={isPitchNight ? "Startup Website" : "Demo / Startup Website"}
+          error={errors.url?.message}
+        >
           <input
-            type="url"
+            type="text"
+            inputMode="url"
             placeholder="https://aicollective.com"
-            {...register("url", {
-              required: `${branding.isPitchNight ? "Startup" : "Startup / demo"} website is required`,
-            })}
-            className={cn(
-              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.url ? "border-red-500" : "border-gray-200",
-            )}
+            {...register("url")}
+            className={inputClassName(!!errors.url)}
           />
-          {errors.url && (
-            <span className="text-red-500">{errors.url.message}</span>
-          )}
-        </label>
+        </Field>
       </div>
-      <div className="flex w-full flex-col gap-4 md:flex-row">
-        <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">Your Name</span>
+
+      <div className="flex w-full flex-col gap-3 md:flex-row md:gap-4">
+        <Field label="Your Name" error={errors.pocName?.message}>
           <input
             type="text"
             placeholder="Ada Lovelace"
-            {...register("pocName", {
-              required: "Point of contact name is required",
-            })}
-            className={`z-10 rounded-lg border-2 p-2 text-lg backdrop-blur ${errors.pocName ? "border-red-500" : "border-gray-200 bg-white/60"}`}
+            {...register("pocName")}
+            className={inputClassName(!!errors.pocName)}
           />
-          {errors.pocName && (
-            <span className="text-red-500">{errors.pocName.message}</span>
-          )}
-        </label>
-        <label className="flex w-full flex-col gap-1">
-          <span className="text-lg font-semibold">Your Email</span>
+        </Field>
+        <Field label="Your Email" error={errors.email?.message}>
           <input
-            type="email"
+            type="text"
+            inputMode="email"
             placeholder="ada@aicollective.com"
-            {...register("email", {
-              required: "Point of contact email is required",
-            })}
-            className={cn(
-              "z-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
-              errors.email ? "border-red-500" : "border-gray-200",
-            )}
+            {...register("email")}
+            className={inputClassName(!!errors.email)}
           />
-          {errors.email && (
-            <span className="text-red-500">{errors.email.message}</span>
-          )}
-        </label>
+        </Field>
       </div>
-      <label className="flex w-full flex-col gap-1">
-        <div className="flex w-full flex-row items-center justify-start gap-1 font-semibold">
-          <span className="text-lg">Tagline 👋</span>
-          {watch("tagline")?.length >= 100 && (
+
+      <div className="flex w-full flex-col gap-3 md:flex-row md:gap-4">
+        <Field label="Your LinkedIn" error={errors.pocLinkedin?.message}>
+          <input
+            type="text"
+            inputMode="url"
+            placeholder="https://linkedin.com/in/adalovelace"
+            {...register("pocLinkedin")}
+            className={inputClassName(!!errors.pocLinkedin)}
+          />
+        </Field>
+        <Field
+          label="Company LinkedIn"
+          optional
+          error={errors.companyLinkedin?.message}
+        >
+          <input
+            type="text"
+            inputMode="url"
+            placeholder="https://linkedin.com/company/aicollective"
+            {...register("companyLinkedin")}
+            className={inputClassName(!!errors.companyLinkedin)}
+          />
+        </Field>
+      </div>
+
+      <Field
+        label="Tagline 👋"
+        why={
+          isPitchNight
+            ? `Please describe your startup in ${TAGLINE_MAX_LENGTH} characters or less!`
+            : `Please describe your startup / demo in ${TAGLINE_MAX_LENGTH} characters or less!`
+        }
+        error={errors.tagline?.message}
+        accessory={
+          tagline.length >= 100 && (
             <span
               className={cn(
-                "text-sm italic",
-                watch("tagline")?.length >= TAGLINE_MAX_LENGTH
+                "text-[13px] italic",
+                tagline.length >= TAGLINE_MAX_LENGTH
                   ? "text-red-500"
                   : "text-gray-400",
               )}
             >
-              {`(${watch("tagline").length} / ${TAGLINE_MAX_LENGTH})`}
+              {`(${tagline.length} / ${TAGLINE_MAX_LENGTH})`}
             </span>
-          )}
-        </div>
-        <span className="italic text-gray-400">
-          {branding.isPitchNight
-            ? "Please describe your startup in 120 characters or less!"
-            : "Please describe your startup / demo in 120 characters or less!"}
-        </span>
+          )
+        }
+      >
         <textarea
-          placeholder="Building a global community of the brightest minds in AI to discuss, exchange, and innovate."
-          {...register("tagline", {
-            required: "Tagline is required",
-            maxLength: {
-              value: TAGLINE_MAX_LENGTH,
-              message: `Tagline must be ${TAGLINE_MAX_LENGTH} characters or less`,
-            },
-          })}
-          className={cn(
-            "z-10 max-h-32 min-h-10 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.tagline ? "border-red-500" : "border-gray-200",
-          )}
+          placeholder="Building the human layer for the AI era"
+          {...register("tagline")}
+          className={inputClassName(!!errors.tagline, "max-h-24 min-h-10")}
           rows={2}
         />
-        {errors.tagline && (
-          <span className="text-red-500">{errors.tagline.message}</span>
-        )}
-      </label>
-      <label className="flex w-full flex-col gap-1">
-        <span className="text-lg font-semibold">
-          {branding.isPitchNight
-            ? "Pitch Description 🧑‍💻"
-            : "Demo Description 🧑‍💻"}
-        </span>
-        <span className="italic text-gray-400">
-          {branding.isPitchNight
+      </Field>
+
+      <Field
+        label={isPitchNight ? "Pitch Description 🧑‍💻" : "Demo Description 🧑‍💻"}
+        why={
+          isPitchNight
             ? "What does your startup do? What will you pitch during your five minutes? What feedback would you like from investors and the community?"
-            : "What does your startup do? What do you plan to demo to the community during your three minutes? What feedback would you like from the community?"}
-        </span>
+            : "What does your startup do? What do you plan to demo to the community during your three minutes? What feedback would you like from the community?"
+        }
+        error={errors.description?.message}
+      >
         <textarea
           placeholder="Tell us more!"
-          {...register("description", {
-            required: `${branding.isPitchNight ? "Pitch" : "Demo"} description is required`,
-          })}
-          className={cn(
-            "z-30 max-h-96 min-h-24 rounded-lg border-2 bg-white/60 p-2 text-lg backdrop-blur",
-            errors.description ? "border-red-500" : "border-gray-200",
+          {...register("description")}
+          className={inputClassName(
+            !!errors.description,
+            "z-30 max-h-40 min-h-20",
           )}
           rows={3}
         />
-        {errors.description && (
-          <span className="text-red-500">{errors.description.message}</span>
-        )}
-      </label>
-      <label className="flex w-full flex-col gap-1">
-        <div className="flex w-full flex-row items-center justify-start gap-1 font-semibold">
-          <span className="text-lg ">
-            {branding.isPitchNight ? "Additional Resources 🔗" : "Demo Link 🔗"}
-          </span>
-          <span className="text-sm italic text-gray-400">(optional)</span>
-        </div>
-        <span className="italic text-gray-400">
-          {branding.isPitchNight
+      </Field>
+
+      <Field
+        label={isPitchNight ? "Additional Resources 🔗" : "Demo Video 🔗"}
+        why={
+          isPitchNight
             ? "Have a link that showcases your startup? (e.g., pitch deck, demo video, website)"
-            : "Have a link which could help us get a better picture of what you plan to demo? Drop it here!"}
-        </span>
+            : "Have a link which could help us get a better picture of your demo? Drop it here!"
+        }
+        error={errors.demoUrl?.message}
+      >
         <input
-          type="url"
+          type="text"
+          inputMode="url"
           placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
           {...register("demoUrl")}
-          className="z-10 rounded-lg border-2 border-gray-200 bg-white/60 p-2 text-lg backdrop-blur"
+          className={inputClassName(!!errors.demoUrl)}
         />
-      </label>
+      </Field>
+
       <Button
         pending={createMutation.isPending}
-        isPitchNight={branding.isPitchNight}
+        isPitchNight={isPitchNight}
+        className="h-12"
       >
-        {branding.isPitchNight ? "Submit Pitch" : "Submit Demo"}
+        {isPitchNight ? "Submit Pitch" : "Submit Demo"}
       </Button>
     </form>
   );

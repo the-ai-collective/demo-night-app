@@ -52,15 +52,20 @@ import {
 
 import SubmissionDetails from "./SubmissionDetails";
 
+// Ordered to match the submission form. Import is keyed by header name (see
+// `columns: true` in CsvButton), so this order is presentation only.
 const CSV_HEADERS = [
   "id",
   "name",
-  "tagline",
-  "description",
-  "email",
   "url",
   "pocName",
+  "email",
+  "pocLinkedin",
+  "companyLinkedin",
+  "tagline",
+  "description",
   "demoUrl",
+  "demoNotes",
   "status",
   "flagged",
   "rating",
@@ -156,12 +161,15 @@ export default function SubmissionsDashboard({
   const csvData = submissions?.map((submission) => ({
     id: submission.id,
     name: escapeCsvField(submission.name),
-    tagline: escapeCsvField(submission.tagline),
-    description: escapeCsvField(submission.description),
-    email: escapeCsvField(submission.email),
     url: escapeCsvField(submission.url),
     pocName: escapeCsvField(submission.pocName),
+    email: escapeCsvField(submission.email),
+    pocLinkedin: escapeCsvField(submission.pocLinkedin),
+    companyLinkedin: escapeCsvField(submission.companyLinkedin),
+    tagline: escapeCsvField(submission.tagline),
+    description: escapeCsvField(submission.description),
     demoUrl: escapeCsvField(submission.demoUrl),
+    demoNotes: escapeCsvField(submission.demoNotes),
     status: submission.status,
     flagged: submission.flagged.toString(),
     rating: submission.rating?.toString() ?? "",
